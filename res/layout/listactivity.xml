@@ -1,0 +1,24 @@
+<RelativeLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"  >
+
+   	<Button
+       android:id="@+id/new_message"
+       android:layout_alignParentTop="true"
+       android:gravity="left|center_vertical"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:textColor="#333333"
+       android:textSize="33sp"
+       android:lineSpacingExtra="2dp"
+       android:background="#89CFF0"   
+       android:paddingTop="5dp"
+       android:paddingBottom="5dp"
+       android:paddingLeft="10dp"
+       android:text="+" />		
+	<ListView 
+	    android:id="@+id/listview"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content" 
+	    android:layout_below="@id/new_message"/> 
+</RelativeLayout>	    

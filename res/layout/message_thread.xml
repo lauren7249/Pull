@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" 
+    android:background="@android:color/white">
+    <LinearLayout
+        android:id="@+id/bottom_write_bar"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+         >
+        <EditText
+            android:id="@+id/text"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5sp"
+            android:layout_weight="1"
+            android:autoText="true"
+            android:background="@drawable/message_field"
+            android:capitalize="sentences"
+            android:ems="10"
+            android:color="@android:color/white"
+            android:hint="Write here"
+            android:inputType="textShortMessage|textAutoCorrect|textCapSentences|textMultiLine"
+            android:isScrollContainer="true"
+            android:lines="3"
+            android:gravity="top|left"
+            android:padding="5sp"
+            android:textColor="@color/textFieldColor" >
+
+            <requestFocus />
+        </EditText>
+	    <LinearLayout
+	        android:id="@+id/bottom_bar"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:color="@android:color/white"
+	        android:orientation="vertical" >	        
+
+	        <Button
+	            android:id="@+id/send_button"
+	            android:layout_width="wrap_content"
+	            android:layout_height="fill_parent"
+	            android:background="@drawable/send_button"
+	            android:onClick="sendMessage" />    
+	        <Button
+	            android:id="@+id/time_delay_button"
+	            android:layout_width="fill_parent"
+	            android:layout_height="wrap_content"
+	            android:color="@android:color/white"
+	            android:background="@android:color/white"
+	            android:text="Set Delay"
+	            android:textSize="13sp" 
+	            android:onClick="pickTime">
+	
+	        </Button>				            
+    	</LinearLayout> 
+	</LinearLayout> 
+    <ListView
+        android:id="@android:id/list"
+        android:layout_width="fill_parent"
+        android:layout_height="0dip"
+        android:layout_above="@id/bottom_write_bar"
+        android:layout_alignParentTop="true"
+        android:gravity="clip_vertical"
+        android:color="@android:color/white"
+        android:divider="#00000000"
+        android:listSelector="#00000000" >
+    </ListView>
+</RelativeLayout>
