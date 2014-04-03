@@ -22,7 +22,6 @@ import com.Pull.smsTest.model.ThreadItem;
 import com.Pull.smsTest.util.AlarmScheduler;
 import com.Pull.smsTest.util.Constants;
 import com.Pull.smsTest.util.ContentUtils;
-import com.Pull.smsTest.util.This;
 import com.Pull.smsTest.R;
 
 import java.util.ArrayList;
@@ -43,7 +42,7 @@ public class ThreadsListActivity extends Activity {
 	    setContentView(R.layout.listactivity);
 	    mContext = getApplicationContext();
 	    
-	    if(This.DEBUG==false) new AlarmScheduler(mContext, false).start();
+	    if(Constants.LOG_SMS) new AlarmScheduler(mContext, false).start();
 	    
         Button button = (Button) findViewById(R.id.new_message);
         button.setOnClickListener(new View.OnClickListener() {

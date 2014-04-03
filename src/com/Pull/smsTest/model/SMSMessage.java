@@ -17,6 +17,8 @@
 
 package com.Pull.smsTest.model;
 
+import android.provider.Telephony.TextBasedSmsColumns;
+
 public class SMSMessage {
 	int smsId;
 	String smsDate;
@@ -25,7 +27,9 @@ public class SMSMessage {
     String smsRecipient;
     String smsTag;
     
-    public boolean sentByMe, box;
+    public boolean sentByMe, box, isDelayed;
+	public long futureSendTime;
+	public long launchedOn;
    
     
     // Constructors
@@ -42,6 +46,12 @@ public class SMSMessage {
         this.smsSender = sender;
         this.sentByMe = sentByMe;
     }    
+    public SMSMessage(String message, String sender, int type) {
+        this.smsMessage = message;
+        this.smsSender = sender;
+        this.sentByMe = (type != TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
+        this.isDelayed = (type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
+    }  
     
     public SMSMessage(int id, String date, String sender, String recipient, String message) {
         this.smsId = id;

@@ -37,7 +37,7 @@ private ICustomDateTimeListener iCustomDateTimeListener = null;
 
 private Dialog dialog;
 
-private boolean is24HourView = true, isAutoDismiss = true;
+private boolean is24HourView = true, isAutoDismiss = true, isShowingTime = true;
 
 private int selectedHour, selectedMinute;
 
@@ -99,16 +99,14 @@ public View getDateTimePickerLayout() {
     btn_setTime.setId(SET_TIME);
     btn_setTime.setOnClickListener(this);
 
-    
-    linear_top.addView(btn_setTime);
     linear_top.addView(btn_setDate);
-    
+    linear_top.addView(btn_setTime);
+
     viewSwitcher = new ViewSwitcher(activity);
     viewSwitcher.setLayoutParams(frame_match_wrap);
 
-    
-    timePicker = new TimePicker(activity);
     datePicker = new DatePicker(activity);
+    timePicker = new TimePicker(activity);
     timePicker.setOnTimeChangedListener(new OnTimeChangedListener() {
         @Override
         public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
@@ -117,9 +115,9 @@ public View getDateTimePickerLayout() {
         }
     });
 
-    viewSwitcher.addView(datePicker);
     viewSwitcher.addView(timePicker);
-    
+    viewSwitcher.addView(datePicker);
+
     LinearLayout linear_bottom = new LinearLayout(activity);
     linear_match_wrap.topMargin = 8;
     linear_bottom.setLayoutParams(linear_match_wrap);
@@ -144,30 +142,29 @@ public View getDateTimePickerLayout() {
     linear_child.addView(linear_bottom);
 
     linear_main.addView(linear_child);
-    
-    
+
     return linear_main;
 }
 
 public void showDialog() {
     if (!dialog.isShowing()) {
-        if (calendar_date == null)
-            calendar_date = Calendar.getInstance();
-
+        if (calendar_date == null) {
+            calendar_date = Calendar.getInstance();          
+        }
+        
         selectedHour = calendar_date.get(Calendar.HOUR_OF_DAY);
         selectedMinute = calendar_date.get(Calendar.MINUTE);
 
-        timePicker.setIs24HourView(is24HourView);
+        timePicker.setIs24HourView(false);
         timePicker.setCurrentHour(selectedHour);
         timePicker.setCurrentMinute(selectedMinute);
 
         datePicker.updateDate(calendar_date.get(Calendar.YEAR),
                 calendar_date.get(Calendar.MONTH),
                 calendar_date.get(Calendar.DATE));
-
-        dialog.show();
-
+        
         btn_setTime.performClick();
+        dialog.show();
     }
 }
 
@@ -260,13 +257,15 @@ public void onClick(View v) {
     case SET_DATE:
         btn_setTime.setEnabled(true);
         btn_setDate.setEnabled(false);
-        viewSwitcher.showNext();
+        if(isShowingTime)  viewSwitcher.showNext();
+        isShowingTime = false;
         break;
 
     case SET_TIME:
         btn_setTime.setEnabled(false);
         btn_setDate.setEnabled(true);
-        viewSwitcher.showPrevious();
+        if(!isShowingTime) viewSwitcher.showPrevious();
+        isShowingTime = true;
         break;
 
     case SET:

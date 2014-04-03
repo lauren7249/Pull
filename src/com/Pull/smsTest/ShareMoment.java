@@ -126,7 +126,7 @@ public class ShareMoment extends Activity  {
 		if(newMessage.length() > 0 && recipients.length>0 && messages.size()>0)
 		{
 			for(String message: messages) {
-				sendSMS.sendsms(mContext, recipients[0], message, true);
+				sendSMS.sendsms(mContext, recipients[0], message, 0, true);
 			}
    			
 		}
@@ -139,13 +139,13 @@ public class ShareMoment extends Activity  {
 		String app_plug = "Hey, check out my conversation with " + person_shared + ". " + newMessage + ":";
 		if(newMessage.length() > 0 && recipients.length>0 && messages.size()>0)
 		{
-			sendSMS.sendsms(mContext, recipients[0], app_plug, true);
+			sendSMS.sendsms(mContext, recipients[0], app_plug, 0, true);
 			for(String message: messages) {
 				//Thread.sleep(1000);
-				sendSMS.sendsms(mContext, recipients[0], message, true);
+				sendSMS.sendsms(mContext, recipients[0], message, 0, true);
 			}
 			//Thread.sleep(1000);
-			sendSMS.sendsms(mContext, recipients[0], app_link, true);
+			sendSMS.sendsms(mContext, recipients[0], app_link, 0, true);
    			
 		}
         Intent intent = new Intent(getApplicationContext(), ThreadsListActivity.class);

@@ -1,9 +1,12 @@
 package com.Pull.smsTest;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+
 import android.app.Activity;
 import android.app.Dialog;
-import android.app.ListActivity;
-import android.app.TimePickerDialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -11,32 +14,22 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.provider.Telephony.TextBasedSmsColumns;
-import android.support.v4.app.DialogFragment;
-import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.Pull.smsTest.model.SMSMessage;
 import com.Pull.smsTest.util.Constants;
 import com.Pull.smsTest.util.ContentUtils;
 import com.Pull.smsTest.util.DelayedSend;
-import com.Pull.smsTest.R;
+import com.Pull.smsTest.util.sendSMS;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Random;
 
 /**
  * MessageActivity is a main Activity to show a ListView containing SMSMessage items
@@ -46,21 +39,17 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	/** Called when the activity is first created. */
 
 	private ArrayList<SMSMessage> messages;
+	private HashMap<Long,Integer> delayedMessages = new HashMap<Long,Integer>();
 	private MessageAdapter adapter;
 	private EditText text;
-	private static Random rand = new Random();	
-	private static String sender;
-	private String name, threadID, number, newMessage;
+	private String name, number, newMessage;
 	private Context mContext;
-	private static final int TIME_DIALOG_ID = 0;
-	private int mHour;
-	private int mMinute;	
 	private final Calendar calendar = Calendar.getInstance();
 	private Button pickDelay, send;
 	private boolean isChecked, isPopulated;
 	private CustomDateTimePicker customDateTimePicker;
 	private Date sendDate;
-	private final String sent = "android.telephony.SmsManager.STATUS_ON_ICC_SENT";
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -80,57 +69,83 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		
 		sendDate = calendar.getTime();
 		
-		String DELIVERED = "SMS_DELIVERED";
+		IntentFilter intentFilter = new IntentFilter();
+		intentFilter.addAction(Constants.ACTION_SMS_OUTBOXED);
+		intentFilter.addAction(Constants.ACTION_SMS_UNOUTBOXED);
+		intentFilter.addAction(Constants.ACTION_SMS_DELIVERED);
 		registerReceiver(new BroadcastReceiver() {
 			@Override
-			public void onReceive(Context arg0, Intent arg1) {
-				switch (getResultCode()) {
-					case Activity.RESULT_OK: {
-						addNewMessage(new SMSMessage(newMessage, true));						
-						break;
-					}
-					default: {
-						text.setText(newMessage);
-						Toast.makeText(getApplicationContext(), "SMS not sent", Toast.LENGTH_SHORT).show();
-						break;
-					}
-				}
-			}
-		}, new IntentFilter(DELIVERED));			
-		
-	    customDateTimePicker = new CustomDateTimePicker(this,
-	            new CustomDateTimePicker.ICustomDateTimeListener() {
+			public void onReceive(Context context, Intent intent) {
+				String action = intent.getAction();
+				String intent_number = intent.getStringExtra(Constants.EXTRA_RECIPIENT);
+				if(number==null) return;
+				if(intent_number==null) return;
+				if(!intent_number.equals(number)) return;
 
-	                @Override
-	                public void onCancel() {
+				Long scheduledOn = intent.getLongExtra(Constants.EXTRA_TIME_LAUNCHED, 0);
+				String intent_message = intent.getStringExtra(Constants.EXTRA_MESSAGE_BODY);
 
-	                }
-
-					@Override
-					public void onSet(Dialog dialog, Calendar calendarSelected,
-							Date dateSelected, int year, String monthFullName,
-							String monthShortName, int monthNumber, int date,
-							String weekDayFullName, String weekDayShortName,
-							int hour24, int hour12, int min, int sec,
-							String AM_PM) {
-						sendDate = dateSelected;
-						if(sendDate.getDay()==calendar.getTime().getDay()) {
-							pickDelay.setText(
-									new StringBuilder()
-									.append("Send at ")
-									.append(hour12 + ":" + CustomDateTimePicker.pad(min)
-		                                    + " " + AM_PM));							
-						} else {
-							pickDelay.setText(
-									new StringBuilder()
-									.append(monthNumber+1)
-									.append("/").append(calendarSelected.get(Calendar.DAY_OF_MONTH))
-									.append("/").append(year)
-									.append(", ").append(hour12 + ":" + CustomDateTimePicker.pad(min)
-		                                    + " " + AM_PM));
+				if(action.equals(Constants.ACTION_SMS_DELIVERED)) {
+					switch (getResultCode()) {
+						case Activity.RESULT_OK: {
+								
+							if(delayedMessages.containsKey(scheduledOn) && scheduledOn>0) {
+								int id = delayedMessages.get(scheduledOn);
+								removeMessage(id);
+								delayedMessages.remove(scheduledOn);
+								addNewMessage(new SMSMessage(intent_message, true));
+							} else {
+								addNewMessage(new SMSMessage(intent_message, true));
+							}
+							break;
+						}
+						default: {
+							text.setText(intent_message);
+							Toast.makeText(getApplicationContext(), "SMS not sent", Toast.LENGTH_SHORT).show();
+							break;
 						}
 					}
-	            });
+				} else if(action.equals(Constants.ACTION_SMS_OUTBOXED)) {
+					Long scheduledFor = intent.getLongExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, 0);
+					delayedMessages.put(scheduledOn, messages.size());
+					SMSMessage m = new SMSMessage(intent_message, true);
+					m.isDelayed = true;
+					m.futureSendTime = scheduledFor;
+					m.launchedOn = scheduledOn;
+					m.setRecipient(intent_number);
+					addNewMessage(m);
+
+				} else if(action.equals(Constants.ACTION_SMS_UNOUTBOXED)) {
+					
+					int id = delayedMessages.get(scheduledOn);
+					removeMessage(id);
+					delayedMessages.remove(id);
+					text.setText(intent_message);
+					
+				}
+			}
+		}, intentFilter);			
+		
+	    customDateTimePicker = new CustomDateTimePicker(this,
+            new CustomDateTimePicker.ICustomDateTimeListener() {
+
+                @Override
+                public void onCancel() {
+
+                }
+
+				@SuppressWarnings("deprecation")
+				@Override
+				public void onSet(Dialog dialog, Calendar calendarSelected,
+						Date dateSelected, int year, String monthFullName,
+						String monthShortName, int monthNumber, int date,
+						String weekDayFullName, String weekDayShortName,
+						int hour24, int hour12, int min, int sec,
+						String AM_PM) {
+					sendDate = dateSelected;
+					updateDelayButton(calendarSelected);
+				}
+            });
 	    /**
 	     * Pass Directly current time format it will return AM and PM if you set
 	     * false
@@ -145,7 +160,26 @@ public class MessageActivityCheckbox extends SherlockListActivity {
         }		
 	}
 	
-
+	private void updateDelayButton(Calendar calendarSelected){
+		String AM_PM = "PM";
+		if(calendarSelected.get(Calendar.AM_PM)==0) AM_PM="AM";
+		if(sendDate.getDay()==calendar.getTime().getDay()) {
+			pickDelay.setText(
+					new StringBuilder()
+					.append(calendarSelected.get(Calendar.HOUR) + ":")
+					.append(CustomDateTimePicker.pad(calendarSelected.get(Calendar.MINUTE)))
+                    .append(" " + AM_PM));							
+		} else {
+			pickDelay.setText(
+					new StringBuilder()
+					.append(calendarSelected.get(Calendar.MONTH)+1)
+					.append("/").append(calendarSelected.get(Calendar.DAY_OF_MONTH))
+					.append("/").append(calendarSelected.get(Calendar.YEAR))
+					.append(", ").append(calendarSelected.get(Calendar.HOUR) + ":")
+					.append(CustomDateTimePicker.pad(calendarSelected.get(Calendar.MINUTE)))
+                    .append(" " + AM_PM));
+		}		
+	}
 	// make the menu work
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -192,43 +226,67 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		super.onResume();	
 		
 		if(getIntent() != null && !isPopulated) {
-			threadID =  getIntent().getStringExtra(Constants.EXTRA_THREAD_ID); 
 			number =  getIntent().getStringExtra(Constants.EXTRA_NUMBER); 
 			name =  getIntent().getStringExtra(Constants.EXTRA_NAME); 
 			
-	        Cursor c = mContext.getContentResolver().query(Uri.parse("content://sms"),
-	        		null,"thread_id="+threadID,null,"date");
-	        Log.i("tag","got past cursor");
+	        Cursor c = mContext.getContentResolver().query(Uri.parse("content://sms"),null,
+	        		TextBasedSmsColumns.ADDRESS + "='"+sendSMS.addCountryCode(number) + "' and " +
+	        		TextBasedSmsColumns.TYPE + "!=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX ,null,
+	        		TextBasedSmsColumns.DATE);
 	        if(c.moveToFirst()) {
-	        	Log.i("tag","im not null");
 	        	readMessage(c);
 	        	while(c.moveToNext()) {
 	        		readMessage(c);
 	        	}
 	        	c.close();		     
 	        }
+	        
+	        c = mContext.getContentResolver().query(Uri.parse("content://sms"),null,
+        		TextBasedSmsColumns.ADDRESS + "='"+sendSMS.addCountryCode(number) + "' and " +
+        		TextBasedSmsColumns.TYPE + "=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX ,null,
+        		TextBasedSmsColumns.DATE);
+	        if(c.moveToFirst()) {
+	        	readOutboxMessage(c);
+	        	while(c.moveToNext()) {
+	        		readOutboxMessage(c);
+	        	}
+	        	c.close();		     
+	        }	        
 	        isPopulated=true;
 		}
 		
-		mHour = calendar.get(Calendar.HOUR_OF_DAY);
-		mMinute = calendar.get(Calendar.MINUTE);	
+		calendar.get(Calendar.HOUR_OF_DAY);
+		calendar.get(Calendar.MINUTE);	
 
 		if(Constants.DEBUG==false) this.setTitle(name);
 		else this.setTitle("Julia");
-		
-        
-       
+		getListView().setSelection(messages.size()-1);
 	}
-	
+	private void readOutboxMessage(Cursor c) {
+		String body="";
+		int type = Integer.parseInt(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.TYPE)).toString());
+		if(type!=TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return;
+		body = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.BODY)).toString();
+		long scheduledFor = Long.parseLong(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.DATE)).toString());
+		long scheduledOn = Long.parseLong(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.DATE_SENT)).toString());
+		delayedMessages.put(scheduledOn, messages.size());
+		SMSMessage m = new SMSMessage(body, true);
+		m.isDelayed = true;
+		m.futureSendTime = scheduledFor;
+		m.launchedOn = scheduledOn;
+		m.setRecipient(number);
+		addNewMessage(m);	
+	}	
 	private void readMessage(Cursor c) {
-    	String body = c.getString(c.getColumnIndexOrThrow("body")).toString();
-    	String SmsMessageId = c.getString(c.getColumnIndexOrThrow("_id")).toString();
-    	String address = c.getString(c.getColumnIndexOrThrow("address")).toString();
-    	String read = c.getString(c.getColumnIndexOrThrow("read")).toString();
-    	boolean sent = c.getString(c.getColumnIndexOrThrow("type")).toString()
-    			.equals(Integer.toString(TextBasedSmsColumns.MESSAGE_TYPE_SENT));
-    	addNewMessage(new SMSMessage(body, address, sent));
-    	if(read.equals("0")) {
+		String body="", SmsMessageId="", address="", read="";
+		int type = Integer.parseInt(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.TYPE)).toString());
+		if(type==TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return;
+		body = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.BODY)).toString();
+    	SmsMessageId = c.getString(c.getColumnIndexOrThrow("_id")).toString();
+    	address = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.ADDRESS)).toString();
+    	read = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.READ)).toString();
+    	addNewMessage(new SMSMessage(body, address, type));
+    	if(read.equals("0") && !SmsMessageId.equals("")) {
         	ContentValues values = new ContentValues();
     		values.put("read",true);
     		getContentResolver().update(Uri.parse("content://sms/"),values, "_id="+SmsMessageId, null);	
@@ -237,13 +295,20 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	public void sendMessage(View v)
 	{
 		newMessage = text.getText().toString().trim(); 
+		
 		if(newMessage.length() > 0)
 		{
 			
-            new DelayedSend(mContext, number, newMessage, sendDate, System.currentTimeMillis()).start();
+            new DelayedSend(mContext, number, newMessage, 
+            		sendDate, System.currentTimeMillis()).start();
         	text.setText("");
-
+        	newMessage = "";
+        	if(calendar.getTime().before(sendDate)) {
+        		pickDelay.setText("Set delay");
+        		sendDate = calendar.getTime(); 
+        	}
 		}
+		getListView().setSelection(messages.size()-1);
 	}
 	
 	public void pickTime(View v) {
@@ -257,6 +322,17 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		getListView().setSelection(messages.size()-1);
 	}
 	
+	public void removeEditOption(int id) {
+		adapter.getItem(id).isDelayed = false;
+		adapter.notifyDataSetChanged();	
+		getListView().setSelection(messages.size()-1);
+	}
+	
+	public void removeMessage(int id) {
+		messages.remove(id);
+		adapter.notifyDataSetChanged();	
+		getListView().setSelection(messages.size()-1);
+	}	
 
     public void showResult() {
     	String text = "";

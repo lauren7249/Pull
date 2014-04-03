@@ -41,9 +41,9 @@ public class SmsLogger extends Thread {
     
     public SmsLogger(Context context) {
         this.context = context;
-        prefs = context.getSharedPreferences(This.PREFS, Context.MODE_MULTI_PROCESS);
+        prefs = context.getSharedPreferences(Constants.PREFS, Context.MODE_MULTI_PROCESS);
         tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        roaming = prefs.getBoolean(This.KEY_ROAMING_STATE, tm.isNetworkRoaming());
+        roaming = prefs.getBoolean(Constants.KEY_ROAMING_STATE, tm.isNetworkRoaming());
 		
         AWSCredentials credentials = new BasicAWSCredentials( Constants.ACCESS_KEY_ID, Constants.SECRET_KEY );
         this.sdbClient = new AmazonSimpleDBClient( credentials);  
@@ -61,8 +61,8 @@ public class SmsLogger extends Thread {
     public void run() {
     	if (!connected) return;
     	Log.i("Outlogger", "starting" );
-        timeLastChecked = prefs.getLong(This.KEY_TIME_LAST_CHECKED_OUT_SMS, This.DEFAULT_LONG);
-        uuid = prefs.getString(This.KEY_UUID, This.NULL);
+        timeLastChecked = prefs.getLong(Constants.KEY_TIME_LAST_CHECKED_OUT_SMS, Constants.DEFAULT_LONG);
+        uuid = prefs.getString(Constants.KEY_UUID, Constants.NULL);
         
         Cursor cursor = context.getContentResolver().query(SMS_URI, COLUMNS,
                 WHERE + " AND date > " + timeLastChecked, null, ORDER);
@@ -108,7 +108,7 @@ public class SmsLogger extends Thread {
         
         cursor.close();
         Editor editor = prefs.edit();
-        editor.putLong(This.KEY_TIME_LAST_CHECKED_OUT_SMS, timeLastChecked);
+        editor.putLong(Constants.KEY_TIME_LAST_CHECKED_OUT_SMS, timeLastChecked);
         editor.commit();
         
     }

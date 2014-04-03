@@ -1,20 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+    android:layout_height="fill_parent"
+    android:color="@android:color/white" >
     	<RelativeLayout
     		android:layout_width="fill_parent"
     		android:layout_height="fill_parent"
     	    android:paddingLeft="10dip"
     		android:paddingRight="10dip"
     		android:paddingTop="10dip"
-    		android:paddingBottom="10dip">
+    		android:paddingBottom="10dip"
+    		android:color="@android:color/white" >
 		<com.Pull.smsTest.util.RecipientsEditor
 			android:id="@+id/recipients_editor"
 			android:hint="Enter Contacts"
 			android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:isScrollContainer="true"/>
+            android:isScrollContainer="true"
+            android:color="@android:color/white" />
 	   	<TextView
 	   		android:id="@+id/delay_text"
 	   		android:layout_width="wrap_content"
@@ -48,9 +51,7 @@
 	            android:layout_height="wrap_content"
 	            android:background="@drawable/send_button"
 	            android:onClick="sendMessageLater"
-	            android:layout_alignParentRight="true"
-	            android:text="Send"
-	            android:textColor="#FFF" />	   	            
+	            android:layout_alignParentRight="true"/>	   	            
 		   	<EditText
 		   		android:id="@+id/message"
 		   		android:layout_width="fill_parent"

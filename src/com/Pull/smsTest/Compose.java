@@ -38,13 +38,11 @@ public class Compose extends Activity implements OnSeekBarChangeListener {
 	
 	private SeekBar timeBar; 
 	 
-	private long mID;
 	private String[] recipients;
 	
 	private RecipientsEditor mRecipientEditor;
 	private EditText         mContents;
 	private Button           mSend;
-	private Button           mSave;
 	private Context mContext;
 	private TextView delay, sendOn;
 	
@@ -74,38 +72,40 @@ public class Compose extends Activity implements OnSeekBarChangeListener {
         
 		mRecipientEditor.setAdapter(new RecipientsAdapter(this));
 		
-		String DELIVERED = "SMS_DELIVERED";
+		IntentFilter intentFilter = new IntentFilter();
+		intentFilter.addAction(Constants.ACTION_SMS_OUTBOXED);
+		intentFilter.addAction(Constants.ACTION_SMS_DELIVERED);		
 		registerReceiver(new BroadcastReceiver() {
 			@Override
-			public void onReceive(Context arg0, Intent arg1) {
-				switch (getResultCode()) {
-					case Activity.RESULT_OK: {
-						//Toast.makeText(getApplicationContext(), "SMS delivered", Toast.LENGTH_SHORT).show();	
-						if(recipients.length == 1) {
-							String thread_id = ContentUtils.getThreadIDFromNumber(mContext,recipients[0]);
-							String name = ContentUtils.getContactDisplayNameByNumber(mContext, recipients[0]);				
-							Intent intent = new Intent(getApplicationContext(), MessageActivityCheckbox.class);
-							intent.putExtra(Constants.EXTRA_THREAD_ID,thread_id);
-							intent.putExtra(Constants.EXTRA_NAME,name);
-							intent.putExtra(Constants.EXTRA_READ,1);		          
-							intent.putExtra(Constants.EXTRA_NUMBER,recipients[0]);
-							startActivity(intent);
-							
-						} else {
-					          Intent intent = new Intent(getApplicationContext(), ThreadsListActivity.class);
-					          startActivity(intent);					
-						}						
-						break;
+			public void onReceive(Context context, Intent intent) {
+				String action = intent.getAction();
+				if(action.equals(Constants.ACTION_SMS_DELIVERED)) {				
+					switch (getResultCode()) {
+						case Activity.RESULT_OK: {
+							if(recipients.length==1) openThread(context);
+							else {
+								Intent outintent = new Intent(context, ThreadsListActivity.class);
+						        startActivity(outintent);					
+							}						
+							break;
+						}
+						default: {
+							Toast.makeText(context, "SMS not sent", Toast.LENGTH_SHORT).show();
+							break;
+						}
 					}
-					default: {
-						Toast.makeText(getApplicationContext(), "SMS not sent", Toast.LENGTH_SHORT).show();
-						break;
-					}
-				}
+				} else openThread(context);
 			}
-		}, new IntentFilter(DELIVERED));		
+		}, intentFilter);		
 	}
 	
+	private void openThread(Context context){
+		String name = ContentUtils.getContactDisplayNameByNumber(mContext, recipients[0]);				
+		Intent outintent = new Intent(context, MessageActivityCheckbox.class);
+		outintent.putExtra(Constants.EXTRA_NAME,name);	          
+		outintent.putExtra(Constants.EXTRA_NUMBER,recipients[0]);	
+		startActivity(outintent);		
+	}
 	@Override
 	protected void onStart() {
 		super.onStart();
@@ -154,7 +154,7 @@ public class Compose extends Activity implements OnSeekBarChangeListener {
 		if(newMessage.length() > 0 && recipients.length>0)
 		{
 			for(String number: recipients) {
-				sendSMS.sendsms(mContext, number, newMessage, true);
+				sendSMS.sendsms(mContext, number, newMessage, 0, true);
 			}
    			
 		}
@@ -171,9 +171,7 @@ public class Compose extends Activity implements OnSeekBarChangeListener {
 				new DelayedSend(mContext, number, newMessage, sendTime, System.currentTimeMillis()).start();
 			}
 			
-		}
-        Intent intent = new Intent(getApplicationContext(), ThreadsListActivity.class);
-        startActivity(intent);				
+		}			
 	}	
 
 	@Override

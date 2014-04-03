@@ -72,7 +72,7 @@
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" >
                 </action> 
             </intent-filter>
-             <intent-filter>
+             <intent-filter android:priority="1001">
                  <action android:name="android.provider.Telephony.SMS_DELIVER"/>
              </intent-filter>            
         </receiver>        
