@@ -15,7 +15,7 @@
  * along with No Stranger SMS.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.Pull.smsTest.model;
+package com.Pull.pullapp.model;
 
 import android.provider.Telephony.TextBasedSmsColumns;
 

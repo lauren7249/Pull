@@ -15,16 +15,16 @@
  * along with No Stranger SMS.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.Pull.smsTest.util;
+package com.Pull.pullapp.util;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-import com.Pull.smsTest.MessageActivityCheckbox;
-import com.Pull.smsTest.ThreadsListActivity;
-import com.Pull.smsTest.R;
-import com.Pull.smsTest.R.drawable;
+import com.Pull.pullapp.MessageActivityCheckbox;
+import com.Pull.pullapp.ThreadsListActivity;
+import com.Pull.pullapp.R;
+import com.Pull.pullapp.R.drawable;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;

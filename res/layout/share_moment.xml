@@ -9,19 +9,31 @@
     		android:paddingRight="10dip"
     		android:paddingTop="10dip"
     		android:paddingBottom="10dip">
-		<com.Pull.smsTest.util.RecipientsEditor
+		<com.Pull.pullapp.util.RecipientsEditor
 			android:id="@+id/recipients_editor"
 			android:hint="Enter Contacts"
 			android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:isScrollContainer="true"/>
+
+		<MultiAutoCompleteTextView
+		    android:id="@+id/hashtags"
+		    android:layout_width="226dp"
+		    android:layout_height="wrap_content"
+		    android:layout_below="@id/recipients_editor"
+		    android:layout_marginTop="10dip"
+		    android:completionThreshold="1"
+		    android:hint="#Hashtag"
+		    android:imeOptions="actionNext"
+		    android:isScrollContainer="true" />
+	  		
 	   	<TextView
 	   		android:id="@+id/sharing_texts_text"
-	   		android:layout_width="wrap_content"
+	   		android:layout_width="fill_parent"
 	   		android:layout_height="wrap_content"
 	   		android:layout_marginRight="5dip"
 	   		android:layout_marginTop="10dip"
-	   		android:layout_below="@id/recipients_editor"/>
+	   		android:layout_below="@id/hashtags"/>
 	   	<TextView
 	   		android:id="@+id/sharing_texts"
 	   		android:layout_width="fill_parent"
@@ -29,28 +41,16 @@
 	   		android:scrollbars = "vertical"
 	   		android:lines="10"
 	   		android:layout_below="@id/sharing_texts_text"/>	
-	        <Button
-	            android:id="@+id/sendlater"
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content"
-	            android:background="@drawable/send_button"
-	            android:layout_below="@id/sharing_texts"
-	            android:onClick="sendMessageLater"
-	            android:layout_alignParentRight="true"
-	            android:text="Send"
-	            android:textColor="#FFF" />	  
-			<MultiAutoCompleteTextView
-				android:id="@+id/hashtags"
-				android:layout_toLeftOf="@id/sendlater"
-				android:layout_below="@id/sharing_texts"
-				android:layout_marginTop="10dip"
-				android:hint="#Hashtag"
-				android:layout_width="fill_parent"
-		        android:layout_height="wrap_content"
-		        android:isScrollContainer="true"
-		        android:imeOptions="actionNext"
-		        android:completionThreshold="1"/>	             	            
-
+        <Button
+            android:id="@+id/sendlater"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/recipients_editor"
+            android:background="@drawable/send_button"
+            android:layout_toRightOf="@id/hashtags"
+            android:onClick="sendMessageLater"
+            android:layout_alignParentRight="true"
+            android:textColor="#FFF" />	             	            
 	   	</RelativeLayout>
 
 </LinearLayout>

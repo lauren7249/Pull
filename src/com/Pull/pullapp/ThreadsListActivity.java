@@ -1,4 +1,4 @@
-package com.Pull.smsTest;
+package com.Pull.pullapp;
 
 import android.app.Activity;
 import android.content.Context;
@@ -18,11 +18,11 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.Pull.smsTest.model.ThreadItem;
-import com.Pull.smsTest.util.AlarmScheduler;
-import com.Pull.smsTest.util.Constants;
-import com.Pull.smsTest.util.ContentUtils;
-import com.Pull.smsTest.R;
+import com.Pull.pullapp.model.ThreadItem;
+import com.Pull.pullapp.util.AlarmScheduler;
+import com.Pull.pullapp.util.Constants;
+import com.Pull.pullapp.util.ContentUtils;
+import com.Pull.pullapp.R;
 
 import java.util.ArrayList;
 

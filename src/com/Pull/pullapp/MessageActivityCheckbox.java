@@ -1,4 +1,4 @@
-package com.Pull.smsTest;
+package com.Pull.pullapp;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -22,11 +22,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.Pull.smsTest.model.SMSMessage;
-import com.Pull.smsTest.util.Constants;
-import com.Pull.smsTest.util.ContentUtils;
-import com.Pull.smsTest.util.DelayedSend;
-import com.Pull.smsTest.util.sendSMS;
+import com.Pull.pullapp.model.SMSMessage;
+import com.Pull.pullapp.util.Constants;
+import com.Pull.pullapp.util.ContentUtils;
+import com.Pull.pullapp.util.DelayedSend;
+import com.Pull.pullapp.util.sendSMS;
+import com.Pull.pullapp.R;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;

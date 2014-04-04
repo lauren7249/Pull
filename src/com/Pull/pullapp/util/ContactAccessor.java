@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.Pull.smsTest.util;
+package com.Pull.pullapp.util;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;

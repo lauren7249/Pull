@@ -11,7 +11,7 @@
     		android:paddingTop="10dip"
     		android:paddingBottom="10dip"
     		android:color="@android:color/white" >
-		<com.Pull.smsTest.util.RecipientsEditor
+		<com.Pull.pullapp.util.RecipientsEditor
 			android:id="@+id/recipients_editor"
 			android:hint="Enter Contacts"
 			android:layout_width="fill_parent"

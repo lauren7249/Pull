@@ -1,4 +1,4 @@
-package com.Pull.smsTest;
+package com.Pull.pullapp;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -19,13 +19,13 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.Pull.smsTest.util.Constants;
-import com.Pull.smsTest.util.ContentUtils;
-import com.Pull.smsTest.util.DelayedSend;
-import com.Pull.smsTest.util.RecipientsAdapter;
-import com.Pull.smsTest.util.RecipientsEditor;
-import com.Pull.smsTest.util.sendSMS;
-import com.Pull.smsTest.R;
+import com.Pull.pullapp.util.Constants;
+import com.Pull.pullapp.util.ContentUtils;
+import com.Pull.pullapp.util.DelayedSend;
+import com.Pull.pullapp.util.RecipientsAdapter;
+import com.Pull.pullapp.util.RecipientsEditor;
+import com.Pull.pullapp.util.sendSMS;
+import com.Pull.pullapp.R;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class ShareMoment extends Activity  {
 			"#Affection","#Empathy","#Friendliness","#Love","#Courage","#Hope","#Pride",
 			"#Satisfaction","#Trust","#Calm","#Content","#Relaxed","#Relieved","#Serene",
 			"#Interest","#Politeness","#Surprised","#WTF","#B****Please"};	
-	private static final String app_link = "Download the app at Google play: https://play.google.com/store/apps/details?id=com.pull.smsTest";
+	private static final String app_link = "Download the app at Google play: https://play.google.com/store/apps/details?id=com.pull.pullapp";
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

@@ -1,11 +1,11 @@
-package com.Pull.smsTest.util;
+package com.Pull.pullapp.util;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.Pull.smsTest.model.SMSMessage;
+import com.Pull.pullapp.model.SMSMessage;
 import com.amazonaws.services.ec2.model.Region;
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
 import com.amazonaws.services.simpledb.model.PutAttributesRequest;

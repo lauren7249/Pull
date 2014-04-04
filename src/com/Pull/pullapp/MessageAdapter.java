@@ -1,4 +1,4 @@
-package com.Pull.smsTest;
+package com.Pull.pullapp;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -19,8 +19,9 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 
-import com.Pull.smsTest.model.SMSMessage;
-import com.Pull.smsTest.util.sendSMS;
+import com.Pull.pullapp.model.SMSMessage;
+import com.Pull.pullapp.util.sendSMS;
+import com.Pull.pullapp.R;
 /**
  * MessageAdapter is a Custom class to implement custom row in ListView
  * 

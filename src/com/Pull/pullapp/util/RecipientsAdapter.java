@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-package com.Pull.smsTest.util;
+package com.Pull.pullapp.util;
 
-import com.Pull.smsTest.R;
+import com.Pull.pullapp.R;
 
 import android.content.ContentResolver;
 import android.content.Context;
