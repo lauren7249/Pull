@@ -33,15 +33,22 @@
             android:id="@+id/bottom_bar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="0.96"
             android:orientation="vertical"
             android:color="@android:color/white" >
+
+            <ImageView
+                android:id="@+id/textIndicatorImageView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="14dp"
+                android:layout_marginTop="3dp"
+                android:src="@drawable/pendinh_indicator" />
 
             <EditText
                 android:id="@+id/text"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="5sp"
                 android:autoText="true"
                 android:capitalize="sentences"
                 android:ems="10"
@@ -51,7 +58,7 @@
                 android:isScrollContainer="true"
                 android:maxLength="2000"
                 android:maxLines="3"
-                android:padding="5sp"
+                android:minHeight="40dp"
                 android:textColor="@color/textFieldColor"
                 android:textSize="20dp"
                 android:color="@android:color/white" />
@@ -60,20 +67,25 @@
                 android:id="@+id/time_delay_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="left"
+                android:layout_margin="3dp"
                 android:background="@drawable/select_time"
                 android:onClick="pickTime"
                 android:text="Set Delay"
-                android:textSize="13sp"
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
                 android:color="@android:color/white" />
 
         </LinearLayout>
 
         <Button
             android:id="@+id/send_button"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_gravity="center"
-            android:layout_margin="5dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="7dp"
             android:background="@drawable/send"
             android:onClick="sendMessage" />
 

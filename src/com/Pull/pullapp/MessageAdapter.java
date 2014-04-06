@@ -15,7 +15,9 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+
 import android.widget.CheckBox;
+import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 
@@ -52,10 +54,10 @@ public class MessageAdapter extends BaseAdapter{
 		{
 			holder = new ViewHolder();
 			convertView = LayoutInflater.from(mContext).inflate(R.layout.sms_row, parent, false);
+			holder.messageBox = (LinearLayout) convertView.findViewById(R.id.message_box);
 			holder.message = (TextView) convertView.findViewById(R.id.message_text);
 			holder.box = (CheckBox) convertView.findViewById(R.id.cbBox);
 			holder.edit = (Button) convertView.findViewById(R.id.edit_message_button);
-
 		}
 		else holder = (ViewHolder) convertView.getTag();
 		
@@ -84,19 +86,19 @@ public class MessageAdapter extends BaseAdapter{
 		convertView.setTag(holder);		
 		holder.message.setText(message.getMessage());
 		
-		LayoutParams lp = (LayoutParams) holder.message.getLayoutParams();
+		LayoutParams lp = (LayoutParams) holder.messageBox.getLayoutParams();
 
 		//Check whether message is mine to show green background and align to right
 		if(message.sentByMe)
 		{
-			holder.message.setBackgroundResource(R.drawable.outgoing);
+			holder.messageBox.setBackgroundResource(R.drawable.outgoing);
 			lp.gravity = Gravity.RIGHT;
 			
 		}
 		//If not mine then it is from sender to show yellow background and align to left
 		else
 		{
-			holder.message.setBackgroundResource(R.drawable.incoming);
+			holder.messageBox.setBackgroundResource(R.drawable.incoming);
 			lp.gravity = Gravity.LEFT;
 		}
 		
@@ -109,7 +111,7 @@ public class MessageAdapter extends BaseAdapter{
 		} else {
 			holder.edit.setVisibility(View.GONE);
 		}
-		holder.message.setLayoutParams(lp);
+		holder.messageBox.setLayoutParams(lp);
 		holder.message.setTextColor(R.color.textColor);	
 		
 		return convertView;
@@ -117,6 +119,7 @@ public class MessageAdapter extends BaseAdapter{
 	private static class ViewHolder
 	{
 		TextView message;
+		LinearLayout messageBox;
 		CheckBox box;
 		Button edit;
 	}
