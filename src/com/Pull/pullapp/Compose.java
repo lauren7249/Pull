@@ -28,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+@Deprecated
 public class Compose extends Activity implements OnSeekBarChangeListener {
 
 	//Options menu

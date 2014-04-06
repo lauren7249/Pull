@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/messageDefaultBackground"
@@ -21,6 +22,17 @@
         android:color="@android:color/white" >
 
     </ListView>
+    <com.Pull.pullapp.util.RecipientsEditor
+		android:id="@+id/recipients_editor"
+		android:hint="Enter Contacts"
+		android:layout_width="fill_parent"
+        android:layout_height="wrap_content"     
+        android:lines="2"  
+        android:gravity="top"
+        android:layout_above="@android:id/list"
+        android:isScrollContainer="true"
+        android:color="@android:color/white" 
+        android:background="@android:color/white"/>
 
     <ViewSwitcher
         android:id="@+id/viewSwitcher"

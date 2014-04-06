@@ -48,7 +48,7 @@ public class ThreadsListActivity extends Activity {
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Intent intent =
-                        new Intent(getApplicationContext(), Compose.class);
+                        new Intent(mContext, MessageActivityCheckbox.class);
                 startActivity(intent);
             }
         });	    
@@ -64,7 +64,7 @@ public class ThreadsListActivity extends Activity {
 		      public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
 		    	  final ThreadItem item = (ThreadItem) parent.getItemAtPosition(position);
     
-		          Intent intent = new Intent(getApplicationContext(), MessageActivityCheckbox.class);
+		          Intent intent = new Intent(mContext, MessageActivityCheckbox.class);
 		          intent.putExtra(Constants.EXTRA_THREAD_ID,item.ID);
 		          intent.putExtra(Constants.EXTRA_NAME,item.displayName);
 		          intent.putExtra(Constants.EXTRA_READ,item.read);
@@ -129,7 +129,7 @@ public class ThreadsListActivity extends Activity {
 						String recipientId = recipientIDs[0];
 						String number = ContentUtils.getAddressFromID(mContext, recipientId);
 						String name = ContentUtils
-								.getContactDisplayNameByNumber(getApplicationContext(), number);
+								.getContactDisplayNameByNumber(mContext, number);
 						ThreadItem t = new ThreadItem(threadID, name, number, read);
 						publishProgress(t);						
 
