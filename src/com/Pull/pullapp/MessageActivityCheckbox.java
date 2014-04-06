@@ -21,6 +21,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import android.widget.ViewSwitcher;
 
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.util.Constants;
@@ -50,6 +51,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	private boolean isChecked, isPopulated;
 	private CustomDateTimePicker customDateTimePicker;
 	private Date sendDate;
+	private ViewSwitcher viewSwitcher;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -65,6 +67,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		adapter = new MessageAdapter(this, messages);
 		send = (Button) this.findViewById(R.id.send_button);
 		pickDelay = (Button) this.findViewById(R.id.time_delay_button);
+		viewSwitcher = (ViewSwitcher) this.findViewById(R.id.viewSwitcher);
 		
 		setListAdapter(adapter);
 		
@@ -199,10 +202,12 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 			if(isChecked) {
 				adapter.showCheckboxes = false;
 				isChecked = false;
+				viewSwitcher.setDisplayedChild(0);
 			}
 			else {
 				adapter.showCheckboxes = true;
-				isChecked = true;				
+				isChecked = true;
+				viewSwitcher.setDisplayedChild(1);
 			}
 			getListView().invalidateViews();
 			getListView().refreshDrawableState();

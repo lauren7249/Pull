@@ -3,14 +3,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/messageDefaultBackground"
+    android:gravity="bottom"
     android:orientation="vertical" >
 
     <ListView
         android:id="@android:id/list"
         android:layout_width="fill_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/bottom_write_bar"
-        android:layout_marginBottom="-17dp"
+        android:layout_above="@+id/viewSwitcher"
+        android:layout_marginBottom="-18dp"
         android:clipToPadding="false"
         android:divider="#00000000"
         android:gravity="clip_vertical"
@@ -21,73 +22,135 @@
 
     </ListView>
 
-    <LinearLayout
-        android:id="@+id/bottom_write_bar"
-        android:layout_width="fill_parent"
+    <ViewSwitcher
+        android:id="@+id/viewSwitcher"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="@drawable/compose_box_background"
-        android:orientation="horizontal" >
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:measureAllChildren="false" >
 
         <LinearLayout
-            android:id="@+id/bottom_bar"
-            android:layout_width="0dp"
+            android:id="@+id/bottom_compose_box"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="0.96"
-            android:orientation="vertical"
-            android:color="@android:color/white" >
+            android:background="@drawable/compose_box_background"
+            android:orientation="horizontal" >
 
-            <ImageView
-                android:id="@+id/textIndicatorImageView"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/bottom_bar"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="14dp"
-                android:layout_marginTop="3dp"
-                android:src="@drawable/pendinh_indicator" />
+                android:layout_weight="0.96"
+                android:orientation="vertical"
+                android:color="@android:color/white" >
 
-            <EditText
-                android:id="@+id/text"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:autoText="true"
-                android:capitalize="sentences"
-                android:ems="10"
-                android:gravity="top|left"
-                android:hint="Write here"
-                android:inputType="textShortMessage|textAutoCorrect|textCapSentences|textMultiLine"
-                android:isScrollContainer="true"
-                android:maxLength="2000"
-                android:maxLines="3"
-                android:minHeight="40dp"
-                android:textColor="@color/textFieldColor"
-                android:textSize="20dp"
-                android:color="@android:color/white" />
+                <ImageView
+                    android:id="@+id/textIndicatorImageView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="14dp"
+                    android:layout_marginTop="3dp"
+                    android:src="@drawable/pendinh_indicator" />
+
+                <EditText
+                    android:id="@+id/text"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:autoText="true"
+                    android:capitalize="sentences"
+                    android:ems="10"
+                    android:gravity="top|left"
+                    android:hint="Write here"
+                    android:inputType="textShortMessage|textAutoCorrect|textCapSentences|textMultiLine"
+                    android:isScrollContainer="true"
+                    android:maxLength="2000"
+                    android:maxLines="3"
+                    android:minHeight="40dp"
+                    android:textColor="@color/textFieldColor"
+                    android:textSize="20dp"
+                    android:color="@android:color/white" >
+
+                    <requestFocus />
+                </EditText>
+
+                <Button
+                    android:id="@+id/time_delay_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:layout_margin="3dp"
+                    android:background="@drawable/select_time"
+                    android:onClick="pickTime"
+                    android:text="Set Delay"
+                    android:textColor="@android:color/white"
+                    android:textSize="20sp"
+                    android:color="@android:color/white" />
+            </LinearLayout>
 
             <Button
-                android:id="@+id/time_delay_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="left"
-                android:layout_margin="3dp"
-                android:background="@drawable/select_time"
-                android:onClick="pickTime"
-                android:text="Set Delay"
-                android:textColor="@android:color/white"
-                android:textSize="20sp"
-                android:color="@android:color/white" />
-
+                android:id="@+id/send_button"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="center"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="7dp"
+                android:background="@drawable/send"
+                android:onClick="sendMessage" />
         </LinearLayout>
 
-        <Button
-            android:id="@+id/send_button"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_gravity="center"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
-            android:layout_marginTop="7dp"
-            android:background="@drawable/send"
-            android:onClick="sendMessage" />
+        <LinearLayout
+            android:id="@+id/bottom_share_box"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/share_box_background"
+            android:orientation="horizontal" >
 
-    </LinearLayout>
+            <LinearLayout
+                android:id="@+id/LinearLayout02"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:layout_weight="0.96"
+                android:orientation="vertical"
+                android:color="@android:color/white" >
+
+                <com.Pull.pullapp.util.RecipientsEditor
+                    android:id="@+id/recipients_editor"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Enter Contacts"
+                    android:isScrollContainer="true"
+                    android:textSize="20sp" />
+
+                <MultiAutoCompleteTextView
+                    android:id="@+id/hashtags"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:completionThreshold="1"
+                    android:hint="#Hashtag"
+                    android:imeOptions="actionNext"
+                    android:isScrollContainer="true"
+                    android:textSize="20sp" />
+
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/Button01"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="center"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="7dp"
+                android:background="@drawable/send"
+                android:onClick="sendMessage" />
+        </LinearLayout>
+
+    </ViewSwitcher>
+
 </RelativeLayout>
