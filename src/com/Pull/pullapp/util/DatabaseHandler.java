@@ -30,9 +30,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_SHARED_WITH = "number";
     private static final String KEY_CONVERSATION_FROM = "orig_number";
     private static final String KEY_HASHTAG = "hashtags";
- 
+    
+    private SQLiteDatabase db;
     public DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        db = this.getWritableDatabase();
     }
  
     // Creating Tables
@@ -57,29 +59,21 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
  
 
-    public void addSharedMessage(SharedConversation shared, int limit) {
-        SQLiteDatabase db = this.getWritableDatabase();
- 
+    public int addSharedMessage(SharedConversation shared) {
         ContentValues values = new ContentValues();
         values.put(KEY_DATE, shared.getDate());
         values.put(KEY_SHARED_WITH, shared.getConfidante());
         values.put(KEY_CONVERSATION_FROM, shared.getOriginalRecipient());
         values.put(KEY_HASHTAG, shared.getHashtags());
- 
+        
         // Inserting Row
         db.insert(TABLE_SHARED_CONVERSATIONS, null, values);
-        
-        if ((limit > 0) && (this.getSharedCount() > limit)) {
-        	// TODO: delete oldest messages
-        }
-        
-        db.close(); // Closing database connection
+        int count = this.getSharedCount();
+        return count;
     }
  
     // Getting single shared conversation by id
     public SharedConversation getSharedConversation(int id) {
-        SQLiteDatabase db = this.getReadableDatabase();
- 
         Cursor cursor = db.query(TABLE_SHARED_CONVERSATIONS, new String[] { KEY_ID, KEY_DATE,
                 KEY_SHARED_WITH, KEY_CONVERSATION_FROM, KEY_HASHTAG }, KEY_ID + "=?",
                 new String[] { String.valueOf(id) }, null, null, null, null);
@@ -97,8 +91,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         List<SharedConversation> sharedList = new ArrayList<SharedConversation>();
         // Select All Query
         String selectQuery = "SELECT  * FROM " + TABLE_SHARED_CONVERSATIONS;
- 
-        SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
  
         // looping through all rows and adding to list
@@ -121,15 +113,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
  
     // Deleting single message
     public void deleteShared(SharedConversation shared) {
-        SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_SHARED_CONVERSATIONS, KEY_ID + " = ?",
                 new String[] { String.valueOf(shared.getId()) });
-        db.close();
     }
     
 
     public void deleteAllSharedConversations() {
-        SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_SHARED_CONVERSATIONS);
         String CREATE_MESSAGES_TABLE = "CREATE TABLE " + TABLE_SHARED_CONVERSATIONS + "("
                 + KEY_ID + " INTEGER PRIMARY KEY," + KEY_DATE + " TEXT,"
@@ -137,17 +126,19 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         		+ KEY_CONVERSATION_FROM + " TEXT,"
                 + KEY_HASHTAG + " TEXT" + ")";
         db.execSQL(CREATE_MESSAGES_TABLE);
-        db.close();
+    }
+    
+    public void close() {
+    	if(db.isOpen()) db.close();
     }
  
     // Getting contacts Count
     public int getSharedCount() {
         String countQuery = "SELECT  * FROM " + TABLE_SHARED_CONVERSATIONS;
-        SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(countQuery, null);
+        int count = cursor.getCount();
         cursor.close();
- 
         // return count
-        return cursor.getCount();
+        return count;
     }
 }

@@ -97,7 +97,7 @@ public class ShareMoment extends Activity  {
 							dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 							String date = dateFormat.format(new Date()); // Current time in UTC.
 							DatabaseHandler db = new DatabaseHandler(mContext);
-							db.addSharedMessage(new SharedConversation(date, recipients[0], number_shared, hastags_string), 0); // 0 is for no limit.	
+							db.addSharedMessage(new SharedConversation(date, recipients[0], number_shared, hastags_string)); // 0 is for no limit.	
 					        Intent intent = new Intent(getApplicationContext(), ThreadsListActivity.class);
 					        startActivity(intent);					
 						}						

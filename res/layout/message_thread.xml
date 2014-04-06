@@ -130,11 +130,11 @@
                 android:color="@android:color/white" >
 
                 <com.Pull.pullapp.util.RecipientsEditor
-                    android:id="@+id/recipients_editor"
+                    android:id="@+id/confidantes_editor"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:hint="Enter Contacts"
+                    android:hint="Enter Confidantes"
                     android:isScrollContainer="true"
                     android:textSize="20sp" />
 
@@ -152,7 +152,7 @@
             </LinearLayout>
 
             <Button
-                android:id="@+id/Button01"
+                android:id="@+id/share_button"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:layout_gravity="center"
@@ -160,7 +160,7 @@
                 android:layout_marginRight="10dp"
                 android:layout_marginTop="7dp"
                 android:background="@drawable/send"
-                android:onClick="sendMessage" />
+                android:onClick="shareMessages" />
         </LinearLayout>
 
     </ViewSwitcher>
