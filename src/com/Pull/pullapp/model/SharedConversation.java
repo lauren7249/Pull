@@ -1,13 +1,18 @@
 package com.Pull.pullapp.model;
 
-public class SharedConversation {
+import java.util.ArrayList;
 
-	private String confidante, original_recipient, date, hashtags;
+public class SharedConversation {
+	
 	private int id;
+	private String confidante, original_recipient, date_shared, hashtags;
+	private ArrayList<SMSMessage> conversation = new ArrayList<SMSMessage>();
+	
+	
 	public SharedConversation(int id, String date, String confidante,
 			String original_recipient, String hashtags) {
 		this.id = id;
-		this.date = date;
+		this.date_shared = date;
 		this.confidante = confidante;
 		this.original_recipient = original_recipient;
 		this.hashtags = hashtags;
@@ -18,14 +23,14 @@ public class SharedConversation {
 
 	public SharedConversation(String date, String shared_with,
 			String shared_from, String hashtags) {
-		this.date = date;
+		this.date_shared = date;
 		this.confidante = shared_with;
 		this.original_recipient = shared_from;
 		this.hashtags = hashtags;
 	}
 
 	public String getDate() {
-		return date;
+		return date_shared;
 	}
 
 	public String getConfidante() {
@@ -45,7 +50,7 @@ public class SharedConversation {
 	}
 
 	public void setDate(String string) {
-		this.date= string;
+		this.date_shared= string;
 		
 	}
 

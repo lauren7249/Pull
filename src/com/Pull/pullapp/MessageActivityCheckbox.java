@@ -228,7 +228,8 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 				mRecipientEditor.setVisibility(View.GONE);
 				mLayout.setBackgroundColor(R.color.messageDefaultBackground);
 		        Cursor c = mContext.getContentResolver().query(Uri.parse("content://sms"),null,
-		        		TextBasedSmsColumns.ADDRESS + "='"+sendSMS.addCountryCode(number) + "' and " +
+			       		TextBasedSmsColumns.ADDRESS + " in ('"+sendSMS.addCountryCode(number) + "', '" +
+			       				number + "')" + " and " +
 		        		TextBasedSmsColumns.TYPE + "!=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX ,null,
 		        		TextBasedSmsColumns.DATE);
 		        if(c.moveToFirst()) {
@@ -443,12 +444,6 @@ public class MessageActivityCheckbox extends SherlockListActivity {
                 checked_messages.add(text);
             }
         }
-      /*  Intent intent = new Intent(mContext, ShareMoment.class);
-        intent.putExtra(Constants.EXTRA_NAME,name);
-        intent.putExtra(Constants.EXTRA_NUMBER,number);
-        intent.putExtra(Constants.EXTRA_SET_OF_MESSAGES,checked_messages);
-        startActivity(intent);	          
-        Toast.makeText(mContext, checked_messages.toString(), Toast.LENGTH_LONG).show();*/
     }     
     
 	public void shareMessages(View v) throws InterruptedException
