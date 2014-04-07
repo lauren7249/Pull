@@ -1,51 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
-
+    
     <RadioGroup
-        android:id="@+id/switch_buttons"
+        android:id="@+id/switch_buttons1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal" >
 
         <RadioButton
-            android:id="@+id/conversations_tab_button"
+            android:id="@+id/conversations_tab_button1"
+            style="@style/RadioButtonStyle.Pull"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="Conversations" />
+
+        <RadioButton
+            android:id="@+id/shared_tab_button1"
             style="@style/RadioButtonStyle.Pull"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:layout_weight="1"
             android:checked="true"
-            android:text="Conversations" />
-
-        <RadioButton
-            android:id="@+id/shared_tab_button"
-            style="@style/RadioButtonStyle.Pull"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
             android:text="Shared" />
 
     </RadioGroup>
 
-    <Button
-        android:id="@+id/new_message"
+    <ListView
+        android:id="@+id/listView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/switch_buttons"
-        android:background="#89CFF0"
-        android:gravity="left|center_vertical"
-        android:lineSpacingExtra="2dp"
-        android:paddingBottom="5dp"
-        android:paddingLeft="10dp"
-        android:paddingTop="5dp"
-        android:text="+"
-        android:textColor="#333333"
-        android:textSize="33sp" />
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/switch_buttons1" >
 
-    <ListView
-        android:id="@+id/listview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/new_message" />
+    </ListView>
 
 </RelativeLayout>
