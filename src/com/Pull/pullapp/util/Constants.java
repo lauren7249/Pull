@@ -14,18 +14,13 @@
  */
 package com.Pull.pullapp.util;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 import android.content.Intent;
 
 public class Constants {
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // This sample App is for demonstration purposes only.
-    // It is not secure to embed your credentials into source code.
-    // Please read the following article for getting credentials
-    // to devices securely.
-    // http://aws.amazon.com/articles/Mobile/4611615499399490
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	
 	public static final String ACCESS_KEY_ID = "AKIAJCCNLR3ZM3G6QCPQ";
 	public static final String SECRET_KEY = "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";
@@ -43,7 +38,7 @@ public class Constants {
 	public static String getPictureBucket() {
 		return (PICTURE_BUCKET).toLowerCase(Locale.US);
 	}
-    public static final String PREFS = "omnitor.prefs";
+    public static final String PREFS = "pull.prefs";
     public static final String NULL = "null";
     public static final long DEFAULT_LONG = -1;
     
@@ -67,6 +62,7 @@ public class Constants {
     public static final String ACTION_SMS_DELIVERED = "com.Pull.SMS_DELIVERED";	
     public static final String ACTION_SMS_OUTBOXED = "com.Pull.SMS_OUTBOXED";	
     public static final String ACTION_SMS_UNOUTBOXED = "com.Pull.SMS_UNOUTBOXED";	
+    public static final String ACTION_SHARE_TAG = "com.Pull.pullapp.util.ACTION_SHARE_TAG";
     
     public static final String TYPE_IN_SMS = "in_sms";
     public static final String TYPE_OUT_SMS = "out_sms";
@@ -78,6 +74,19 @@ public class Constants {
     public static final String EXTRA_MESSAGE_BODY = "MESSAGE_BODY";
     public static final String EXTRA_TIME_LAUNCHED = "TIME_LAUNCHED";
 	public static final String EXTRA_TIME_SCHEDULED_FOR = "TIME_SCHEDULED_FOR";
+	
+	public static final String[] ALL_HASHTAGS = 
+			{"#Anger","#Annoyance","#Contempt","#Disgust","#Irritation",
+			"#Anxiety","#Embarrassment","#Fear","#Helplessness","#Powerlessness",
+			"#Worry","#Doubt","#Envy","#Frustration","#Guilt","#Shame","#Boredom",
+			"#Despair","#Disappointment","#Hurt","#Sadness","#Stress","#Shock","#Tension",
+			"#Amusement","#Delight","#Elation","#Excitement","#Happiness","#Joy","#Pleasure",
+			"#Affection","#Empathy","#Friendliness","#Love","#Courage","#Hope","#Pride",
+			"#Satisfaction","#Trust","#Calm","#Content","#Relaxed","#Relieved","#Serene",
+			"#Interest","#Politeness","#Surprised","#WTF","#B****Please"};
+	public static List<String> ALL_HASHTAGS_LIST = Arrays.asList(ALL_HASHTAGS);
+	public static final String GOOGLE_PLAY_LINK = "https://play.google.com/store/apps/details?id=com.pull.pullapp";
+	public static final String APP_PLUG_END = "Download the app at Google play: " + GOOGLE_PLAY_LINK;
 	
     
 

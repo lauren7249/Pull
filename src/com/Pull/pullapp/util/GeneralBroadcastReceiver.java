@@ -37,7 +37,12 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
             	
             return;
         }        
-        
+        if (action.equals(Constants.ACTION_SHARE_TAG)) {
+            String recipient = intent.getStringExtra(Constants.EXTRA_RECIPIENT);
+            String message = intent.getStringExtra(Constants.EXTRA_MESSAGE_BODY);
+            sendSMS.sendsms(context, recipient, message, 0, false);
+            return;
+        }            
         if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
             // avoid starting the alarm scheduler if the app hasn't even been run yet
             SharedPreferences prefs = context.getSharedPreferences(
