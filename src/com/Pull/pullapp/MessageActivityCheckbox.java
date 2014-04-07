@@ -18,16 +18,20 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.app.NavUtils;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
+import android.webkit.DateSorter;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
@@ -69,6 +73,8 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	private String person_shared;
 	private SharedConversation mSharedConversation;
 	
+	private BroadcastReceiver tickReceiver;
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -92,6 +98,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		send = (Button) this.findViewById(R.id.send_button);
 		share = (Button) this.findViewById(R.id.share_button);
 		pickDelay = (Button) this.findViewById(R.id.time_delay_button);
+		//sendInTimeLabel = (TextView) this.findViewById(R.id.send_in_time_label);
 		viewSwitcher = (ViewSwitcher) this.findViewById(R.id.viewSwitcher);
 		
 		hashtag = (MultiAutoCompleteTextView) this.findViewById(R.id.hashtags);
@@ -179,7 +186,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 						int hour24, int hour12, int min, int sec,
 						String AM_PM) {
 					sendDate = dateSelected;
-					updateDelayButton(calendarSelected);
+					updateDelayButton();
 				}
             });
 	    /**
@@ -194,7 +201,18 @@ public class MessageActivityCheckbox extends SherlockListActivity {
     		addNewMessage(new SMSMessage("asl?",true));
     		addNewMessage(new SMSMessage("14/f/nm",false));        	
         }		
+        
+		tickReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				updateTime();
+			}
+		};
+
+        
 	}
+	
+
 	@Override
 	 public void onResume() {
 		super.onResume();	
@@ -251,33 +269,27 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		
 		calendar.get(Calendar.HOUR_OF_DAY);
 		calendar.get(Calendar.MINUTE);	
-
-	}	
+		registerReceiver(tickReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
+		}	
+	
+	private void updateTime(){
+		Log.i("time", "Updated Time");
+		updateDelayButton();
+		adapter.notifyDataSetChanged();
+	}
 	
 	@Override
 	protected void onPause() {
 		super.onPause();
 		unregisterReceiver(mBroadcastReceiver);
-	}	
-	private void updateDelayButton(Calendar calendarSelected){
-		String AM_PM = "PM";
-		if(calendarSelected.get(Calendar.AM_PM)==0) AM_PM="AM";
-		if(sendDate.getDay()==calendar.getTime().getDay()) {
-			pickDelay.setText(
-					new StringBuilder()
-					.append(calendarSelected.get(Calendar.HOUR) + ":")
-					.append(CustomDateTimePicker.pad(calendarSelected.get(Calendar.MINUTE)))
-                    .append(" " + AM_PM));							
-		} else {
-			pickDelay.setText(
-					new StringBuilder()
-					.append(calendarSelected.get(Calendar.MONTH)+1)
-					.append("/").append(calendarSelected.get(Calendar.DAY_OF_MONTH))
-					.append("/").append(calendarSelected.get(Calendar.YEAR))
-					.append(", ").append(calendarSelected.get(Calendar.HOUR) + ":")
-					.append(CustomDateTimePicker.pad(calendarSelected.get(Calendar.MINUTE)))
-                    .append(" " + AM_PM));
-		}		
+		unregisterReceiver(tickReceiver);
+	}
+	
+	private void updateDelayButton(){
+		if(sendDate!=null){
+			CharSequence date = DateUtils.getRelativeDateTimeString(mContext, sendDate.getTime(), DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS, DateUtils.FORMAT_ABBREV_ALL);
+			pickDelay.setText(date);	
+		}
 	}
 	// make the menu work
 	@Override
@@ -387,8 +399,8 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	        	text.setText("");
 	        	newMessage = "";
 	        	if(calendar.getTime().before(sendDate)) {
-	        		pickDelay.setText("Set delay");
-	        		sendDate = calendar.getTime(); 
+	        		pickDelay.setText(R.string.compose_select_time);
+	        		sendDate = null; 
 	        	}
             }
 		}

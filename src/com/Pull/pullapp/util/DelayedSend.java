@@ -19,7 +19,12 @@ public class DelayedSend extends Thread {
         this.parent = parent;
         this.recipient = recipient;
         this.message = message;
-        this.sendOn = sendOn.getTime();
+        if(sendOn!=null){
+        	this.sendOn = sendOn.getTime();
+        }else{
+        	this.sendOn = System.currentTimeMillis();
+        }
+        
         this.launchedOn = launchedOn;
     }
     

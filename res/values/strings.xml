@@ -65,5 +65,6 @@
     <string name="compose_save">Save</string>
     <string name="compose_message_hint">Message</string>
     <string name="action_settings">Settings</string>
+    <string name="compose_select_time">Select Time</string>
 
 </resources>

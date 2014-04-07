@@ -74,14 +74,13 @@
                     android:layout_marginLeft="5dp"
                     android:autoText="true"
                     android:capitalize="sentences"
-                    android:ems="10"
-                    android:gravity="top|left"
+                    android:gravity="center_vertical|left"
                     android:hint="Write here"
                     android:inputType="textShortMessage|textAutoCorrect|textCapSentences|textMultiLine"
                     android:isScrollContainer="true"
                     android:maxLength="2000"
                     android:maxLines="3"
-                    android:minHeight="40dp"
+                    android:minHeight="50dp"
                     android:textColor="@color/textFieldColor"
                     android:textSize="20dp"
                     android:color="@android:color/white" >
@@ -89,19 +88,26 @@
                     <requestFocus />
                 </EditText>
 
-                <Button
-                    android:id="@+id/time_delay_button"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:layout_marginLeft="8dp"
-                    android:layout_marginTop="5dp"
-                    android:background="@drawable/select_time"
-                    android:onClick="pickTime"
-                    android:text="Select Time"
-                    android:textColor="@android:color/white"
-                    android:textSize="20sp"
-                    android:color="@android:color/white" />
+                        android:layout_marginLeft="8dp"
+                        android:layout_marginTop="5dp" >
+
+                    <Button
+                        android:id="@+id/time_delay_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/select_time"
+                        android:onClick="pickTime"
+                        android:text="@string/compose_select_time"
+                        android:textColor="@android:color/white"
+                        android:textSize="20sp"
+                        android:color="@android:color/white"
+                        android:freezesText="true" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
