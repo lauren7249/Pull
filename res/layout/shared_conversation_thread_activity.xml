@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <ListView
+        android:id="@+id/shared_conversation_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" >
+
+    </ListView>
+
+    <ListView
+        android:id="@+id/shared_conversation_comment_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" >
+
+    </ListView>
+    
+    <LinearLayout
+            android:id="@+id/bottom_share_box"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/share_box_background"
+            android:orientation="horizontal" >
+
+            <LinearLayout
+                android:id="@+id/LinearLayout02"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:layout_weight="0.96"
+                android:orientation="vertical"
+                android:color="@android:color/white" >
+                
+				<EditText
+                    android:id="@+id/shared_message_comment_edit_text"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:autoText="true"
+                    android:capitalize="sentences"
+                    android:gravity="center_vertical|left"
+                    android:hint="Write here"
+                    android:inputType="textShortMessage|textAutoCorrect|textCapSentences|textMultiLine"
+                    android:isScrollContainer="true"
+                    android:maxLength="2000"
+                    android:maxLines="3"
+                    android:minHeight="50dp"
+                    android:textColor="@color/textFieldColor"
+                    android:textSize="20dp"
+                    android:color="@android:color/white" >
+
+                    <requestFocus />
+                </EditText>
+
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/shared_message_comment_send_button"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="center"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="7dp"
+                android:background="@drawable/send"
+                android:onClick="shareMessages" />
+        </LinearLayout>
+
+</LinearLayout>

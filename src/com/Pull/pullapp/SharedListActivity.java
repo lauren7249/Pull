@@ -45,7 +45,7 @@ public class SharedListActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 
-	    setContentView(R.layout.shared_conversation_activity);
+	    setContentView(R.layout.shared_conversation_list_activity);
 	    mContext = getApplicationContext();
 	    
 	    if(Constants.LOG_SMS) new AlarmScheduler(mContext, false).start();
