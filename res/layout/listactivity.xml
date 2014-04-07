@@ -9,21 +9,29 @@
         android:orientation="horizontal" >
 
         <RadioButton
-            android:id="@+id/conversations_tab_button"
+            android:id="@+id/conversations_tab_button1"
+            style="@style/RadioButtonStyle.Pull"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="My Convos" />
+
+        <RadioButton
+            android:id="@+id/shared_tab_button1"
             style="@style/RadioButtonStyle.Pull"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:layout_weight="1"
             android:checked="true"
-            android:text="Conversations" />
-
+            android:text="My Shares" />
         <RadioButton
-            android:id="@+id/shared_tab_button"
+            android:id="@+id/shared_tab_button2"
             style="@style/RadioButtonStyle.Pull"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:layout_weight="1"
-            android:text="Shared" />
+            android:checked="true"
+            android:text="Shared With Me" />
 
     </RadioGroup>
 

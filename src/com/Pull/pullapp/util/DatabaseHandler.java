@@ -47,26 +47,26 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         String CREATE_MESSAGES_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_SHARED_CONVERSATIONS + "("
-                + KEY_ID + " INTEGER PRIMARY KEY," + KEY_DATE + " TEXT,"
+                + KEY_ID + " INTEGER PRIMARY KEY," + KEY_DATE + " DATE,"
         		+ KEY_SHARED_WITH + " TEXT,"
         		+ KEY_CONVERSATION_FROM + " TEXT" + ")";    
         String CREATE_OUTBOX_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_OUTBOX + "("
                 + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," 
-        		+ TextBasedSmsColumns.DATE_SENT + " TEXT,"
-        		+ TextBasedSmsColumns.DATE + " TEXT,"
+        		+ TextBasedSmsColumns.DATE_SENT + " DATE,"
+        		+ TextBasedSmsColumns.DATE + " DATE,"
         		+ TextBasedSmsColumns.BODY + " TEXT,"
                 + TextBasedSmsColumns.ADDRESS + " TEXT" + ")";       
         String CREATE_SHARED_SMS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_SHARED_CONVERSATION_SMS + "("
                 + KEY_ID + " INTEGER," 
-        		+ TextBasedSmsColumns.DATE + " TEXT,"
+        		+ TextBasedSmsColumns.DATE + " DATE,"
         		+ TextBasedSmsColumns.BODY + " TEXT,"
-        		+ TextBasedSmsColumns.TYPE + " TEXT)";         
+        		+ TextBasedSmsColumns.TYPE + " TEXT," 
+        		+ KEY_HASHTAG_ID + " TEXT)";         
         String CREATE_SHARED_COMMENTS = "CREATE TABLE IF NOT EXISTS " + TABLE_SHARED_CONVERSATION_COMMENTS + "("
                 + KEY_ID + " INTEGER," 
         		+ TextBasedSmsColumns.BODY + " TEXT,"
         		+ TextBasedSmsColumns.ADDRESS + " TEXT,"
-        		+ TextBasedSmsColumns.DATE + " TEXT,"
-        		+ KEY_HASHTAG_ID + " TEXT)";          
+        		+ TextBasedSmsColumns.DATE + " DATE)";          
         db.execSQL(CREATE_OUTBOX_TABLE);
         db.execSQL(CREATE_MESSAGES_TABLE);
         db.execSQL(CREATE_SHARED_SMS_TABLE);
@@ -109,6 +109,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(TextBasedSmsColumns.DATE, msg.getDate());
         values.put(TextBasedSmsColumns.BODY, msg.getMessage());
         values.put(TextBasedSmsColumns.TYPE, msg.sentByMe);
+        values.put(KEY_HASHTAG_ID, msg.getHashtagID());
         db.insert(TABLE_SHARED_CONVERSATION_SMS, null, values);
     }
     
@@ -118,14 +119,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(TextBasedSmsColumns.DATE, c.getDate());
         values.put(TextBasedSmsColumns.BODY, c.getMessage());
         values.put(TextBasedSmsColumns.ADDRESS, c.getSender());
-        values.put(KEY_HASHTAG_ID, c.getHashtagID());
         db.insert(TABLE_SHARED_CONVERSATION_COMMENTS, null, values);
     }    
     public int addToOutbox(String recipient, String message,
 			long timeScheduled, long scheduledFor) {
 	    ContentValues outboxSms = new ContentValues();
-	    outboxSms.put(TextBasedSmsColumns.DATE_SENT, Long.toString(timeScheduled));
-	    outboxSms.put(TextBasedSmsColumns.DATE, Long.toString(scheduledFor));
+	    outboxSms.put(TextBasedSmsColumns.DATE_SENT, timeScheduled);
+	    outboxSms.put(TextBasedSmsColumns.DATE, scheduledFor);
 	    outboxSms.put(TextBasedSmsColumns.BODY, message);
 	    outboxSms.put(TextBasedSmsColumns.ADDRESS, recipient);
         // Inserting Row
@@ -142,7 +142,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             cursor.moveToFirst();
  
         SharedConversation shared = new SharedConversation(Integer.parseInt(cursor.getString(0)),
-                cursor.getString(1), cursor.getString(2), cursor.getString(3));
+                cursor.getLong(1), cursor.getString(2), cursor.getString(3));
 
         return shared;
     }
@@ -155,8 +155,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // looping through all rows and adding to list
         if (cursor.moveToLast()) {
             do {
-            	Comment c = new Comment(cursor.getString(1), cursor.getString(2), cursor.getString(3),
-            			Integer.parseInt(cursor.getString(4)));
+            	Comment c = new Comment(cursor.getString(1), cursor.getString(2), cursor.getLong(3));
                 comments.add(c);
             } while (cursor.moveToPrevious());
         }
@@ -202,7 +201,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             	SharedConversation shared = new SharedConversation();
             	int id = Integer.parseInt(cursor.getString(0));
             	shared.setId(id);
-            	shared.setDate(cursor.getString(1));
+            	shared.setDate(cursor.getLong(1));
             	shared.setConfidante(cursor.getString(2));
             	shared.setOriginalRecipient(cursor.getString(3));
             	shared.setMessages(getMessages(id));

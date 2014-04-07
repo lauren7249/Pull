@@ -18,20 +18,20 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.app.NavUtils;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
-import android.webkit.DateSorter;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
@@ -72,8 +72,11 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	private String hashtags_string;
 	private String person_shared;
 	private SharedConversation mSharedConversation;
+	private int n_characters;
 	
 	private BroadcastReceiver tickReceiver;
+	protected boolean isIdealLength;
+	private ImageView mTextIndicatorImageView;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -86,13 +89,43 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		
 		isChecked = false;
 		
+		
 		mRecipientsAdapter = new RecipientsAdapter(this);
 		mRecipientEditor = (RecipientsEditor)findViewById(R.id.recipients_editor);
 		mRecipientEditor.setAdapter(mRecipientsAdapter);
 		mConfidantesEditor = (RecipientsEditor)findViewById(R.id.confidantes_editor);
 		mConfidantesEditor.setAdapter(mRecipientsAdapter);
 		
+		mTextIndicatorImageView = (ImageView) findViewById(R.id.textIndicatorImageView);
+		isIdealLength = false;
 		text = (EditText) this.findViewById(R.id.text);
+	    text.addTextChangedListener(new TextWatcher(){
+	        public void beforeTextChanged(CharSequence s, int start, int count, int after){}
+			@Override
+			public void afterTextChanged(Editable s) {
+				// TODO Auto-generated method stub
+				
+			}
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
+	        	n_characters = s.length();
+	        	if(n_characters>=Constants.MIN_TEXT_LENGTH && 
+	        			n_characters<=Constants.MAX_TEXT_LENGTH && !isIdealLength) {
+	        		isIdealLength = true;
+	        		mTextIndicatorImageView.setImageDrawable(getResources().getDrawable(R.drawable.good_indicator));
+	        	} 
+	        	else if(isIdealLength && n_characters>Constants.MAX_TEXT_LENGTH) {
+	        		isIdealLength = false;
+	        		mTextIndicatorImageView.setImageDrawable(getResources().getDrawable(R.drawable.bad_indicator));
+	        	} 	        	
+	        	else if(isIdealLength && n_characters<Constants.MIN_TEXT_LENGTH) {
+	        		isIdealLength = false;
+	        		mTextIndicatorImageView.setImageDrawable(getResources().getDrawable(R.drawable.pendinh_indicator));
+	        	} 	 
+				
+			}
+	    }); 	
 		messages = new ArrayList<SMSMessage>();
 		adapter = new MessageAdapter(this, messages);
 		send = (Button) this.findViewById(R.id.send_button);
@@ -270,7 +303,8 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		calendar.get(Calendar.HOUR_OF_DAY);
 		calendar.get(Calendar.MINUTE);	
 		registerReceiver(tickReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
-		}	
+					
+	}	
 	
 	private void updateTime(){
 		Log.i("time", "Updated Time");
@@ -318,21 +352,17 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 				adapter.showCheckboxes = true;
 				isChecked = true;
 				viewSwitcher.setDisplayedChild(1);
+				
 			}
 			mListView.invalidateViews();
 			mListView.refreshDrawableState();
 			setListAdapter(adapter);
+			mListView.setSelection(messages.size()-1);
 			//Toast.makeText(mContext, "hi", Toast.LENGTH_LONG).show();
-			return true;
-		case R.id.menu_send:
-			getShareContent();
-			return true;			
+			return true;		
 		case R.id.menu_autoforward:
 			
 			return true;	
-		case R.id.menu_timeselect:
-			
-			return true;
 		default:
 			return false;
 		}
@@ -431,10 +461,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	}	
 
     public void getShareContent() {
-		SimpleDateFormat dateFormat = new SimpleDateFormat(
-				"yyyy-MM-dd'T'HH:mm'Z'"); // ISO 8601, Local time zone.
-		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-		String date = dateFormat.format(new Date()); // Current time in UTC.   
+		long date = System.currentTimeMillis();
 		
 		recipients = mConfidantesEditor.constructContactsFromInput(false).getToNumbers();
 		hashtags_string = hashtag.getText().toString().trim(); 
@@ -447,8 +474,11 @@ public class MessageActivityCheckbox extends SherlockListActivity {
         }
         for(String h : hashtags_string.split(",")) {
         	if(!h.trim().isEmpty()) {
-	        	Comment c = new Comment(h, "", date, Constants.ALL_HASHTAGS_LIST.indexOf(h));
-	        	mSharedConversation.addComment(c);
+	        	SMSMessage c = new SMSMessage();
+	        	c.setDate(System.currentTimeMillis());
+	        	c.setMessage(h);
+	        	c.setHashtagID(Constants.ALL_HASHTAGS_LIST.indexOf(h));
+	        	mSharedConversation.addMessage(c);
         	}
         }
     }     

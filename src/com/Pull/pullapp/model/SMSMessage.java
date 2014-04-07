@@ -26,7 +26,7 @@ public class SMSMessage {
     public boolean sentByMe, box, isDelayed;
 	public long futureSendTime;
 	public long launchedOn;
-   
+	private int hashtagID;
     
     // Constructors
     public SMSMessage() {
@@ -108,5 +108,12 @@ public class SMSMessage {
         this.smsMessage = message;
     }
     
+	public int getHashtagID() {
+		return this.hashtagID;
+	}
 
+	public void setHashtagID(int indexOf) {
+		this.hashtagID = indexOf;
+		
+	}
 }
