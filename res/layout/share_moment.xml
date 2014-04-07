@@ -26,21 +26,15 @@
 		    android:hint="#Hashtag"
 		    android:imeOptions="actionNext"
 		    android:isScrollContainer="true" />
-	  		
+
 	   	<TextView
-	   		android:id="@+id/sharing_texts_text"
-	   		android:layout_width="fill_parent"
-	   		android:layout_height="wrap_content"
-	   		android:layout_marginRight="5dip"
-	   		android:layout_marginTop="10dip"
-	   		android:layout_below="@id/hashtags"/>
-	   	<TextView
-	   		android:id="@+id/sharing_texts"
-	   		android:layout_width="fill_parent"
-	   		android:layout_height="wrap_content"
-	   		android:scrollbars = "vertical"
-	   		android:lines="10"
-	   		android:layout_below="@id/sharing_texts_text"/>	
+	   	    android:id="@+id/sharing_texts"
+	   	    android:layout_width="fill_parent"
+	   	    android:layout_height="wrap_content"
+	   	    android:layout_below="@id/hashtags"
+	   	    android:lines="10"
+	   	    android:scrollbars="vertical" />
+	
         <Button
             android:id="@+id/sendlater"
             android:layout_width="wrap_content"

@@ -16,6 +16,8 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import com.Pull.pullapp.model.ThreadItem;
@@ -43,6 +45,23 @@ public class ThreadsListActivity extends Activity {
 	    mContext = getApplicationContext();
 	    
 	    if(Constants.LOG_SMS) new AlarmScheduler(mContext, false).start();
+	    
+	    
+	    RadioGroup radioGroup  = (RadioGroup) findViewById(R.id.switch_buttons);
+	   
+	    radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+			
+			@Override
+			public void onCheckedChanged(RadioGroup group, int checkedId) {
+				if(checkedId==R.id.shared_tab_button){
+					Intent i = new Intent(mContext, SharedListActivity.class);
+					i.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+					startActivity(i);
+					
+					overridePendingTransition(0,0);
+				}
+			}
+		});
 	    
         Button button = (Button) findViewById(R.id.new_message);
         button.setOnClickListener(new View.OnClickListener() {
@@ -108,6 +127,8 @@ public class ThreadsListActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		RadioButton initialButton = (RadioButton) findViewById(R.id.conversations_tab_button);
+	    initialButton.setChecked(true);
 		((ThreadItemsListAdapter) listview.getAdapter()).notifyDataSetChanged();
 	}
 

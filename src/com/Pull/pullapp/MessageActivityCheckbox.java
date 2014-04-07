@@ -224,6 +224,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 			number =  getIntent().getStringExtra(Constants.EXTRA_NUMBER); 
 			name =  getIntent().getStringExtra(Constants.EXTRA_NAME); 
 			
+			
 			if(number!=null && name!=null) {
 				mRecipientEditor.setVisibility(View.GONE);
 				mLayout.setBackgroundColor(R.color.messageDefaultBackground);
