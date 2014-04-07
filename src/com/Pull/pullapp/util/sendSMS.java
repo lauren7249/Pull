@@ -24,8 +24,6 @@ public class sendSMS  {
 	private static final String TAG = "SendSMS";
 	
 	private static final Uri SENT_MSGS_CONTENT_PROVIDER = Uri.parse("content://sms/sent");
-	private static final Uri OUTBOX_MSGS_CONTENT_PROVIDER = Uri.parse("content://sms/outbox");
-	private static final Uri SMS_CONTENT_PROVIDER = Uri.parse("content://sms");
 	
 	boolean DEBUG = false;	// debug mode, display additional output, sends no sms.
 	boolean SECRET = false;	// for secret mode => dont't save sent sms to sent folder.
@@ -79,7 +77,7 @@ public class sendSMS  {
 	public static void addMessageToOutbox(Context context, String recipient, String message,
 			long timeScheduled, long scheduledFor) {
 		DatabaseHandler db = new DatabaseHandler(context);
-		int inserted = db.addToOutbox(recipient, message, timeScheduled, scheduledFor);
+		db.addToOutbox(recipient, message, timeScheduled, scheduledFor);
 		db.close();
 	    Intent intent = new Intent(Constants.ACTION_SMS_OUTBOXED);
 	    intent.putExtra(Constants.EXTRA_RECIPIENT, recipient);

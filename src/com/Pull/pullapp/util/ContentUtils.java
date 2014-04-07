@@ -82,16 +82,17 @@ public class ContentUtils {
 	  }
 	  public static String getThreadIDFromNumber(Context context, String number) {
 	      Cursor c = context.getContentResolver().query(Uri.parse("content://sms"),
-	      		new String[]{"max(thread_id) as thread_id","address"},"address='"+number+"'",null,null);
+	      		new String[]{"max(thread_id) as thread_id","address"},TextBasedSmsColumns.ADDRESS+
+	      		"='"+number+"'",null,null);
 	      Log.i("number",number);
 	      Log.i("size",c.getCount()+" ");
 	      if (c!=null && c.getCount()>0) {
 	    	  while(c.moveToNext()) {	
-	    		  if (c.getString(c.getColumnIndexOrThrow("thread_id"))==null) {
+	    		  if (c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.THREAD_ID))==null) {
 	    			  Log.i("column","nothing");
 	    			  return null;
 	    		  }
-	    		  String id = c.getString(c.getColumnIndexOrThrow("thread_id")).toString();
+	    		  String id = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.THREAD_ID)).toString();
 	    		  return id;
 	    	}
 	      }

@@ -37,6 +37,7 @@ import java.util.TimeZone;
 
 import com.Pull.pullapp.util.DatabaseHandler;
 
+@Deprecated
 public class ShareMoment extends Activity  {
 
 	private long mID;

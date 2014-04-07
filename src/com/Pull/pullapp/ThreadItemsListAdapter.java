@@ -32,8 +32,10 @@ public class ThreadItemsListAdapter extends ArrayAdapter<ThreadItem> {
 	        v = vi.inflate(R.layout.message_list_item, parent, false);
     	}
 	   TextView name = (TextView) v.findViewById(R.id.txt_title);
+	   TextView snippet = (TextView) v.findViewById(R.id.txt_message_info);
 	   ThreadItem th = objects.get(pos);
 	   name.setText(th.displayName);
+	   snippet.setText(th.snippet);
 	   if(!th.read) v.setBackgroundResource(R.drawable.unread_row);
 	   else v.setBackgroundResource(R.drawable.read_row);
 	   return v;

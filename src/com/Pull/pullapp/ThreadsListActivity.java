@@ -7,6 +7,8 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.Telephony.TextBasedSmsColumns;
+import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -142,20 +144,22 @@ public class ThreadsListActivity extends Activity {
 				threads = ContentUtils.getThreadsCursor(mContext);
 				while (threads.moveToNext()) {
 			    	String threadID = threads.getString(threads
-			  		      .getColumnIndex("_id"));
+			  		      .getColumnIndex(ThreadsColumns._ID));
+			    	String snippet = threads.getString(threads
+				  		      .getColumnIndex(ThreadsColumns.SNIPPET));			    	
 			    	if(threadID == null) continue;
 			    	if(threadID.length()==0) continue;
 			    	boolean read = (!threads.getString(threads
-				  		      .getColumnIndex("read")).equals("0"));	    	
+				  		      .getColumnIndex(ThreadsColumns.READ)).equals("0"));	    	
 					String[] recipientIDs = threads.getString(threads
-				      .getColumnIndex("recipient_ids")).split(" ");
+				      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS)).split(" ");
 
 					if(recipientIDs.length == 1 && recipientIDs[0].length()>0) {
 						String recipientId = recipientIDs[0];
 						String number = ContentUtils.getAddressFromID(mContext, recipientId);
 						String name = ContentUtils
 								.getContactDisplayNameByNumber(mContext, number);
-						ThreadItem t = new ThreadItem(threadID, name, number, read);
+						ThreadItem t = new ThreadItem(threadID, name, number, snippet, read);
 						publishProgress(t);						
 
 					}
