@@ -5,12 +5,13 @@ import java.util.ArrayList;
 public class SharedConversation {
 	
 	private int id;
-	private String confidante, original_recipient, date_shared;
+	private String confidante, original_recipient;
+	long date_shared;
 	private ArrayList<SMSMessage> conversation = new ArrayList<SMSMessage>();
 	private ArrayList<Comment> comments = new ArrayList<Comment>();
 	public String original_hashtags;
 	
-	public SharedConversation(int id, String date, String confidante,
+	public SharedConversation(int id, long date, String confidante,
 			String original_recipient) {
 		this.id = id;
 		this.date_shared = date;
@@ -21,14 +22,14 @@ public class SharedConversation {
 	public SharedConversation() {
 	}
 
-	public SharedConversation(String date, String shared_with,
+	public SharedConversation(long date, String shared_with,
 			String shared_from) {
 		this.date_shared = date;
 		this.confidante = shared_with;
 		this.original_recipient = shared_from;
 	}
 
-	public String getDate() {
+	public long getDate() {
 		return date_shared;
 	}
 	
@@ -45,8 +46,8 @@ public class SharedConversation {
 		this.id = parseInt;
 	}
 
-	public void setDate(String string) {
-		this.date_shared= string;
+	public void setDate(long date) {
+		this.date_shared= date;
 		
 	}
 
@@ -81,7 +82,7 @@ public class SharedConversation {
 
 	public String getHashtags() {
 		String hashtags = "";
-		for(Comment c : comments) {
+		for(SMSMessage c : conversation) {
 			if(c.getHashtagID()!=-1) hashtags = hashtags + " " + c.getMessage();
 		}
 		return hashtags;

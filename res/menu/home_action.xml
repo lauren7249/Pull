@@ -3,13 +3,7 @@
     <item android:id="@+id/menu_share"
           android:icon="@android:drawable/ic_menu_share" 
           android:showAsAction="always|withText"/>
-    <item android:id="@+id/menu_send"
-          android:icon="@android:drawable/ic_menu_send" 
-          android:showAsAction="always|withText"/> 
      <item android:id="@+id/menu_autoforward"
          android:title="Autoforward" 
-         android:showAsAction="ifRoom"/>
-     <item android:id="@+id/menu_timeselect"
-         android:title="Add Time Delay"    
-         android:showAsAction="ifRoom|withText"     />    
+         android:showAsAction="never"/>
 </menu>

@@ -57,13 +57,20 @@ public class ThreadsListActivity extends Activity {
 			
 			@Override
 			public void onCheckedChanged(RadioGroup group, int checkedId) {
-				if(checkedId==R.id.shared_tab_button){
+				if(checkedId==R.id.shared_tab_button1){
 					Intent i = new Intent(mContext, SharedListActivity.class);
 					i.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 					startActivity(i);
 					
 					overridePendingTransition(0,0);
 				}
+				if(checkedId==R.id.shared_tab_button2){
+					Intent i = new Intent(mContext, SharedWithMeListActivity.class);
+					i.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+					startActivity(i);
+					
+					overridePendingTransition(0,0);
+				}				
 			}
 		});
 	    
@@ -132,7 +139,7 @@ public class ThreadsListActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		RadioButton initialButton = (RadioButton) findViewById(R.id.conversations_tab_button);
+		RadioButton initialButton = (RadioButton) findViewById(R.id.conversations_tab_button1);
 	    initialButton.setChecked(true);
 		((ThreadItemsListAdapter) listview.getAdapter()).notifyDataSetChanged();
 	}
