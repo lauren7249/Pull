@@ -35,9 +35,9 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="left"
                 android:layout_margin="5dp"
-                android:fontFamily="sans-serif-light"
+                android:fontFamily="sans-serif"
                 android:textColor="@color/textColor"
-                android:textSize="20sp" />
+                android:textSize="18sp" />
 
             <Button
                 android:id="@+id/edit_message_button"
