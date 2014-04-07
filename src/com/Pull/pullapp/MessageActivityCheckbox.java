@@ -360,13 +360,15 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	}	
 	private void readMessage(Cursor c) {
 		String body="", SmsMessageId="", address="", read="";
+		long date;
 		int type = Integer.parseInt(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.TYPE)).toString());
 		if(type==TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return;
 		body = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.BODY)).toString();
     	SmsMessageId = c.getString(c.getColumnIndexOrThrow("_id")).toString();
     	address = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.ADDRESS)).toString();
     	read = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.READ)).toString();
-    	addNewMessage(new SMSMessage(body, address, type));
+    	date = c.getLong(c.getColumnIndexOrThrow(TextBasedSmsColumns.DATE));
+    	addNewMessage(new SMSMessage(date, body, address, type));
     	if(read.equals("0") && !SmsMessageId.equals("")) {
         	ContentValues values = new ContentValues();
     		values.put("read",true);

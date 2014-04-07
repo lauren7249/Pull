@@ -21,7 +21,7 @@ import android.provider.Telephony.TextBasedSmsColumns;
 
 public class SMSMessage {
 	int smsId;
-	String smsDate;
+	long smsDate;
     String smsSender;
     String smsMessage;
     String smsRecipient;
@@ -53,7 +53,7 @@ public class SMSMessage {
         this.isDelayed = (type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
     }  
     
-    public SMSMessage(int id, String date, String sender, String recipient, String message) {
+    public SMSMessage(int id, long date, String sender, String recipient, String message) {
         this.smsId = id;
         this.smsDate = date;
         this.smsSender = sender;
@@ -61,10 +61,12 @@ public class SMSMessage {
         this.smsMessage = message;
     }
 
-    public SMSMessage(String date, String sender, String message) {
+    public SMSMessage(long date, String message, String sender, int type) {
     	this.smsDate = date;
         this.smsSender = sender;
         this.smsMessage = message;
+        this.sentByMe = (type != TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
+        this.isDelayed = (type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
     }
 
     // Id
@@ -77,11 +79,11 @@ public class SMSMessage {
     }
 
     // Date
-    public String getDate() {
+    public long getDate() {
     	return this.smsDate;
     }
 
-    public void setDate(String date) {
+    public void setDate(long date) {
     	this.smsDate = date;
 	}
 

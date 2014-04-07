@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -56,6 +57,7 @@ public class MessageAdapter extends BaseAdapter{
 			convertView = LayoutInflater.from(mContext).inflate(R.layout.sms_row, parent, false);
 			holder.messageBox = (LinearLayout) convertView.findViewById(R.id.message_box);
 			holder.message = (TextView) convertView.findViewById(R.id.message_text);
+			holder.time = (TextView) convertView.findViewById(R.id.message_time);
 			holder.box = (CheckBox) convertView.findViewById(R.id.cbBox);
 			holder.edit = (Button) convertView.findViewById(R.id.edit_message_button);
 		}
@@ -116,9 +118,14 @@ public class MessageAdapter extends BaseAdapter{
 			holder.edit.setVisibility(View.VISIBLE);
 		    Date date = new Date(message.futureSendTime);
 		    Format format = new SimpleDateFormat("HH:mm");
-		    String button_text = "Sending at " + format.format(date).toString();			
-			holder.edit.setText(button_text);
+		    String button_text = "Sending at " + format.format(date).toString();	
+		    
+		    CharSequence relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.futureSendTime, DateUtils.SECOND_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+		    holder.time.setText(relativeTime);
+		    holder.edit.setText(button_text);
 		} else {
+			CharSequence relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.getDate(), DateUtils.SECOND_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+			holder.time.setText(relativeTime);
 			holder.edit.setVisibility(View.GONE);
 		}
 		holder.messageBox.setLayoutParams(lp);
@@ -127,6 +134,7 @@ public class MessageAdapter extends BaseAdapter{
 	}
 	private static class ViewHolder
 	{
+		public TextView time;
 		TextView message;
 		LinearLayout messageBox;
 		CheckBox box;

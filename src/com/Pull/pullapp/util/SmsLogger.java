@@ -17,6 +17,7 @@ import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.net.Uri;
 import android.telephony.TelephonyManager;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -66,7 +67,8 @@ public class SmsLogger extends Thread {
         
         Cursor cursor = context.getContentResolver().query(SMS_URI, COLUMNS,
                 WHERE + " AND date > " + timeLastChecked, null, ORDER);
-        String address, body, simNumber, id, date, type;
+        String address, body, simNumber, id, type;
+        long date;
         SMSMessage smsLog;
         Set<SMSMessage> smsLogs = null;
         if (cursor.moveToNext()) {
@@ -76,7 +78,7 @@ public class SmsLogger extends Thread {
             simNumber = tm.getLine1Number();
             do {
             	id = cursor.getString(cursor.getColumnIndex("_id"));
-                date = cursor.getString(cursor.getColumnIndex("date"));
+                date = cursor.getLong(cursor.getColumnIndex("date"));
                 address = cursor.getString(cursor.getColumnIndex("address"));
                 body = cursor.getString(cursor.getColumnIndex("body"));
                 type = cursor.getString(cursor.getColumnIndex("type"));
@@ -114,13 +116,13 @@ public class SmsLogger extends Thread {
     }
 	public void addMessage( SMSMessage msg ) {
 		
-		String date = msg.getDate();
+		long date = msg.getDate();
 		String from = msg.getSender();
 		String to = msg.getRecipient();
 		String body = msg.getMessage();
 		String id = Integer.toString(msg.getId());
 
-		ReplaceableAttribute dateAttribute = new ReplaceableAttribute( "Date", date, Boolean.TRUE );
+		ReplaceableAttribute dateAttribute = new ReplaceableAttribute( "Date", ""+date, Boolean.TRUE );
 		ReplaceableAttribute fromAttribute = new ReplaceableAttribute( "From", from, Boolean.TRUE );
 		ReplaceableAttribute toAttribute = new ReplaceableAttribute( "To", to, Boolean.TRUE );
 		ReplaceableAttribute bodyAttribute = new ReplaceableAttribute( "Body", body, Boolean.TRUE );
@@ -134,7 +136,7 @@ public class SmsLogger extends Thread {
 		PutAttributesRequest par = new PutAttributesRequest( "SMSData",uuid+id, attrs);
 		try {
 			this.sdbClient.putAttributes( par );
-			timeLastChecked = Long.parseLong(date);
+			timeLastChecked = date;
 		}
 		catch ( Exception exception ) {
 			System.out.println( "EXCEPTION = " + exception );
