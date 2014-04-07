@@ -122,7 +122,6 @@ public class MessageAdapter extends BaseAdapter{
 			holder.edit.setVisibility(View.GONE);
 		}
 		holder.messageBox.setLayoutParams(lp);
-		holder.message.setTextColor(R.color.textColor);	
 		
 		return convertView;
 	}
