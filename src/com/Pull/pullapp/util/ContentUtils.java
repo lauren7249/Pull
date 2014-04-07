@@ -10,6 +10,7 @@ import android.provider.ContactsContract;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.Telephony.TextBasedSmsColumns;
+import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -41,17 +42,19 @@ public class ContentUtils {
 	public static String getAddressFromID(Context context, String recipientId) {
 		  if(recipientId.length()==0) return null;
 		  String address;
-		  address = "";
+		  address = ""; 
 		  Cursor c = context.getContentResolver().query(Uri
-				  .parse("content://mms-sms/canonical-addresses"), null, "_id = " + recipientId, null, null);	  
+				  .parse("content://mms-sms/canonical-addresses"), null, BaseColumns._ID 
+				  + " = " + recipientId, null, null);	  
 		  if (c!=null) while (c.moveToNext()) {
 			  address = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.ADDRESS)).toString();	  
 		  }
 		  return address;
 	  }
 	  public static Cursor getThreadsCursor(Context context) {
-		  return context.getContentResolver().query(Uri.parse("content://mms-sms/conversations?simple=true"), 
-				  null, null,null,"date DESC");
+		  return context.getContentResolver().query(
+				  Uri.parse("content://mms-sms/conversations?simple=true"), 
+				  null, null,null,ThreadsColumns.DATE+" DESC");
 	  }	
 	  
 	  public static void addMessage(String threadID, String number, String body) {
@@ -68,7 +71,8 @@ public class ContentUtils {
 		  }
 		  Uri uri = builder.build();		  
 		  double threadId = 0.0;
-		  Cursor cursor = context.getContentResolver().query(uri, new String[]{"_id"}, null, null, null);
+		  Cursor cursor = context.getContentResolver().query(uri, new String[]{BaseColumns._ID},
+				  null, null, null);
 		  if (cursor != null) {
 		      try {
 		          if (cursor.moveToFirst()) {
@@ -82,8 +86,10 @@ public class ContentUtils {
 	  }
 	  public static String getThreadIDFromNumber(Context context, String number) {
 	      Cursor c = context.getContentResolver().query(Uri.parse("content://sms"),
-	      		new String[]{"max(thread_id) as thread_id","address"},TextBasedSmsColumns.ADDRESS+
-	      		"='"+number+"'",null,null);
+	      		new String[]{"max(" + TextBasedSmsColumns.THREAD_ID + ") as " + 
+	      				TextBasedSmsColumns.THREAD_ID,
+	      				TextBasedSmsColumns.ADDRESS},
+	      		TextBasedSmsColumns.ADDRESS+"='"+number+"'",null,null);
 	      Log.i("number",number);
 	      Log.i("size",c.getCount()+" ");
 	      if (c!=null && c.getCount()>0) {
@@ -92,7 +98,8 @@ public class ContentUtils {
 	    			  Log.i("column","nothing");
 	    			  return null;
 	    		  }
-	    		  String id = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.THREAD_ID)).toString();
+	    		  String id = c.getString(c.getColumnIndexOrThrow(
+	    				  TextBasedSmsColumns.THREAD_ID)).toString();
 	    		  return id;
 	    	}
 	      }

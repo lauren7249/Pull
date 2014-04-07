@@ -31,26 +31,20 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
+import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
-import com.Pull.pullapp.util.DatabaseHandler;
 import com.Pull.pullapp.util.DelayedSend;
 import com.Pull.pullapp.util.RecipientsAdapter;
 import com.Pull.pullapp.util.RecipientsEditor;
-import com.Pull.pullapp.util.sendSMS;
-import com.Pull.pullapp.R;
+import com.Pull.pullapp.util.ShareTagAction;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 
-/**
- * MessageActivity is a main Activity to show a ListView containing SMSMessage items
- * 
- */
 public class MessageActivityCheckbox extends SherlockListActivity {
-	/** Called when the activity is first created. */
 
 	private ArrayList<SMSMessage> messages;
 	private HashMap<Long,Integer> delayedMessages = new HashMap<Long,Integer>();
@@ -71,20 +65,9 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	private RelativeLayout mLayout;
 	private BroadcastReceiver mBroadcastReceiver;
 	private MultiAutoCompleteTextView hashtag;
-	private String hastags_string;
-	private String[] hashtags = {"#Anger","#Annoyance","#Contempt","#Disgust","#Irritation",
-			"#Anxiety","#Embarrassment","#Fear","#Helplessness","#Powerlessness",
-			"#Worry","#Doubt","#Envy","#Frustration","#Guilt","#Shame","#Boredom",
-			"#Despair","#Disappointment","#Hurt","#Sadness","#Stress","#Shock","#Tension",
-			"#Amusement","#Delight","#Elation","#Excitement","#Happiness","#Joy","#Pleasure",
-			"#Affection","#Empathy","#Friendliness","#Love","#Courage","#Hope","#Pride",
-			"#Satisfaction","#Trust","#Calm","#Content","#Relaxed","#Relieved","#Serene",
-			"#Interest","#Politeness","#Surprised","#WTF","#B****Please"};
-	private ArrayList<String> checked_messages;
+	private String hashtags_string;
 	private String person_shared;
-	private String shared_address;
-	private static final String app_link = "Download the app at Google play: https://play.google.com/store/apps/details?id=com.pull.pullapp";
-
+	private SharedConversation mSharedConversation;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -114,7 +97,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		hashtag = (MultiAutoCompleteTextView) this.findViewById(R.id.hashtags);
 		hashtag.setText("#");
 		ArrayAdapter<String> aaEmo = new ArrayAdapter<String>(
-				this,android.R.layout.simple_spinner_dropdown_item,hashtags);
+				this,android.R.layout.simple_spinner_dropdown_item,Constants.ALL_HASHTAGS);
 		hashtag.setAdapter(aaEmo);
 		hashtag.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer() );	
 		
@@ -330,7 +313,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 			//Toast.makeText(mContext, "hi", Toast.LENGTH_LONG).show();
 			return true;
 		case R.id.menu_send:
-			showResult();
+			getShareContent();
 			return true;			
 		case R.id.menu_autoforward:
 			
@@ -433,69 +416,39 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		mListView.setSelection(messages.size()-1);
 	}	
 
-    public void showResult() {
-    	String text = "";
-    	person_shared = "";
-    	shared_address = "";
-        checked_messages = new ArrayList<String>();
+    public void getShareContent() {
+		SimpleDateFormat dateFormat = new SimpleDateFormat(
+				"yyyy-MM-dd'T'HH:mm'Z'"); // ISO 8601, Local time zone.
+		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String date = dateFormat.format(new Date()); // Current time in UTC.   
+		
+		recipients = mConfidantesEditor.constructContactsFromInput(false).getToNumbers();
+		hashtags_string = hashtag.getText().toString().trim(); 
+		
+    	mSharedConversation = new SharedConversation(date, recipients[0], number);
         for (SMSMessage p : messages) {
             if (p.box && !p.getMessage().equals("")) {
-            	shared_address = p.getSender();
-            	person_shared = ContentUtils.getContactDisplayNameByNumber(mContext, shared_address);
-            	if(p.sentByMe) {
-            		text =  "Me: " + p.getMessage();
-            	} else {
-            		text = person_shared + ": " + p.getMessage();
-            	} 
-            
-                checked_messages.add(text);
+            	mSharedConversation.addMessage(p);
             }
+        }
+        for(String h : hashtags_string.split(",")) {
+        	if(!h.trim().isEmpty()) {
+	        	Comment c = new Comment(h, "", date, Constants.ALL_HASHTAGS_LIST.indexOf(h));
+	        	mSharedConversation.addComment(c);
+        	}
         }
     }     
     
 	public void shareMessages(View v) throws InterruptedException
 	{
+		getShareContent();
 		
-		showResult();
-		hastags_string = hashtag.getText().toString().trim(); 
-		recipients = mConfidantesEditor.constructContactsFromInput(false).getToNumbers();
-		String app_plug = "Hey, check out my conversation with " + person_shared + ". " + hastags_string + ":";
-		Log.i("sharing","recipients " + recipients.length);
-		Log.i("sharing","hashtags " + hastags_string.length());
-		if(hastags_string.length() > 0 && recipients.length>0 && checked_messages.size()>0)
+		if(recipients.length>0 && mSharedConversation.getMessages().size()>0)
 		{
-			Log.i("sharing","messages count " + checked_messages.size());
-			Log.i("sharing","to " + recipients[0]);
-            new DelayedSend(mContext, recipients[0], app_plug, 
-            		new Date(System.currentTimeMillis()), System.currentTimeMillis()).start();			
-			for(int i=0; i<checked_messages.size(); i++) {
-				Thread.sleep(1);
-	            new DelayedSend(mContext, recipients[0], checked_messages.get(i), 
-	            		new Date(System.currentTimeMillis()+((i+1)*1000)), 
-	            		System.currentTimeMillis()).start();					
-			}
-			Thread.sleep(1);
-            new DelayedSend(mContext, recipients[0], app_link, 
-            		new Date(System.currentTimeMillis()+(checked_messages.size()*1000)), 
-            		System.currentTimeMillis()).start();					
-			
-	        
-			SimpleDateFormat dateFormat = new SimpleDateFormat(
-					"yyyy-MM-dd'T'HH:mm'Z'"); // ISO 8601, Local time zone.
-			dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-			String date = dateFormat.format(new Date()); // Current time in UTC.
-			DatabaseHandler db = new DatabaseHandler(mContext);
-			int id = db.addSharedMessage(new SharedConversation(date, recipients[0], 
-					number, hastags_string)); 
-			db.close();
-			Log.i("shared messages in db", id  + " ");
-			
-			String name = ContentUtils
-					.getContactDisplayNameByNumber(mContext, recipients[0]);
-			Intent outintent = new Intent(mContext, MessageActivityCheckbox.class);
-			outintent.putExtra(Constants.EXTRA_NUMBER, recipients[0]);			
-			outintent.putExtra(Constants.EXTRA_NAME, name);			
-	        startActivity(outintent);				
+            new ShareTagAction(mContext, mSharedConversation).start();					
+
+			Intent outintent = new Intent(mContext, SharedListActivity.class);		
+	        startActivity(outintent);			
 	        
 		}
 					

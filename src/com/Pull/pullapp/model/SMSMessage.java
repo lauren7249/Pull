@@ -20,13 +20,8 @@ package com.Pull.pullapp.model;
 import android.provider.Telephony.TextBasedSmsColumns;
 
 public class SMSMessage {
-	int smsId;
-	String smsDate;
-    String smsSender;
-    String smsMessage;
-    String smsRecipient;
-    String smsTag;
-    
+	private int smsId;
+	private String smsDate, smsSender, smsMessage, smsRecipient;
     public boolean sentByMe, box, isDelayed;
 	public long futureSendTime;
 	public long launchedOn;
@@ -110,12 +105,5 @@ public class SMSMessage {
         this.smsMessage = message;
     }
     
-    // Message text
-    public String getTag(){
-        return this.smsTag;
-    }
 
-    public void setTag(String tag){
-        this.smsTag = tag;
-    }    
 }

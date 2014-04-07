@@ -61,6 +61,7 @@
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
                 <action android:name="com.Pull.pullapp.util.ACTION_CHECK_OUT_SMS" />
                 <action android:name="com.Pull.pullapp.util.ACTION_SEND_DELAYED_TEXT" />
+                <action android:name="com.Pull.pullapp.util.ACTION_SHARE_TAG" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
@@ -77,19 +78,7 @@
              <intent-filter android:priority="1001">
                  <action android:name="android.provider.Telephony.SMS_DELIVER"/>
              </intent-filter>            
-        </receiver>        
-        <activity android:name="com.Pull.pullapp.Compose" >
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />                
-                <action android:name="android.intent.action.SENDTO" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="sms" />
-                <data android:scheme="smsto" />
-                <data android:scheme="mms" />
-                <data android:scheme="mmsto" />
-            </intent-filter>
-        </activity>                  
+        </receiver>                      
         <activity
             android:name="com.Pull.pullapp.ThreadsListActivity"
             android:label="@string/app_name" >    
@@ -103,15 +92,19 @@
             android:name="com.Pull.pullapp.MessageActivityCheckbox"
             android:label="@string/app_name" >      
             <meta-data
-        android:name="android.support.PARENT_ACTIVITY"
-        android:value="com.Pull.pullapp.ThreadsListActivity" /> 
-                 
-        </activity>  
-        <activity
-            android:name="com.Pull.pullapp.ShareMoment"
-            android:label="Share Conversation" >       
-                 
-        </activity>          		
+		        android:name="android.support.PARENT_ACTIVITY"
+		        android:value="com.Pull.pullapp.ThreadsListActivity" /> 
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />                
+                <action android:name="android.intent.action.SENDTO" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="sms" />
+                <data android:scheme="smsto" />
+                <data android:scheme="mms" />
+                <data android:scheme="mmsto" />
+            </intent-filter>                 
+        </activity>      		
         <!-- Service that delivers messages from the phone "quick response" -->
         <service android:name="com.Pull.pullapp.HeadlessSmsSendService"
                  android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE"

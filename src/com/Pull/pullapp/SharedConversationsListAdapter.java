@@ -1,20 +1,16 @@
 package com.Pull.pullapp;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-import com.Pull.pullapp.model.SharedConversation;
-import com.Pull.pullapp.model.ThreadItem;
-import com.Pull.pullapp.R;
-
 import android.content.Context;
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+
+import com.Pull.pullapp.model.SharedConversation;
+import com.Pull.pullapp.util.ContentUtils;
 
 public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversation> {
     private List<SharedConversation> objects;
@@ -33,10 +29,12 @@ public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversat
 	        v = vi.inflate(R.layout.message_list_item, parent, false);
     	}
 	   TextView name = (TextView) v.findViewById(R.id.txt_title);
+	   TextView info = (TextView) v.findViewById(R.id.txt_message_info);
 	   SharedConversation th = objects.get(pos);
-	   name.setText(th.getOriginalRecipient());
-////	   if(!th.read) v.setBackgroundResource(R.drawable.unread_row);
-//	   else v.setBackgroundResource(R.drawable.read_row);
+	   name.setText(
+			   "Convo from: " + ContentUtils.getContactDisplayNameByNumber(context, th.getOriginalRecipient()) + 
+			   ", Shared with: " + ContentUtils.getContactDisplayNameByNumber(context, th.getConfidante()));
+	   info.setText("Hashtags: " + th.getHashtags() + ", Messages: " + th.getMessages().size());
 	   return v;
     }
     @Override
