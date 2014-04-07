@@ -28,7 +28,6 @@ public class DelayedSend extends Thread {
     }
     @Override
     public void run() {
-    	Log.i("Delayed send", "alarm" );
     	sendSMS.addMessageToOutbox(parent, recipient, message, launchedOn, sendOn);
         AlarmManager am = (AlarmManager) parent.getSystemService(Context.ALARM_SERVICE);   
         Intent intent = new Intent(Constants.ACTION_SEND_DELAYED_TEXT);

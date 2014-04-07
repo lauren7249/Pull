@@ -7,6 +7,8 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.telephony.PhoneNumberUtils;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuItem;
@@ -87,7 +89,8 @@ public class ThreadsListActivity extends Activity {
 		          intent.putExtra(Constants.EXTRA_THREAD_ID,item.ID);
 		          intent.putExtra(Constants.EXTRA_NAME,item.displayName);
 		          intent.putExtra(Constants.EXTRA_READ,item.read);
-		          intent.putExtra(Constants.EXTRA_NUMBER,item.number);
+		          intent.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(item.number));
+		          //Log.i("phone number",PhoneNumberUtils.stripSeparators(item.number));
 		          startActivity(intent);	    	  
 		     }
 		
@@ -98,7 +101,6 @@ public class ThreadsListActivity extends Activity {
 			public void onCreateContextMenu(ContextMenu menu, View view,
 					ContextMenuInfo menuInfo) {			
 		        menu.setHeaderTitle("Options");
-		        //menu.add(0, CONTEXTMENU_DELETEITEM, 1, "Delete thread");
 		        menu.add(0, CONTEXTMENU_CONTACTITEM, 0, "Add to Contacts");
 				
 			}
@@ -119,6 +121,7 @@ public class ThreadsListActivity extends Activity {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
                 intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
+                
                 mContext.startActivity(intent);            	
                 return true;
         }
@@ -133,9 +136,10 @@ public class ThreadsListActivity extends Activity {
 	}
 
 	  private class GetThreads extends AsyncTask<Void,ThreadItem,Void> {
+		  	Cursor threads;
 		  	@Override
 			protected Void doInBackground(Void... params) {
-				Cursor threads = ContentUtils.getThreadsCursor(mContext);
+				threads = ContentUtils.getThreadsCursor(mContext);
 				while (threads.moveToNext()) {
 			    	String threadID = threads.getString(threads
 			  		      .getColumnIndex("_id"));
@@ -157,7 +161,6 @@ public class ThreadsListActivity extends Activity {
 					}
 					
 			    }	
-				threads.close();
 				return null;
 			}
 			@Override
@@ -169,6 +172,7 @@ public class ThreadsListActivity extends Activity {
 			@Override
 		    protected void onPostExecute(Void result) {
 				super.onPostExecute(result);
+				threads.close();
 
 		    }			
 

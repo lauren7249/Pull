@@ -69,21 +69,18 @@ public class sendSMS  {
 	// This function add's the sent sms to the SMS sent folder
 	private static void addMessageToSent(Context context, String phoneNumber, String message) {
 	    ContentValues sentSms = new ContentValues();
-	    sentSms.put(TextBasedSmsColumns.ADDRESS, ContentUtils.addCountryCode(phoneNumber));
+	    sentSms.put(TextBasedSmsColumns.ADDRESS, phoneNumber);
 	    sentSms.put(TextBasedSmsColumns.BODY, message);
 	    
 	    ContentResolver contentResolver = context.getContentResolver();
-	    contentResolver.insert(SENT_MSGS_CONTENT_PROVIDER, sentSms);
+	    Uri inserted = contentResolver.insert(SENT_MSGS_CONTENT_PROVIDER, sentSms);
+	    if(inserted!=null) Log.i("inserted ",inserted.toString());
 	}
 	public static void addMessageToOutbox(Context context, String recipient, String message,
 			long timeScheduled, long scheduledFor) {
-	    ContentValues outboxSms = new ContentValues();
-	    outboxSms.put(TextBasedSmsColumns.DATE_SENT, timeScheduled);
-	    outboxSms.put(TextBasedSmsColumns.DATE, scheduledFor);
-	    outboxSms.put(TextBasedSmsColumns.BODY, message);
-	    outboxSms.put(TextBasedSmsColumns.ADDRESS, ContentUtils.addCountryCode(recipient));
-	    ContentResolver contentResolver = context.getContentResolver();
-	    contentResolver.insert(OUTBOX_MSGS_CONTENT_PROVIDER, outboxSms);
+		DatabaseHandler db = new DatabaseHandler(context);
+		int inserted = db.addToOutbox(recipient, message, timeScheduled, scheduledFor);
+		db.close();
 	    Intent intent = new Intent(Constants.ACTION_SMS_OUTBOXED);
 	    intent.putExtra(Constants.EXTRA_RECIPIENT, recipient);
 	    intent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
@@ -97,11 +94,10 @@ public class sendSMS  {
 	
 
 	public static int removeFromOutbox(Context context, String body, String recipient, long launchedOn, boolean clearFromScreen) {
-
-		ContentResolver contentResolver = context.getContentResolver();
-		String where = TextBasedSmsColumns.DATE_SENT + "=" + launchedOn + " and "
-		+ TextBasedSmsColumns.TYPE + "=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX;
-		int rowsdeleted = contentResolver.delete(SMS_CONTENT_PROVIDER, where, null);
+		DatabaseHandler db = new DatabaseHandler(context);
+		int rowsdeleted = db.deleteFromOutbox(launchedOn);
+		db.close();
+		Log.i("rows deleted ", " " + rowsdeleted);
 		if(rowsdeleted>0 && clearFromScreen) {
 		    Intent intent = new Intent(Constants.ACTION_SMS_UNOUTBOXED);
 		    intent.putExtra(Constants.EXTRA_RECIPIENT, recipient);
