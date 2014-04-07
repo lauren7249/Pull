@@ -19,6 +19,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony.TextBasedSmsColumns;
+import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -120,6 +121,8 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		setListAdapter(adapter);
 		
 		sendDate = calendar.getTime();
+		
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		
 		mBroadcastReceiver = 
 		new BroadcastReceiver() {
@@ -227,7 +230,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 			
 			if(number!=null && name!=null) {
 				mRecipientEditor.setVisibility(View.GONE);
-				mLayout.setBackgroundColor(R.color.messageDefaultBackground);
+				mLayout.setBackgroundColor(getResources().getColor(R.color.messageDefaultBackground));
 		        Cursor c = mContext.getContentResolver().query(Uri.parse("content://sms"),null,
 			       		TextBasedSmsColumns.ADDRESS + " in ('"+ContentUtils.addCountryCode(number) + "', '" +
 			       				number + "')" + " and " +
@@ -307,6 +310,9 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
+		case android.R.id.home:
+            NavUtils.navigateUpFromSameTask(this);
+            return true;
 		case R.id.menu_share:
 			if(isChecked) {
 				adapter.showCheckboxes = false;
