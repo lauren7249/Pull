@@ -49,7 +49,7 @@ public class MessageAdapter extends BaseAdapter{
 	public View getView(final int position, View convertView, ViewGroup parent) {
 		final SMSMessage message = this.getItem(position);
 
-		ViewHolder holder; 
+		final ViewHolder holder; 
 		if(convertView == null)
 		{
 			holder = new ViewHolder();
@@ -61,11 +61,21 @@ public class MessageAdapter extends BaseAdapter{
 		}
 		else holder = (ViewHolder) convertView.getTag();
 		
-        holder.box.setOnClickListener(new OnClickListener() {
+		convertView.setOnClickListener(new OnClickListener() {
+			
 			@Override
 			public void onClick(View v) {
-                if (message.box) message.box = false; 
-                else message.box = true;
+				if(showCheckboxes){
+					holder.box.toggle();
+					message.box = ! message.box;
+				}
+			}
+		});
+		
+		holder.box.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				message.box = !message.box;
 			};
         });
         

@@ -14,31 +14,38 @@
     </CheckBox>
 
     <LinearLayout
-        android:id="@+id/message_box"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:layout_weight="1"
-        android:background="@drawable/incoming"
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
         android:orientation="vertical" >
 
-	    <TextView
-	        android:id="@+id/message_text"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-            android:layout_gravity="left"
-            android:layout_margin="5dp"
-	        android:textColor="@color/textColor"
-	        android:textSize="20sp" />
-
-	    <Button
-	        android:id="@+id/edit_message_button" 
-	        android:layout_width="fill_parent"
+        <LinearLayout
+            android:id="@+id/message_box"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="0dp"
-            android:background="@color/barLightColor" />
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:background="@drawable/incoming"
+            android:orientation="vertical"
+            android:layout_gravity="right" >
 
-	</LinearLayout>
+            <TextView
+                android:id="@+id/message_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left"
+                android:layout_margin="5dp"
+                android:fontFamily="sans-serif-light"
+                android:textColor="@color/textColor"
+                android:textSize="20sp" />
+
+            <Button
+                android:id="@+id/edit_message_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="0dp"
+                android:background="@color/barLightColor" />
+        </LinearLayout>
+
+    </LinearLayout>
 
 </LinearLayout>
