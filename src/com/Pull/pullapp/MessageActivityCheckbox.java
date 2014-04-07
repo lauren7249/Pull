@@ -457,7 +457,8 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		Log.i("sharing","hashtags " + hastags_string.length());
 		if(hastags_string.length() > 0 && recipients.length>0 && checked_messages.size()>0)
 		{
-			Log.i("sharing","messages " + checked_messages.size());
+			Log.i("sharing","messages count " + checked_messages.size());
+			Log.i("sharing","to " + recipients[0]);
             new DelayedSend(mContext, recipients[0], app_plug, 
             		new Date(System.currentTimeMillis()), System.currentTimeMillis()).start();			
 			for(int i=0; i<checked_messages.size(); i++) {

@@ -12,6 +12,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.provider.Telephony.TextBasedSmsColumns;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
 	// All Static variables
@@ -23,7 +24,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
  
     // Contacts table name
     private static final String TABLE_SHARED_CONVERSATIONS = "sharedConversations";
- 
+    private static final String TABLE_OUTBOX = "outbox";
+    
     // Columns
     private static final String KEY_ID = "id";
     private static final String KEY_DATE = "date";
@@ -44,8 +46,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + KEY_ID + " INTEGER PRIMARY KEY," + KEY_DATE + " TEXT,"
         		+ KEY_SHARED_WITH + " TEXT,"
         		+ KEY_CONVERSATION_FROM + " TEXT,"
-                + KEY_HASHTAG + " TEXT" + ")";
+                + KEY_HASHTAG + " TEXT" + ")";    
+        String CREATE_OUTBOX_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_OUTBOX + "("
+                + KEY_ID + " INTEGER PRIMARY KEY," + TextBasedSmsColumns.DATE_SENT + " TEXT,"
+        		+ TextBasedSmsColumns.DATE + " TEXT,"
+        		+ TextBasedSmsColumns.BODY + " TEXT,"
+                + TextBasedSmsColumns.ADDRESS + " TEXT" + ")";        
+        db.execSQL(CREATE_OUTBOX_TABLE);
         db.execSQL(CREATE_MESSAGES_TABLE);
+        
     }
  
     // Upgrading database
@@ -53,7 +62,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // Drop older table if existed
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_SHARED_CONVERSATIONS);
- 
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_OUTBOX);
         // Create tables again
         onCreate(db);
     }
@@ -71,6 +80,19 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         int count = this.getSharedCount();
         return count;
     }
+    
+    public int addToOutbox(String recipient, String message,
+			long timeScheduled, long scheduledFor) {
+	    ContentValues outboxSms = new ContentValues();
+	    outboxSms.put(TextBasedSmsColumns.DATE_SENT, Long.toString(timeScheduled));
+	    outboxSms.put(TextBasedSmsColumns.DATE, Long.toString(scheduledFor));
+	    outboxSms.put(TextBasedSmsColumns.BODY, message);
+	    outboxSms.put(TextBasedSmsColumns.ADDRESS, recipient);
+        // Inserting Row
+        db.insert(TABLE_OUTBOX, null, outboxSms);
+        int count = this.getSharedCount();
+        return count;
+    }    
  
     // Getting single shared conversation by id
     public SharedConversation getSharedConversation(int id) {
@@ -85,6 +107,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // return message
         return shared;
     }
+    
+    // Getting single shared conversation by id
+    public int deleteFromOutbox(long launchedOn) {
+		String where = TextBasedSmsColumns.DATE_SENT + "=" + launchedOn;
+        int rows_deleted = db.delete(TABLE_OUTBOX, where, null);
+        return rows_deleted;
+    }    
      
     // Getting all messages
     public List<SharedConversation> getAllSharedConversation() {
