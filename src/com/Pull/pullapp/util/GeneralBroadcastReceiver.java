@@ -53,7 +53,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
     private boolean messagedAfterLaunch(Context context, String address, long launchTime) {
         Uri SMS_URI = Uri.parse("content://sms/inbox");
         String[] COLUMNS = new String[] {TextBasedSmsColumns.DATE,TextBasedSmsColumns.ADDRESS};
-        String WHERE = TextBasedSmsColumns.ADDRESS + "='" + sendSMS.addCountryCode(address) + "' and " +
+        String WHERE = TextBasedSmsColumns.ADDRESS + "='" + ContentUtils.addCountryCode(address) + "' and " +
         		TextBasedSmsColumns.TYPE + "=" + TextBasedSmsColumns.MESSAGE_TYPE_INBOX; 	
         Cursor cursor = context.getContentResolver().query(SMS_URI, COLUMNS,
                 WHERE + " AND " + TextBasedSmsColumns.DATE + "> " + launchTime, null, 

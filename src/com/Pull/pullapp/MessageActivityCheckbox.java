@@ -228,7 +228,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 				mRecipientEditor.setVisibility(View.GONE);
 				mLayout.setBackgroundColor(R.color.messageDefaultBackground);
 		        Cursor c = mContext.getContentResolver().query(Uri.parse("content://sms"),null,
-			       		TextBasedSmsColumns.ADDRESS + " in ('"+sendSMS.addCountryCode(number) + "', '" +
+			       		TextBasedSmsColumns.ADDRESS + " in ('"+ContentUtils.addCountryCode(number) + "', '" +
 			       				number + "')" + " and " +
 		        		TextBasedSmsColumns.TYPE + "!=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX ,null,
 		        		TextBasedSmsColumns.DATE);
@@ -241,7 +241,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		        }
 		        
 		        c = mContext.getContentResolver().query(Uri.parse("content://sms"),null,
-	       		TextBasedSmsColumns.ADDRESS + " in ('"+sendSMS.addCountryCode(number) + "', '" +
+	       		TextBasedSmsColumns.ADDRESS + " in ('"+ContentUtils.addCountryCode(number) + "', '" +
 	       				number + "')" + " and " +
 	       		TextBasedSmsColumns.TYPE + "=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX ,null,
 	       		TextBasedSmsColumns.DATE);
@@ -463,20 +463,14 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 			for(int i=0; i<checked_messages.size(); i++) {
 				Thread.sleep(1);
 	            new DelayedSend(mContext, recipients[0], checked_messages.get(i), 
-	            		new Date(System.currentTimeMillis()+((i+1)*2000)), 
+	            		new Date(System.currentTimeMillis()+((i+1)*1000)), 
 	            		System.currentTimeMillis()).start();					
 			}
 			Thread.sleep(1);
             new DelayedSend(mContext, recipients[0], app_link, 
-            		new Date(System.currentTimeMillis()+(checked_messages.size()*2000)), 
+            		new Date(System.currentTimeMillis()+(checked_messages.size()*1000)), 
             		System.currentTimeMillis()).start();					
 			
-			String name = ContentUtils
-					.getContactDisplayNameByNumber(mContext, recipients[0]);
-			Intent outintent = new Intent(mContext, MessageActivityCheckbox.class);
-			outintent.putExtra(Constants.EXTRA_NUMBER, recipients[0]);			
-			outintent.putExtra(Constants.EXTRA_NAME, name);			
-	        startActivity(outintent);	
 	        
 			SimpleDateFormat dateFormat = new SimpleDateFormat(
 					"yyyy-MM-dd'T'HH:mm'Z'"); // ISO 8601, Local time zone.
@@ -487,6 +481,13 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 					number, hastags_string)); 
 			db.close();
 			Log.i("shared messages in db", id  + " ");
+			
+			String name = ContentUtils
+					.getContactDisplayNameByNumber(mContext, recipients[0]);
+			Intent outintent = new Intent(mContext, MessageActivityCheckbox.class);
+			outintent.putExtra(Constants.EXTRA_NUMBER, recipients[0]);			
+			outintent.putExtra(Constants.EXTRA_NAME, name);			
+	        startActivity(outintent);				
 	        
 		}
 					
