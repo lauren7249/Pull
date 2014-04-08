@@ -26,7 +26,7 @@ public class SMSMessage {
     public boolean sentByMe, box, isDelayed;
 	public long futureSendTime;
 	public long launchedOn;
-	private int hashtagID;
+	private int hashtagID = -1;
     
     // Constructors
     public SMSMessage() {

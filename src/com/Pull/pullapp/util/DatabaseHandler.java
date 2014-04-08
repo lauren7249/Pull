@@ -179,6 +179,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             	m.setDate(cursor.getLong(1));
             	m.setMessage(cursor.getString(2));
             	m.sentByMe = cursor.getInt(3)>0;
+            	m.setHashtagID(cursor.getInt(4));
             	messages.add(m);
             } while (cursor.moveToPrevious());
         }

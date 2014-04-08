@@ -120,11 +120,13 @@ public class MessageAdapter extends BaseAdapter{
 		    Format format = new SimpleDateFormat("HH:mm");
 		    String button_text = "Sending at " + format.format(date).toString();	
 		    
-		    CharSequence relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.futureSendTime, DateUtils.SECOND_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+		    CharSequence relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.getDate(), DateUtils.SECOND_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+		    if(relativeTime.equals("12/31/1969, 7:00pm")) relativeTime = "Just now";
 		    holder.time.setText(relativeTime);
 		    holder.edit.setText(button_text);
 		} else {
 			CharSequence relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.getDate(), DateUtils.SECOND_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+			if(relativeTime.equals("12/31/1969, 7:00pm")) relativeTime = "Just now";
 			holder.time.setText(relativeTime);
 			holder.edit.setVisibility(View.GONE);
 		}

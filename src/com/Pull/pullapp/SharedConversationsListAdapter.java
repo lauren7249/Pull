@@ -34,7 +34,7 @@ public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversat
 	   name.setText(
 			   "Convo from: " + ContentUtils.getContactDisplayNameByNumber(context, th.getOriginalRecipient()) + 
 			   ", Shared with: " + ContentUtils.getContactDisplayNameByNumber(context, th.getConfidante()));
-	   info.setText("Hashtags: " + th.getHashtags() + ", Messages: " + th.getMessages().size());
+	   info.setText("Hashtags: " + th.getHashtags());
 	   return v;
     }
     @Override

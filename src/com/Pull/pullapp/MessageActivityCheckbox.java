@@ -143,7 +143,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		
 		setListAdapter(adapter);
 		
-		sendDate = null;
+		sendDate = calendar.getTime();
 		
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		
@@ -195,6 +195,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 					int id = delayedMessages.get(scheduledOn);
 					removeMessage(id);
 					delayedMessages.remove(id);
+					sendDate = calendar.getTime();
 					text.setText(intent_message);
 					
 				}

@@ -6,6 +6,7 @@ import java.util.List;
 import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
+import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.MenuItem;
@@ -117,6 +118,10 @@ public class SharedConversationActivity extends SherlockActivity {
 		sharedConversation = dbHandler.getSharedConversation(sharedConversationId);
 		sharedConversationMessageListAdapter.setItemList(sharedConversation.getMessages());
 		sharedConversationCommentListAdapter.setItemList(sharedConversation.getComments());
+		this.setTitle("Convo with " + 
+		ContentUtils.getContactDisplayNameByNumber(mContext,sharedConversation.getConfidante()) 
+		+ " about " + 
+		ContentUtils.getContactDisplayNameByNumber(mContext,sharedConversation.getOriginalRecipient()) );
 	}
 
 
