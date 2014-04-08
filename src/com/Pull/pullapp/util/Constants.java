@@ -74,6 +74,7 @@ public class Constants {
     public static final String EXTRA_MESSAGE_BODY = "MESSAGE_BODY";
     public static final String EXTRA_TIME_LAUNCHED = "TIME_LAUNCHED";
 	public static final String EXTRA_TIME_SCHEDULED_FOR = "TIME_SCHEDULED_FOR";
+	public static final String EXTRA_SHARED_CONVERSATION_ID = "SHARED_CONVERSATION_ID";
 	
 	public static final String[] ALL_HASHTAGS = 
 			{"#Anger","#Annoyance","#Contempt","#Disgust","#Irritation",

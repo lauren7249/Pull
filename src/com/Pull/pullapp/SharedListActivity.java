@@ -75,14 +75,11 @@ public class SharedListActivity extends Activity {
 	    listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 	    	
 		      public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
-//		    	  final ThreadItem item = (ThreadItem) parent.getItemAtPosition(position);
+		    	  final SharedConversation item = (SharedConversation) parent.getItemAtPosition(position);
 //    
-//		          Intent intent = new Intent(mContext, MessageActivityCheckbox.class);
-//		          intent.putExtra(Constants.EXTRA_THREAD_ID,item.ID);
-//		          intent.putExtra(Constants.EXTRA_NAME,item.displayName);
-//		          intent.putExtra(Constants.EXTRA_READ,item.read);
-//		          intent.putExtra(Constants.EXTRA_NUMBER,item.number);
-//		          startActivity(intent);	    	  
+		          Intent intent = new Intent(mContext, SharedConversationActivity.class);
+		          intent.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, item.getId());
+		          startActivity(intent);	    	  
 		     }
 		
 		   });			

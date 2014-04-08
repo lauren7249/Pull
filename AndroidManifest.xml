@@ -118,7 +118,8 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </service>
-        <activity android:name="SharedListActivity" android:label="Shared Conversation"></activity>		          
+        <activity android:name="SharedListActivity" android:label="Shared Conversation"></activity>
+        <activity android:name="SharedConversationActivity"></activity>				          
     </application>
 
 </manifest>

@@ -65,9 +65,9 @@ public class ThreadsListActivity extends Activity {
 					overridePendingTransition(0,0);
 				}
 				if(checkedId==R.id.shared_tab_button2){
-					Intent i = new Intent(mContext, SharedWithMeListActivity.class);
-					i.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-					startActivity(i);
+//					Intent i = new Intent(mContext, SharedWithMeListActivity.class);
+//					i.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+//					startActivity(i);
 					
 					overridePendingTransition(0,0);
 				}				

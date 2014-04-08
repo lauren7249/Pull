@@ -2,37 +2,40 @@ package com.Pull.pullapp;
 
 import java.util.ArrayList;
 
-import com.Pull.pullapp.model.SMSMessage;
-
 import android.content.Context;
-import android.database.Cursor;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class SharedConversationMessageAdapter extends BaseAdapter {
+import com.Pull.pullapp.model.Comment;
+
+public class SharedConversationCommentListAdapter extends BaseAdapter {
 	private Context mContext;
-	private ArrayList<SMSMessage> mMessages;
+	private ArrayList<Comment> mComments;
 	
-	public SharedConversationMessageAdapter(Context context, ArrayList<SMSMessage> messages) {
+	public SharedConversationCommentListAdapter(Context context, ArrayList<Comment> comments) {
 		super();
 		this.mContext = context;
-		this.mMessages = messages;
+		this.mComments = comments;
 	}
 
 	@Override
 	public int getCount() {
-		return mMessages.size();
+		return mComments.size();
 	}
 
 	@Override
 	public Object getItem(int position) {
-		return mMessages.get(position);
+		return mComments.get(position);
+	}
+	
+	
+	public void setItemList(ArrayList<Comment> comments) {
+		this.mComments = comments;
+		notifyDataSetChanged();
 	}
 
 	@Override
@@ -43,31 +46,31 @@ public class SharedConversationMessageAdapter extends BaseAdapter {
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		final SMSMessage message = mMessages.get(position);
+		final Comment comment = mComments.get(position);
 
 		final SMSViewHolder holder; 
 		if(convertView == null)
 		{
 			holder = new SMSViewHolder();
-			convertView = LayoutInflater.from(mContext).inflate(R.layout.sms_row, parent, false);
-			holder.messageBox = (LinearLayout) convertView.findViewById(R.id.message_box);
+			convertView = LayoutInflater.from(mContext).inflate(R.layout.shared_comment_row, parent, false);
 			holder.message = (TextView) convertView.findViewById(R.id.message_text);
 			holder.time = (TextView) convertView.findViewById(R.id.message_time);
-			holder.box = (CheckBox) convertView.findViewById(R.id.cbBox);
-			holder.edit = (Button) convertView.findViewById(R.id.edit_message_button);
 			convertView.setTag(holder);
 		}
 		else holder = (SMSViewHolder) convertView.getTag();
-		return null;
+		holder.message.setText(comment.getMessage());
+	
+		
+		CharSequence relativeTime = DateUtils.getRelativeDateTimeString(mContext, comment.getDate(), DateUtils.SECOND_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+		holder.time.setText(relativeTime);		
+		
+		return convertView;
 	}
 	
 	private static class SMSViewHolder
 	{
 		TextView time;
 		TextView message;
-		LinearLayout messageBox;
-		CheckBox box;
-		Button edit;
 	}
 	
 }

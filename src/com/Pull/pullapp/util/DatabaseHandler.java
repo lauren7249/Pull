@@ -141,8 +141,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         if (cursor != null)
             cursor.moveToFirst();
  
-        SharedConversation shared = new SharedConversation(Integer.parseInt(cursor.getString(0)),
-                cursor.getLong(1), cursor.getString(2), cursor.getString(3));
+        SharedConversation shared = new SharedConversation();
+    	shared.setId(id);
+        shared.setDate(cursor.getLong(1));
+    	shared.setConfidante(cursor.getString(2));
+    	shared.setOriginalRecipient(cursor.getString(3));
+    	shared.setMessages(getMessages(id));
+        shared.setComments(getComments(id));
 
         return shared;
     }
@@ -151,7 +156,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public ArrayList<Comment> getComments(int id) {
     	ArrayList<Comment> comments = new ArrayList<Comment>();
         Cursor cursor = db.query(TABLE_SHARED_CONVERSATION_COMMENTS, null, KEY_ID + "=?",
-                new String[] { String.valueOf(id) }, null, null, null, null);
+                new String[] { String.valueOf(id) }, null, null, KEY_DATE + " DESC", null);
         // looping through all rows and adding to list
         if (cursor.moveToLast()) {
             do {
@@ -173,7 +178,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             	SMSMessage m = new SMSMessage();
             	m.setDate(cursor.getLong(1));
             	m.setMessage(cursor.getString(2));
-            	m.sentByMe = Boolean.parseBoolean(cursor.getString(3));
+            	m.sentByMe = cursor.getInt(3)>0;
             	messages.add(m);
             } while (cursor.moveToPrevious());
         }
