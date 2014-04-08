@@ -61,7 +61,7 @@ public class SharedConversationCommentListAdapter extends BaseAdapter {
 		holder.message.setText(comment.getMessage());
 	
 		
-		CharSequence relativeTime = DateUtils.getRelativeDateTimeString(mContext, comment.getDate(), DateUtils.SECOND_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+		CharSequence relativeTime = DateUtils.getRelativeDateTimeString(mContext, comment.getDate(), DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
 		holder.time.setText(relativeTime);		
 		
 		return convertView;

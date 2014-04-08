@@ -81,7 +81,7 @@ public class SharedConversationMessageListAdapter extends BaseAdapter {
 			lp.gravity = Gravity.LEFT;
 		}
 		
-		CharSequence relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.getDate(), DateUtils.SECOND_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+		CharSequence relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.getDate(), DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
 		holder.time.setText(relativeTime);		
 		
 		return convertView;

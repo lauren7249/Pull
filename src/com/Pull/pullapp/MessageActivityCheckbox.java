@@ -25,6 +25,7 @@ import android.text.TextWatcher;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -44,6 +45,7 @@ import com.Pull.pullapp.util.DelayedSend;
 import com.Pull.pullapp.util.RecipientsAdapter;
 import com.Pull.pullapp.util.RecipientsEditor;
 import com.Pull.pullapp.util.ShareTagAction;
+import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
@@ -91,8 +93,6 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		
 		
 		mRecipientsAdapter = new RecipientsAdapter(this);
-		mRecipientEditor = (RecipientsEditor)findViewById(R.id.recipients_editor);
-		mRecipientEditor.setAdapter(mRecipientsAdapter);
 		mConfidantesEditor = (RecipientsEditor)findViewById(R.id.confidantes_editor);
 		mConfidantesEditor.setAdapter(mRecipientsAdapter);
 		
@@ -143,7 +143,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		
 		setListAdapter(adapter);
 		
-		sendDate = calendar.getTime();
+		sendDate = null;
 		
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		
@@ -263,7 +263,6 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 			
 			
 			if(number!=null && name!=null) {
-				mRecipientEditor.setVisibility(View.GONE);
 				mLayout.setBackgroundColor(getResources().getColor(R.color.messageDefaultBackground));
 		        Cursor c = mContext.getContentResolver().query(Uri.parse("content://sms"),null,
 			       		TextBasedSmsColumns.ADDRESS + " in ('"+ContentUtils.addCountryCode(number) + "', '" +
@@ -294,9 +293,16 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 				if(Constants.DEBUG==false) this.setTitle(name);
 				if(messages.size()>0) mListView.setSelection(messages.size()-1);
 			} else {
-				mRecipientEditor.setVisibility(View.VISIBLE);
-				mListView.setVisibility(View.GONE);
-				mLayout.setBackgroundColor(Color.WHITE);
+				
+				getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
+		                | ActionBar.DISPLAY_SHOW_HOME);
+				
+				getSupportActionBar().setCustomView(R.layout.recipients_editor);
+				
+				mRecipientEditor = (RecipientsEditor) getSupportActionBar().getCustomView().findViewById(R.id.recipients_editor);
+				mRecipientEditor.setAdapter(mRecipientsAdapter);
+//				mListView.setVisibility(View.GONE);
+//				mLayout.setBackgroundColor(Color.WHITE);
 			}
 		}
 		

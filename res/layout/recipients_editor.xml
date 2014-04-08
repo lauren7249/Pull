@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.Pull.pullapp.util.RecipientsEditor xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/recipients_editor"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:completionThreshold="1"
+    android:hint="Enter Contacts"
+    android:isScrollContainer="true"
+    android:lines="2"
+    android:color="@android:color/white" >
+    <requestFocus />
+
+</com.Pull.pullapp.util.RecipientsEditor>

@@ -119,7 +119,11 @@
             </intent-filter>
         </service>
         <activity android:name="SharedListActivity" android:label="Shared Conversation"></activity>
-        <activity android:name="SharedConversationActivity"></activity>				          
+        <activity android:name="SharedConversationActivity">
+            <meta-data
+		        android:name="android.support.PARENT_ACTIVITY"
+		        android:value="com.Pull.pullapp.SharedListActivity" />
+        </activity>				          
     </application>
 
 </manifest>

@@ -8,11 +8,13 @@ import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.DatabaseHandler;
 import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.MenuItem;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.NavUtils;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
@@ -102,6 +104,9 @@ public class SharedConversationActivity extends SherlockActivity {
 	    
 	    sharedConversationCommentListAdapter = new SharedConversationCommentListAdapter(mContext, sharedConversation.getComments());
 	    sharedConversationCommentListView.setAdapter(sharedConversationCommentListAdapter);
+	    
+	    
+	    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 	}
 	
@@ -112,8 +117,21 @@ public class SharedConversationActivity extends SherlockActivity {
 		sharedConversation = dbHandler.getSharedConversation(sharedConversationId);
 		sharedConversationMessageListAdapter.setItemList(sharedConversation.getMessages());
 		sharedConversationCommentListAdapter.setItemList(sharedConversation.getComments());
-		
 	}
+
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+            NavUtils.navigateUpFromSameTask(this);
+            return true;
+        default:
+        	return false;
+		}
+	}
+	
+	
 	
 
 }

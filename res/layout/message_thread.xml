@@ -22,18 +22,6 @@
         android:color="@android:color/white" >
 
     </ListView>
-    <com.Pull.pullapp.util.RecipientsEditor
-		android:id="@+id/recipients_editor"
-		android:hint="Enter Contacts"
-		android:layout_width="fill_parent"
-        android:layout_height="wrap_content"     
-        android:lines="2"  
-        android:completionThreshold="1"
-        android:gravity="top"
-        android:layout_above="@android:id/list"
-        android:isScrollContainer="true"
-        android:color="@android:color/white" 
-        android:background="@android:color/white"/>
 
     <ViewSwitcher
         android:id="@+id/viewSwitcher"
