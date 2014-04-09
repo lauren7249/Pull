@@ -68,7 +68,6 @@
                     android:isScrollContainer="true"
                     android:maxLength="2000"
                     android:maxLines="3"
-                    android:minHeight="50dp"
                     android:textColor="@color/textFieldColor"
                     android:textSize="20dp"
                     android:color="@android:color/white" >
@@ -86,12 +85,13 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@drawable/select_time"
+                        android:freezesText="true"
+                        android:minHeight="40dp"
                         android:onClick="pickTime"
                         android:text="@string/compose_select_time"
                         android:textColor="@android:color/white"
                         android:textSize="20sp"
-                        android:color="@android:color/white"
-                        android:freezesText="true" />
+                        android:color="@android:color/white" />
 
                 </LinearLayout>
 

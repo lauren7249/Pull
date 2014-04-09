@@ -118,15 +118,23 @@ public class MessageAdapter extends BaseAdapter{
 			holder.edit.setVisibility(View.VISIBLE);
 		    Date date = new Date(message.futureSendTime);
 		    Format format = new SimpleDateFormat("HH:mm");
-		    String button_text = "Sending at " + format.format(date).toString();	
+		    String button_text = "Sending at " + format.format(date).toString();
 		    
-		    CharSequence relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.getDate(), DateUtils.SECOND_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
-		    if(relativeTime.equals("12/31/1969, 7:00pm")) relativeTime = "Just now";
+		    CharSequence relativeTime;
+		    if(System.currentTimeMillis()-message.futureSendTime<DateUtils.MINUTE_IN_MILLIS){
+				relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.futureSendTime, DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+			}else{
+				relativeTime = "Now";
+			}
 		    holder.time.setText(relativeTime);
 		    holder.edit.setText(button_text);
 		} else {
-			CharSequence relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.getDate(), DateUtils.SECOND_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
-			if(relativeTime.equals("12/31/1969, 7:00pm")) relativeTime = "Just now";
+			CharSequence relativeTime;
+			if(System.currentTimeMillis()-message.getDate()>DateUtils.MINUTE_IN_MILLIS){
+				relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.getDate(), DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+			}else{
+				relativeTime = "Just Now";
+			}
 			holder.time.setText(relativeTime);
 			holder.edit.setVisibility(View.GONE);
 		}
