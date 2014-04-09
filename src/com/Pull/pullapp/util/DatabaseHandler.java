@@ -171,7 +171,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private ArrayList<SMSMessage> getMessages(int id) {
     	ArrayList<SMSMessage> messages = new ArrayList<SMSMessage>();
         Cursor cursor = db.query(TABLE_SHARED_CONVERSATION_SMS, null, KEY_ID + "=?",
-                new String[] { String.valueOf(id) }, null, null, null, null);
+                new String[] { String.valueOf(id) }, null, null, KEY_DATE + " DESC", null);
         // looping through all rows and adding to list
         if (cursor.moveToLast()) {
             do {
