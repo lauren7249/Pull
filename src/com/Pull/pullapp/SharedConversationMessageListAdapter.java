@@ -53,6 +53,24 @@ public class SharedConversationMessageListAdapter extends BaseAdapter {
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		final SMSMessage message = mMessages.get(position);
+		
+	
+		
+		int hashtagId = message.getHashtagID();
+		
+		if(hashtagId!=-1){
+			final SMSViewHolder holder; 
+			if(convertView == null)
+			{
+				holder = new SMSViewHolder();
+				convertView = LayoutInflater.from(mContext).inflate(R.layout.hashtag_row, parent, false);
+				holder.message = (TextView) convertView.findViewById(R.id.hashtag_text_view);
+				convertView.setTag(holder);
+			}
+			else holder = (SMSViewHolder) convertView.getTag();
+			holder.message.setText(message.getMessage());
+			return convertView;
+		}
 
 		final SMSViewHolder holder; 
 		if(convertView == null)
