@@ -143,7 +143,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		
 		setListAdapter(adapter);
 		
-		sendDate = calendar.getTime();
+		sendDate = null;
 		
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		
@@ -168,10 +168,10 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 								int id = delayedMessages.get(scheduledOn);
 								removeMessage(id);
 								delayedMessages.remove(scheduledOn);
-								addNewMessage(new SMSMessage(intent_message, true));
-							} else {
-								addNewMessage(new SMSMessage(intent_message, true));
 							}
+							SMSMessage message = new SMSMessage(intent_message, true);
+							message.setDate(System.currentTimeMillis());
+							addNewMessage(new SMSMessage(intent_message, true));
 							break;
 						}
 						default: {
@@ -195,7 +195,6 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 					int id = delayedMessages.get(scheduledOn);
 					removeMessage(id);
 					delayedMessages.remove(id);
-					sendDate = calendar.getTime();
 					text.setText(intent_message);
 					
 				}
@@ -435,7 +434,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
             } else {
 	        	text.setText("");
 	        	newMessage = "";
-	        	if(calendar.getTime().before(sendDate)) {
+	        	if(sendDate!=null&&calendar.getTime().before(sendDate)) {
 	        		pickDelay.setText(R.string.compose_select_time);
 	        		sendDate = null; 
 	        	}
