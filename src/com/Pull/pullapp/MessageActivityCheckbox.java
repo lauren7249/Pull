@@ -337,7 +337,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 		//actionbar menu
-		getSupportMenuInflater().inflate(R.menu.home_action, menu);
+		getSupportMenuInflater().inflate(R.menu.thread_menu, menu);
 		return true;
 	}	
 	
