@@ -117,8 +117,6 @@ public class MessageAdapter extends BaseAdapter{
 		if(message.isDelayed) {
 			holder.edit.setVisibility(View.VISIBLE);
 		    Date date = new Date(message.futureSendTime);
-		    Format format = new SimpleDateFormat("HH:mm");
-		    String button_text = "Sending at " + format.format(date).toString();
 		    
 		    CharSequence relativeTime;
 		    if(System.currentTimeMillis()-message.futureSendTime<DateUtils.MINUTE_IN_MILLIS){
@@ -127,7 +125,6 @@ public class MessageAdapter extends BaseAdapter{
 				relativeTime = "Now";
 			}
 		    holder.time.setText(relativeTime);
-		    holder.edit.setText(button_text);
 		} else {
 			CharSequence relativeTime;
 			if(System.currentTimeMillis()-message.getDate()>DateUtils.MINUTE_IN_MILLIS){

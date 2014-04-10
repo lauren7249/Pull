@@ -6,6 +6,8 @@
 	<color name="textShadow">#FFF</color>
 	<color name="listViewBg">#DADFEE</color>
 	<color name="messageDefaultBackground">#C2F3F9</color>
+	<color name="cheeryBlossm">#ff7f66</color>
+	
 
 	<color name="sendLightColor">#8897BF</color>
 	<color name="sendMeduimColor">#5D6CA5</color>
