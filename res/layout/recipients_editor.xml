@@ -5,9 +5,10 @@
     android:layout_height="fill_parent"
     android:completionThreshold="1"
     android:hint="Enter Contacts"
-    android:isScrollContainer="true"
-    android:lines="2"
-    android:color="@android:color/white" >
+    android:singleLine="true"
+    android:color="@android:color/white"
+    android:scrollHorizontally="true" >
+
     <requestFocus />
 
 </com.Pull.pullapp.util.RecipientsEditor>

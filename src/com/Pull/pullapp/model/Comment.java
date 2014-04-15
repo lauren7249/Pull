@@ -7,9 +7,9 @@ public class Comment {
 	private String sender;
 	
 
-	public Comment(String body, String address, long date) {
+	public Comment(String body, String sender, long date) {
 		this.message = body;
-		this.sender = address;
+		this.sender = sender;
 		this.date = date;
 	}
 
@@ -24,6 +24,4 @@ public class Comment {
 	public String getSender() {
 		return this.sender;
 	}
-
-
 }

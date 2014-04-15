@@ -121,18 +121,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(TextBasedSmsColumns.ADDRESS, c.getSender());
         db.insert(TABLE_SHARED_CONVERSATION_COMMENTS, null, values);
     }    
-    public int addToOutbox(String recipient, String message,
-			long timeScheduled, long scheduledFor) {
-	    ContentValues outboxSms = new ContentValues();
-	    outboxSms.put(TextBasedSmsColumns.DATE_SENT, timeScheduled);
-	    outboxSms.put(TextBasedSmsColumns.DATE, scheduledFor);
-	    outboxSms.put(TextBasedSmsColumns.BODY, message);
-	    outboxSms.put(TextBasedSmsColumns.ADDRESS, recipient);
-        // Inserting Row
-        db.insert(TABLE_OUTBOX, null, outboxSms);
-        int count = this.getSharedCount();
-        return count;
-    }    
+    
  
     public SharedConversation getSharedConversation(int id) {
         Cursor cursor = db.query(TABLE_SHARED_CONVERSATIONS, new String[] { KEY_ID, KEY_DATE,
@@ -186,6 +175,23 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         return messages;
 	}    
+    
+    public int addToOutbox(String recipient, String message,
+			long timeScheduled, long scheduledFor) {
+	    ContentValues outboxSms = new ContentValues();
+	    outboxSms.put(TextBasedSmsColumns.DATE_SENT, timeScheduled);
+	    outboxSms.put(TextBasedSmsColumns.DATE, scheduledFor);
+	    outboxSms.put(TextBasedSmsColumns.BODY, message);
+	    outboxSms.put(TextBasedSmsColumns.ADDRESS, recipient);
+        // Inserting Row
+        db.insert(TABLE_OUTBOX, null, outboxSms);
+        int count = this.getSharedCount();
+        return count;
+    }
+    
+    public Cursor getPendingMessagesCursor(String number){
+        return db.query(TABLE_OUTBOX, null, TextBasedSmsColumns.ADDRESS+"=?", new String[] { number }, null, null, TextBasedSmsColumns.DATE);
+    }
     
     // Getting single shared conversation by id
     public int deleteFromOutbox(long launchedOn) {

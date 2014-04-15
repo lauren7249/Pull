@@ -38,6 +38,7 @@ public class ThreadsListActivity extends Activity {
 	private ListView listview;
 	private ArrayList<ThreadItem> thread_list;
 	private Context mContext;
+	private RadioGroup radioGroup;
     protected static final int CONTEXTMENU_DELETEITEM = 0;
     protected static final int CONTEXTMENU_CONTACTITEM = 1;	
     
@@ -51,26 +52,21 @@ public class ThreadsListActivity extends Activity {
 	    if(Constants.LOG_SMS) new AlarmScheduler(mContext, false).start();
 	    
 	    
-	    RadioGroup radioGroup  = (RadioGroup) findViewById(R.id.switch_buttons);
-	   
+	    radioGroup  = (RadioGroup) findViewById(R.id.switch_buttons);
+		   
 	    radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
 			
 			@Override
 			public void onCheckedChanged(RadioGroup group, int checkedId) {
-				if(checkedId==R.id.shared_tab_button1){
+				if(checkedId==R.id.shared_tab){
 					Intent i = new Intent(mContext, SharedListActivity.class);
 					i.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 					startActivity(i);
-					
 					overridePendingTransition(0,0);
+				}else if(checkedId==R.id.shared_with_me_tab){
+					Toast.makeText(mContext, "Shared With Me feature is not avaliable yet", 1000).show();
+					radioGroup.check(R.id.my_conversation_tab);
 				}
-				if(checkedId==R.id.shared_tab_button2){
-//					Intent i = new Intent(mContext, SharedWithMeListActivity.class);
-//					i.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-//					startActivity(i);
-					
-					overridePendingTransition(0,0);
-				}				
 			}
 		});
 	    
@@ -139,8 +135,7 @@ public class ThreadsListActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		RadioButton initialButton = (RadioButton) findViewById(R.id.conversations_tab_button1);
-	    initialButton.setChecked(true);
+		radioGroup.check(R.id.my_conversation_tab);
 		((ThreadItemsListAdapter) listview.getAdapter()).notifyDataSetChanged();
 	}
 

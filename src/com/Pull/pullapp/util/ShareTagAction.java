@@ -49,9 +49,11 @@ public class ShareTagAction extends Thread {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-        	if(m.sentByMe) text =  "Me: " + m.getMessage();
-        	else text = person_shared + ": " + m.getMessage();
-        	setSendAlarm(am, text, (int) (System.currentTimeMillis()+(i*1000)), System.currentTimeMillis()+(i*1000));
+        	if(m.getHashtagID()!=-1){
+	        	if(m.sentByMe) text =  "Me: " + m.getMessage();
+	        	else text = person_shared + ": " + m.getMessage();
+	        	setSendAlarm(am, text, (int) (System.currentTimeMillis()+(i*1000)), System.currentTimeMillis()+(i*1000));
+        	}
     	}       
         i++;
         setSendAlarm(am, Constants.APP_PLUG_END, (int) (System.currentTimeMillis()+(i*1000)), System.currentTimeMillis()+(i*1000));

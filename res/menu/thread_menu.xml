@@ -5,5 +5,5 @@
           android:showAsAction="always|withText"/>
      <item android:id="@+id/menu_autoforward"
          android:title="Autoforward" 
-         android:showAsAction="never"/>
+         android:showAsAction="never" android:visible="false" android:enabled="false"/>
 </menu>

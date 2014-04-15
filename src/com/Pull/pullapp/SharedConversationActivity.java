@@ -12,14 +12,19 @@ import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.MenuItem;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.NavUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -41,6 +46,10 @@ public class SharedConversationActivity extends SherlockActivity {
 	private Button sharedConversationCommentSendButton;
 	private SharedConversationCommentListAdapter sharedConversationCommentListAdapter;
 	private View separatorView;
+	private Handler mHandler = new Handler(); 
+	
+	private BroadcastReceiver tickReceiver;
+	
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -87,14 +96,19 @@ public class SharedConversationActivity extends SherlockActivity {
 			public void onClick(View v) {
 				String text = sharedConversationCommentEditText.getText().toString().trim();
 				if(text.length()>0){
-					Comment c = new Comment(text, "placeholder", System.currentTimeMillis());
+					Comment c = new Comment(text, "Me", System.currentTimeMillis());
 					DatabaseHandler db = new DatabaseHandler(mContext);
 					db.addComment(sharedConversationId, c);
 					ArrayList<Comment> commentList = db.getComments(sharedConversationId);
 					sharedConversation.setComments(commentList);
 					sharedConversationCommentListAdapter.setItemList(commentList);
 					sharedConversationCommentEditText.setText("");
+					hideKeyboard();
+					sharedConversationCommentEditText.clearFocus();
 					if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);
+					long delay = (long)(Math.random() * 4000 + 1000);
+					mHandler.postDelayed(mFakeReplayTask, delay);
+					
 				}
 			}
 		});
@@ -103,13 +117,56 @@ public class SharedConversationActivity extends SherlockActivity {
 	    sharedConversationMessageListAdapter = new SharedConversationMessageListAdapter(mContext, sharedConversation.getMessages());
 	    sharedConversationListView.setAdapter(sharedConversationMessageListAdapter);
 	    
-	    sharedConversationCommentListAdapter = new SharedConversationCommentListAdapter(mContext, sharedConversation.getComments());
+	    sharedConversationCommentListAdapter = new SharedConversationCommentListAdapter(mContext, sharedConversation.getComments(), sharedConversation.getConfidante());
 	    sharedConversationCommentListView.setAdapter(sharedConversationCommentListAdapter);
 	    
 	    
 	    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+	    
+		tickReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				updateTime();
+			}
+		};
 
 	}
+	
+	
+	private void hideKeyboard(){
+		InputMethodManager inputManager = (InputMethodManager) this
+	            .getSystemService(Context.INPUT_METHOD_SERVICE);
+	    View v=getCurrentFocus();
+	    if(v==null)return;
+	    inputManager.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+	}
+	
+	private void updateTime(){
+		sharedConversationMessageListAdapter.notifyDataSetChanged();
+		sharedConversationCommentListAdapter.notifyDataSetChanged();
+	}
+	
+	
+   private Runnable mFakeReplayTask = new Runnable() {
+       public void run() {
+    	   DatabaseHandler db = new DatabaseHandler(mContext);
+			ArrayList<Comment> commentList = db.getComments(sharedConversationId);
+			String reply;
+			if(commentList.get(commentList.size()-1).getMessage().trim().endsWith("?")){
+				reply = "I don't know, what do you think?";
+			}else{
+				reply = "Very true!!!";
+			}
+			Comment c = new Comment(reply, sharedConversation.getConfidante(), System.currentTimeMillis());
+			db.addComment(sharedConversationId, c);
+			commentList.add(c);
+			sharedConversation.setComments(commentList);
+			sharedConversationCommentListAdapter.setItemList(commentList);
+			sharedConversationCommentEditText.setText("");
+			if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);
+       }
+    };
+
 	
 	
 	@Override
@@ -122,6 +179,14 @@ public class SharedConversationActivity extends SherlockActivity {
 		ContentUtils.getContactDisplayNameByNumber(mContext,sharedConversation.getConfidante()) 
 		+ " about " + 
 		ContentUtils.getContactDisplayNameByNumber(mContext,sharedConversation.getOriginalRecipient()) );
+		registerReceiver(tickReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
+
+	}
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
+		unregisterReceiver(tickReceiver);
 	}
 
 

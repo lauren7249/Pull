@@ -2,38 +2,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <RadioGroup
-        android:id="@+id/switch_buttons"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal" >
-
-        <RadioButton
-            android:id="@+id/conversations_tab_button1"
-            style="@style/RadioButtonStyle.Pull"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:text="My Convos" />
-
-        <RadioButton
-            android:id="@+id/shared_tab_button1"
-            style="@style/RadioButtonStyle.Pull"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:checked="true"
-            android:text="My Shares" />
-        <RadioButton
-            android:id="@+id/shared_tab_button2"
-            style="@style/RadioButtonStyle.Pull"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:checked="true"
-            android:text="Shared With Me" />
-
-    </RadioGroup>
+    <include android:id="@+id/switch_buttons" layout="@layout/navigation_tabbar"/>
 
     <Button
         android:id="@+id/new_message"

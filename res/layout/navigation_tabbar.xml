@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <RadioGroup xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/switch_buttons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#ddd"
+        android:orientation="horizontal" >
+
+        <RadioButton
+            android:id="@+id/my_conversation_tab"
+            style="@style/RadioButtonStyle.Pull"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="My Convos" />
+
+        <RadioButton
+            android:id="@+id/shared_tab"
+            style="@style/RadioButtonStyle.Pull"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="My Shares" />
+        <RadioButton
+            android:id="@+id/shared_with_me_tab"
+            style="@style/RadioButtonStyle.Pull"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="Shared With Me" />
+    </RadioGroup>

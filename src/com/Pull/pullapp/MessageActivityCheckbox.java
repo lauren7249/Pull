@@ -41,6 +41,7 @@ import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
+import com.Pull.pullapp.util.DatabaseHandler;
 import com.Pull.pullapp.util.DelayedSend;
 import com.Pull.pullapp.util.RecipientsAdapter;
 import com.Pull.pullapp.util.RecipientsEditor;
@@ -171,7 +172,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 							}
 							SMSMessage message = new SMSMessage(intent_message, true);
 							message.setDate(System.currentTimeMillis());
-							addNewMessage(new SMSMessage(intent_message, true));
+							addNewMessage(message);
 							break;
 						}
 						default: {
@@ -263,33 +264,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 			
 			
 			if(number!=null && name!=null) {
-				mLayout.setBackgroundColor(getResources().getColor(R.color.messageDefaultBackground));
-		        Cursor c = mContext.getContentResolver().query(Uri.parse("content://sms"),null,
-			       		TextBasedSmsColumns.ADDRESS + " in ('"+ContentUtils.addCountryCode(number) + "', '" +
-			       				number + "')" + " and " +
-		        		TextBasedSmsColumns.TYPE + "!=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX ,null,
-		        		TextBasedSmsColumns.DATE);
-		        if(c.moveToFirst()) {
-		        	readMessage(c);
-		        	while(c.moveToNext()) {
-		        		readMessage(c);
-		        	}
-		        	c.close();		     
-		        }
-		        
-		        c = mContext.getContentResolver().query(Uri.parse("content://sms"),null,
-	       		TextBasedSmsColumns.ADDRESS + " in ('"+ContentUtils.addCountryCode(number) + "', '" +
-	       				number + "')" + " and " +
-	       		TextBasedSmsColumns.TYPE + "=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX ,null,
-	       		TextBasedSmsColumns.DATE);
-		        if(c.moveToFirst()) {
-		        	readOutboxMessage(c);
-		        	while(c.moveToNext()) {
-		        		readOutboxMessage(c);
-		        	}
-		        	c.close();		     
-		        }	        
-		        isPopulated=true;
+				populateMessages();
 				if(Constants.DEBUG==false) this.setTitle(name);
 				if(messages.size()>0) mListView.setSelection(messages.size()-1);
 			} else {
@@ -311,6 +286,40 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		registerReceiver(tickReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
 					
 	}	
+	
+	
+	private void populateMessages(){
+		Cursor c = mContext.getContentResolver().query(Uri.parse("content://sms"),null,
+	       		TextBasedSmsColumns.ADDRESS + " in ('"+ContentUtils.addCountryCode(number) + "', '" +
+	       				number + "')" + " and " +
+        		TextBasedSmsColumns.TYPE + "!=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX ,null,
+        		TextBasedSmsColumns.DATE);
+        if(c.moveToFirst()) {
+        	readMessage(c);
+        	while(c.moveToNext()) {
+        		readMessage(c);
+        	}
+        	c.close();		     
+        }
+        
+//        c = mContext.getContentResolver().query(Uri.parse("content://sms"),null,
+//   		TextBasedSmsColumns.ADDRESS + " in ('"+ContentUtils.addCountryCode(number) + "', '" +
+//   				number + "')" + " and " +
+//   		TextBasedSmsColumns.TYPE + "=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX ,null,
+//   		TextBasedSmsColumns.DATE);
+        
+        DatabaseHandler dh = new DatabaseHandler(mContext);
+        c = dh.getPendingMessagesCursor(number);
+        
+        if(c.moveToFirst()) {
+        	readOutboxMessage(c);
+        	while(c.moveToNext()) {
+        		readOutboxMessage(c);
+        	}
+        	c.close();		     
+        }	        
+        isPopulated=true;
+	}
 	
 	private void updateTime(){
 		Log.i("time", "Updated Time");
@@ -376,8 +385,8 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 
 	private void readOutboxMessage(Cursor c) {
 		String body="";
-		int type = Integer.parseInt(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.TYPE)).toString());
-		if(type!=TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return;
+		//int type = Integer.parseInt(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.TYPE)).toString());
+		//if(type!=TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return;
 		body = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.BODY)).toString();
 		long scheduledFor = Long.parseLong(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.DATE)).toString());
 		long scheduledOn = Long.parseLong(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.DATE_SENT)).toString());
@@ -420,25 +429,26 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 				}
 				number = recipients[0];	
 			}			
-            new DelayedSend(mContext, number, newMessage, 
-            		sendDate, System.currentTimeMillis()).start();
             
             if(name == null) {
-
-				String name = ContentUtils
-						.getContactDisplayNameByNumber(mContext, number);
-				Intent outintent = new Intent(mContext, MessageActivityCheckbox.class);
-				outintent.putExtra(Constants.EXTRA_NUMBER, number);			
-				outintent.putExtra(Constants.EXTRA_NAME, name);			
-		        startActivity(outintent);		            	
-            } else {
-	        	text.setText("");
-	        	newMessage = "";
-	        	if(sendDate!=null&&calendar.getTime().before(sendDate)) {
-	        		pickDelay.setText(R.string.compose_select_time);
-	        		sendDate = null; 
-	        	}
+            	name = ContentUtils.getContactDisplayNameByNumber(mContext, number);
+            	getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME);
+            	getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            	getSupportActionBar().setDisplayShowTitleEnabled(true);
+            	if(Constants.DEBUG==false) this.setTitle(name);
+            	populateMessages();
             }
+            
+            new DelayedSend(mContext, number, newMessage, sendDate, System.currentTimeMillis()).start();
+            
+        	text.setText("");
+        	newMessage = "";
+        	if(sendDate!=null&&calendar.getTime().before(sendDate)) {
+        		pickDelay.setText(R.string.compose_select_time);
+        		sendDate = null; 
+        	}
+            
+            
 		}
 		mListView.setSelection(messages.size()-1);
 	}
@@ -479,7 +489,8 @@ public class MessageActivityCheckbox extends SherlockListActivity {
             }
         }
         for(String h : hashtags_string.split(",")) {
-        	if(!h.trim().isEmpty()) {
+        	h = h.trim();
+        	if(!h.isEmpty()) {
 	        	SMSMessage c = new SMSMessage();
 	        	c.setDate(System.currentTimeMillis());
 	        	c.setMessage(h);

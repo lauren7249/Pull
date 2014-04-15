@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import android.content.Context;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,11 +16,13 @@ import com.Pull.pullapp.model.Comment;
 public class SharedConversationCommentListAdapter extends BaseAdapter {
 	private Context mContext;
 	private ArrayList<Comment> mComments;
+	private String mConfidante;
 	
-	public SharedConversationCommentListAdapter(Context context, ArrayList<Comment> comments) {
+	public SharedConversationCommentListAdapter(Context context, ArrayList<Comment> comments, String confidante) {
 		super();
 		this.mContext = context;
 		this.mComments = comments;
+		this.mConfidante = confidante;
 	}
 
 	@Override
@@ -43,6 +46,20 @@ public class SharedConversationCommentListAdapter extends BaseAdapter {
 		// TODO Auto-generated method stub
 		return 0;
 	}
+	
+	@Override
+	public int getViewTypeCount() {
+	    return 2;
+	}
+	
+	@Override
+	public int getItemViewType(int position) {
+		final Comment comment = mComments.get(position);
+		if(mConfidante.equals(comment.getSender())){
+			return 0;
+		}
+		return 1;
+	}
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
@@ -52,17 +69,27 @@ public class SharedConversationCommentListAdapter extends BaseAdapter {
 		if(convertView == null)
 		{
 			holder = new SMSViewHolder();
-			convertView = LayoutInflater.from(mContext).inflate(R.layout.shared_comment_row, parent, false);
+			Log.v("Display", mConfidante+":"+comment.getSender()+":"+comment.getMessage());
+			if(mConfidante.equals(comment.getSender())){
+				convertView = LayoutInflater.from(mContext).inflate(R.layout.shared_comment_incoming_row, parent, false);
+			}else{
+				convertView = LayoutInflater.from(mContext).inflate(R.layout.shared_comment_outgoing_row, parent, false);
+			}
 			holder.message = (TextView) convertView.findViewById(R.id.message_text);
 			holder.time = (TextView) convertView.findViewById(R.id.message_time);
 			convertView.setTag(holder);
 		}
 		else holder = (SMSViewHolder) convertView.getTag();
 		holder.message.setText(comment.getMessage());
-	
 		
-		CharSequence relativeTime = DateUtils.getRelativeDateTimeString(mContext, comment.getDate(), DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
-		holder.time.setText(relativeTime);		
+		CharSequence relativeTime;
+		if(System.currentTimeMillis()-comment.getDate()>DateUtils.MINUTE_IN_MILLIS){
+			relativeTime = DateUtils.getRelativeDateTimeString(mContext, comment.getDate(), DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+		}else{
+			relativeTime = "Just Now";
+		}
+		
+		holder.time.setText(relativeTime);
 		
 		return convertView;
 	}
