@@ -28,6 +28,7 @@ import com.facebook.UiLifecycleHelper;
 import com.facebook.model.GraphUser;
 import com.facebook.widget.LoginButton;
 
+@Deprecated
 public class SignInActivity extends SherlockFragmentActivity implements
 		OnClickListener{
 

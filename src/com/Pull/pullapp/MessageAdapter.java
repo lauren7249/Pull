@@ -23,7 +23,7 @@ import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 
 import com.Pull.pullapp.model.SMSMessage;
-import com.Pull.pullapp.util.sendSMS;
+import com.Pull.pullapp.util.SendMessages;
 import com.Pull.pullapp.R;
 /**
  * MessageAdapter is a Custom class to implement custom row in ListView
@@ -85,7 +85,7 @@ public class MessageAdapter extends BaseAdapter{
 			@Override
 			public void onClick(View v) {
 				
-				sendSMS.removeFromOutbox(mContext, message.getMessage(),
+				SendMessages.removeFromOutbox(mContext, message.getMessage(),
 						message.getRecipient(), message.launchedOn, true);
 			};
         });        

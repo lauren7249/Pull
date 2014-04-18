@@ -3,6 +3,8 @@ package com.Pull.pullapp.util;
 
 import java.util.ArrayList;
 
+import com.parse.ParsePush;
+
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.ContentResolver;
@@ -14,7 +16,7 @@ import android.provider.Telephony.TextBasedSmsColumns;
 import android.telephony.SmsManager;
 import android.util.Log;
 
-public class sendSMS  {    
+public class SendMessages  {    
   
 	private static final String TAG = "SendSMS";
 	
@@ -104,6 +106,11 @@ public class sendSMS  {
 		}
 		return rowsdeleted;
 	}
-	
+	public static void sendMessagetoNumber(String number,String message){
+		ParsePush push = new ParsePush();
+		push.setChannel("phoneNumber"+number);
+		push.setMessage(message);
+		push.sendInBackground();		
+	}	
 
 }

@@ -34,6 +34,9 @@ public class Constants {
 	public static final String EXTRA_NUMBER = "NUMBER";
 	public static final String EXTRA_THREAD_ID = "THREAD_ID";
 	public static final String EXTRA_SET_OF_MESSAGES = "SET_OF_MESSAGES";
+	public static final String IS_SIGNED_IN = "isSignedIn";
+	public static final String USER_EMAIL = "userEmail";
+	public static final String USER_NAME = "userName";
 	
 	public static String getPictureBucket() {
 		return (PICTURE_BUCKET).toLowerCase(Locale.US);

@@ -30,8 +30,8 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
             
             //dont send if the user canceled (removed from outbox) or received a message since launching
             if(!messagedAfterLaunch(context,recipient,launchedOn) &&  
-            		sendSMS.removeFromOutbox(context, message, recipient, launchedOn, false)>0) {
-            	sendSMS.sendsms(context, recipient, message, launchedOn, true);
+            		SendMessages.removeFromOutbox(context, message, recipient, launchedOn, false)>0) {
+            	SendMessages.sendsms(context, recipient, message, launchedOn, true);
 
             }
             	
@@ -40,7 +40,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         if (action.equals(Constants.ACTION_SHARE_TAG)) {
             String recipient = intent.getStringExtra(Constants.EXTRA_RECIPIENT);
             String message = intent.getStringExtra(Constants.EXTRA_MESSAGE_BODY);
-            sendSMS.sendsms(context, recipient, message, 0, false);
+            SendMessages.sendsms(context, recipient, message, 0, false);
             return;
         }            
         if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
@@ -68,9 +68,9 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	        	long date = cursor.getLong(cursor.getColumnIndex(TextBasedSmsColumns.DATE));
 	        	String sender = cursor.getString(cursor.getColumnIndex(TextBasedSmsColumns.ADDRESS));
 	        	/*Log.i("messagedAfterLaunch", "LAST text was received on " + 
-	        			date + " from "+ sendSMS.addCountryCode(sender));
+	        			date + " from "+ SendMessages.addCountryCode(sender));
 	        	Log.i("messagedAfterLaunch", "delayed send was launched: " + 
-	        			launchTime + " to "+ sendSMS.addCountryCode(address));*/
+	        			launchTime + " to "+ SendMessages.addCountryCode(address));*/
         	}
         	return true;
         }

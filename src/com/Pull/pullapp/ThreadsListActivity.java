@@ -53,8 +53,7 @@ public class ThreadsListActivity extends Activity {
 	    mContext = getApplicationContext();
 	    
 	    if(Constants.LOG_SMS) new AlarmScheduler(mContext, false).start();
-	    
-	    
+
 	    radioGroup  = (RadioGroup) findViewById(R.id.switch_buttons);
 		   
 	    radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
