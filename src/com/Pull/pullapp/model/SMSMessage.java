@@ -1,19 +1,3 @@
-/*
- * This file is part of No Stranger SMS.
- *
- * No Stranger SMS is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * No Stranger SMS is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with No Stranger SMS.  If not, see <http://www.gnu.org/licenses/>.
- */
 
 package com.Pull.pullapp.model;
 
@@ -23,11 +7,11 @@ public class SMSMessage {
 	private int smsId;
 	long smsDate;
 	private String smsSender, smsMessage, smsRecipient;
-    public boolean sentByMe, box, isDelayed;
+    public boolean sentByMe, box, isDelayed, isHashtag;
 	public long futureSendTime;
 	public long launchedOn;
 	private int hashtagID = -1;
-    
+ 
     // Constructors
     public SMSMessage() {
     }

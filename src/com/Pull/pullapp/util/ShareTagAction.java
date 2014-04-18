@@ -44,19 +44,19 @@ public class ShareTagAction extends Thread {
         for(SMSMessage m : mSharedConversation.getMessages()) {
         	i++;
         	try {
-				Thread.sleep(1);
+				Thread.sleep(2);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-        	if(m.getHashtagID()!=-1){
+        	if(!m.isHashtag){
 	        	if(m.sentByMe) text =  "Me: " + m.getMessage();
 	        	else text = person_shared + ": " + m.getMessage();
-	        	setSendAlarm(am, text, (int) (System.currentTimeMillis()+(i*1000)), System.currentTimeMillis()+(i*1000));
+	        	setSendAlarm(am, text, (int) (System.currentTimeMillis()+(i*2000)), System.currentTimeMillis()+(i*2000));
         	}
     	}       
         i++;
-        setSendAlarm(am, Constants.APP_PLUG_END, (int) (System.currentTimeMillis()+(i*1000)), System.currentTimeMillis()+(i*1000));
+        setSendAlarm(am, Constants.APP_PLUG_END, (int) (System.currentTimeMillis()+(i*2000)), System.currentTimeMillis()+(i*2000));
       
         
     }

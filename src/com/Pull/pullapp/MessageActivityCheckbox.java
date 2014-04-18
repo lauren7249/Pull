@@ -495,6 +495,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	        	c.setDate(System.currentTimeMillis());
 	        	c.setMessage(h);
 	        	c.setHashtagID(Constants.ALL_HASHTAGS_LIST.indexOf(h));
+	        	c.isHashtag = true;
 	        	mSharedConversation.addMessage(c);
         	}
         }
