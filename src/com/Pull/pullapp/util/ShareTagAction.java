@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.util.Log;
 
+import com.Pull.pullapp.SharedConversationActivity;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.parse.FindCallback;
@@ -101,6 +102,10 @@ public class ShareTagAction extends Thread {
 		convo_id = mSharedConversation.getObjectId();
 		Log.i("finished sharing","convo id " + convo_id);
 		mSharedConversation.setId(convo_id);
+		Intent broadcastIntent = new Intent();
+		broadcastIntent.setAction(Constants.ACTION_SHARE_COMPLETE);
+		broadcastIntent.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convo_id);
+		parent.sendBroadcast(broadcastIntent);		
 		shareViaParse();
 		addToPhoneStorage();
 		

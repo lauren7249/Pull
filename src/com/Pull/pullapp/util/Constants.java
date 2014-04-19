@@ -68,6 +68,7 @@ public class Constants {
     public static final String ACTION_SMS_UNOUTBOXED = "com.Pull.SMS_UNOUTBOXED";	
     public static final String ACTION_SHARE_TAG = "com.Pull.pullapp.util.ACTION_SHARE_TAG";
     public static final String ACTION_RECEIVE_SHARE_TAG = "com.Pull.pullapp.util.ACTION_RECEIVE_SHARE_TAG";
+    public static final String ACTION_SHARE_COMPLETE = "com.Pull.pullapp.util.ACTION_SHARE_COMPLETE";
     
     public static final String TYPE_IN_SMS = "in_sms";
     public static final String TYPE_OUT_SMS = "out_sms";
@@ -80,6 +81,7 @@ public class Constants {
     public static final String EXTRA_TIME_LAUNCHED = "TIME_LAUNCHED";
 	public static final String EXTRA_TIME_SCHEDULED_FOR = "TIME_SCHEDULED_FOR";
 	public static final String EXTRA_SHARED_CONVERSATION_ID = "SHARED_CONVERSATION_ID";
+	public static final String EXTRA_SHARE_RESULT_CODE = "EXTRA_SHARE_RESULT_CODE";
 	
 	public static final String[] ALL_HASHTAGS = 
 			{"#Anger","#Annoyance","#Contempt","#Disgust","#Irritation",
@@ -96,8 +98,6 @@ public class Constants {
 	public static final int MIN_TEXT_LENGTH = 40;
 	public static final int MAX_TEXT_LENGTH = 100;
 	public static final int NOTIFICATION_NEW_SHARE = 1;
-	
-	
-    
+
 
 }

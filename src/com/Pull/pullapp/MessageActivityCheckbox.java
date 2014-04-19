@@ -153,6 +153,20 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				String action = intent.getAction();
+				
+				if(action.equals(Constants.ACTION_SHARE_COMPLETE)) {
+					Log.i("received broadcast","got broadcoast");
+					int resultCode = intent.getIntExtra(Constants.EXTRA_SHARE_RESULT_CODE, 0);
+					switch(resultCode) {
+					default:
+						String convo_id = intent.getStringExtra(Constants.EXTRA_SHARED_CONVERSATION_ID);
+			            Intent finished = new Intent(mContext, SharedConversationActivity.class);
+			            finished.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convo_id);
+			            startActivity(finished);								
+					}
+					return;
+				}				
+				
 				String intent_number = intent.getStringExtra(Constants.EXTRA_RECIPIENT);
 				if(number==null) return;
 				if(intent_number==null) return;
@@ -198,7 +212,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 					delayedMessages.remove(id);
 					text.setText(intent_message);
 					
-				}
+				} 
 			}
 		};				
 				
@@ -255,6 +269,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		intentFilter.addAction(Constants.ACTION_SMS_OUTBOXED);
 		intentFilter.addAction(Constants.ACTION_SMS_UNOUTBOXED);
 		intentFilter.addAction(Constants.ACTION_SMS_DELIVERED);		
+		intentFilter.addAction(Constants.ACTION_SHARE_COMPLETE);		
 		registerReceiver(mBroadcastReceiver, intentFilter);	
 		
 		if(getIntent() != null && !isPopulated) {
@@ -507,9 +522,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		if(recipients.length>0 && mSharedConversation.getMessages().size()>0)
 		{
             new ShareTagAction(mContext, mSharedConversation).start();					
-
-			Intent outintent = new Intent(mContext, SharedListActivity.class);		
-	        startActivity(outintent);			
+            	
 	        
 		}
 					
