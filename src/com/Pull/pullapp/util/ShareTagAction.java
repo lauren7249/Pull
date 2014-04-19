@@ -71,7 +71,10 @@ public class ShareTagAction extends Thread {
 	        		if (e == null) {
 	        			addToSharedList(message);
 				    } else {
-				    	//save did not succeed
+						Intent broadcastIntent = new Intent();
+						broadcastIntent.setAction(Constants.ACTION_SHARE_COMPLETE);
+						broadcastIntent.putExtra(Constants.EXTRA_SHARE_RESULT_CODE, e.getCode());
+						parent.sendBroadcast(broadcastIntent);	
 				    }
 				 }
 			 });

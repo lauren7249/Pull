@@ -1,11 +1,9 @@
 package com.Pull.pullapp;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.TimeZone;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -15,7 +13,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony.TextBasedSmsColumns;
@@ -25,7 +22,6 @@ import android.text.TextWatcher;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -36,7 +32,6 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
-import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
@@ -50,6 +45,7 @@ import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+import com.parse.ParseException;
 
 public class MessageActivityCheckbox extends SherlockListActivity {
 
@@ -158,11 +154,19 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 					Log.i("received broadcast","got broadcoast");
 					int resultCode = intent.getIntExtra(Constants.EXTRA_SHARE_RESULT_CODE, 0);
 					switch(resultCode) {
-					default:
+					case(0):
 						String convo_id = intent.getStringExtra(Constants.EXTRA_SHARED_CONVERSATION_ID);
 			            Intent finished = new Intent(mContext, SharedConversationActivity.class);
 			            finished.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convo_id);
-			            startActivity(finished);								
+			            startActivity(finished);	
+			            break;
+					case(ParseException.CONNECTION_FAILED):
+						Toast.makeText(mContext, "Share failed: not connected", 
+								Toast.LENGTH_LONG).show();	
+						break;
+					default:
+						Toast.makeText(mContext, "Share failed with error code " + resultCode, 
+								Toast.LENGTH_LONG).show();
 					}
 					return;
 				}				
