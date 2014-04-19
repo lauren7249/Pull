@@ -136,8 +136,8 @@ public class ContentUtils {
 	    	return number.substring(number.length()-10);
 	    }	
 	    public static String addCountryCode(String number) {
-	    	if(number.trim().length()>=11) return number;
-	    	if(number.trim().length()==10) return "+1"+number;
+	    	if(number.substring(0,1).equals("+")) return number.substring(1);
+	    	if(number.trim().length()==10) return "1"+number;
 	    	return number;
 	    }	
 		// This function searches for an mobile phone entry for the contact

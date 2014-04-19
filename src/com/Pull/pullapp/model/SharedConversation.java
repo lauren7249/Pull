@@ -2,14 +2,20 @@ package com.Pull.pullapp.model;
 
 import java.util.ArrayList;
 
-public class SharedConversation {
+import com.parse.ParseClassName;
+import com.parse.ParseObject;
+
+@ParseClassName("SharedConversation")
+public class SharedConversation extends ParseObject {
 	
 	private int id;
 	private String confidante, original_recipient;
-	long date_shared;
+	private long date_shared;
 	private ArrayList<SMSMessage> conversation = new ArrayList<SMSMessage>();
 	private ArrayList<Comment> comments = new ArrayList<Comment>();
-	public String original_hashtags;
+	
+	public SharedConversation() {
+	}
 	
 	public SharedConversation(int id, long date, String confidante,
 			String original_recipient) {
@@ -17,9 +23,11 @@ public class SharedConversation {
 		this.date_shared = date;
 		this.confidante = confidante;
 		this.original_recipient = original_recipient;
-	}
-
-	public SharedConversation() {
+		
+		put("id", id);
+		put("date_shared", date_shared);
+		put("confidante",confidante);
+		put("original_recipient",original_recipient);
 	}
 
 	public SharedConversation(long date, String shared_with,
@@ -27,6 +35,9 @@ public class SharedConversation {
 		this.date_shared = date;
 		this.confidante = shared_with;
 		this.original_recipient = shared_from;
+		put("date_shared", date_shared);
+		put("confidante",confidante);
+		put("original_recipient",original_recipient);	
 	}
 
 	public long getDate() {
@@ -44,21 +55,22 @@ public class SharedConversation {
 
 	public void setId(int parseInt) {
 		this.id = parseInt;
+		put("id",id);
 	}
 
 	public void setDate(long date) {
 		this.date_shared= date;
-		
+		put("date_shared",date_shared);
 	}
 
 	public void setConfidante(String string) {
 		this.confidante = string;
-		
+		put("confidante",confidante);
 	}
 
 	public void setOriginalRecipient(String string) {
 		this.original_recipient = string;
-		
+		put("original_recipient",original_recipient);
 	}
 
 	public int getId() {
@@ -96,4 +108,5 @@ public class SharedConversation {
 	public void setMessages(ArrayList<SMSMessage> messages) {
 		this.conversation = messages;
 	}
+
 }

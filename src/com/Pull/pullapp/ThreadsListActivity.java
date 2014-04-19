@@ -51,6 +51,7 @@ public class ThreadsListActivity extends Activity {
 
 	    setContentView(R.layout.listactivity);
 	    mContext = getApplicationContext();
+	    ParseAnalytics.trackAppOpened(getIntent());	
 	    
 	    if(Constants.LOG_SMS) new AlarmScheduler(mContext, false).start();
 

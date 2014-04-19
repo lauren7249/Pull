@@ -108,7 +108,7 @@ public class SendMessages  {
 	}
 	public static void sendMessagetoNumber(String number,String message){
 		ParsePush push = new ParsePush();
-		push.setChannel("phoneNumber"+number);
+		push.setChannel("phoneNumber"+ContentUtils.addCountryCode(number));
 		push.setMessage(message);
 		push.sendInBackground();		
 	}	
