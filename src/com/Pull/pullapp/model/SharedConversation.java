@@ -8,8 +8,8 @@ import com.parse.ParseObject;
 @ParseClassName("SharedConversation")
 public class SharedConversation extends ParseObject {
 	
-	private int id;
-	private String confidante, original_recipient;
+	private String id, confidante, original_recipient;
+	private int type;
 	private long date_shared;
 	private ArrayList<SMSMessage> conversation = new ArrayList<SMSMessage>();
 	private ArrayList<Comment> comments = new ArrayList<Comment>();
@@ -17,7 +17,7 @@ public class SharedConversation extends ParseObject {
 	public SharedConversation() {
 	}
 	
-	public SharedConversation(int id, long date, String confidante,
+	public SharedConversation(String id, long date, String confidante,
 			String original_recipient) {
 		this.id = id;
 		this.date_shared = date;
@@ -53,8 +53,8 @@ public class SharedConversation extends ParseObject {
 	}
 
 
-	public void setId(int parseInt) {
-		this.id = parseInt;
+	public void setId(String convo_id) {
+		this.id = convo_id;
 		put("id",id);
 	}
 
@@ -73,7 +73,7 @@ public class SharedConversation extends ParseObject {
 		put("original_recipient",original_recipient);
 	}
 
-	public int getId() {
+	public String getId() {
 		return this.id;
 	}
 	
@@ -107,6 +107,14 @@ public class SharedConversation extends ParseObject {
 
 	public void setMessages(ArrayList<SMSMessage> messages) {
 		this.conversation = messages;
+	}
+
+	public int getType() {
+		return type;
+	}
+	
+	public void setType(int messageType) {
+		this.type = messageType;
 	}
 
 }

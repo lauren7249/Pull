@@ -189,5 +189,8 @@ public class ContentUtils {
 		    	return null;
 		    }*/
 		    return result;
+		}
+		public static String setChannel(String recipient) {
+			return "phoneNumber"+addCountryCode(recipient);
 		}	  
 }

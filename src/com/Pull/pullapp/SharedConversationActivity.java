@@ -41,7 +41,7 @@ public class SharedConversationActivity extends SherlockActivity {
 	private DatabaseHandler dbHandler;
 	private SharedConversation sharedConversation;
 	private SharedConversationMessageListAdapter sharedConversationMessageListAdapter;
-	private int sharedConversationId;
+	private String sharedConversationId;
 	private EditText sharedConversationCommentEditText;
 	private Button sharedConversationCommentSendButton;
 	private SharedConversationCommentListAdapter sharedConversationCommentListAdapter;
@@ -56,9 +56,9 @@ public class SharedConversationActivity extends SherlockActivity {
 		super.onCreate(savedInstanceState);
 		
 		Intent i = getIntent();
-		sharedConversationId =  i.getIntExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, -1); 
+		sharedConversationId =  i.getStringExtra(Constants.EXTRA_SHARED_CONVERSATION_ID); 
 		
-		if(sharedConversationId==-1){
+		if(sharedConversationId.equals("")){
 			finish();
 			return;
 		}

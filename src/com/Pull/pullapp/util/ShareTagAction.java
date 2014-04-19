@@ -3,16 +3,22 @@ package com.Pull.pullapp.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.provider.Telephony.TextBasedSmsColumns;
 import android.util.Log;
 
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParsePush;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
@@ -27,6 +33,7 @@ public class ShareTagAction extends Thread {
 	private String hashtags;
     private ArrayList<String> parseMessageIDs;
     private int totalMessageCount, savedMessageCount;
+	private String convo_id;
     
     public ShareTagAction(Context mContext,
 			SharedConversation mSharedConversation) {
@@ -41,17 +48,12 @@ public class ShareTagAction extends Thread {
     @Override
     public void run() {
     	
+    	mSharedConversation.setType(TextBasedSmsColumns.MESSAGE_TYPE_SENT);
+    	
     	//in the background, check if recipient is a parse user. if not, we will send via SMS
     	checkParseUser(mSharedConversation.getConfidante());
         
     	saveToParse();
-
-        //add to phone storage
-		DatabaseHandler db = new DatabaseHandler(parent);
-		int id = db.addSharedConversation(mSharedConversation); 
-		db.close();
-		Log.i("shared messages in db", id  + " ");
-
       
     }
     
@@ -76,16 +78,50 @@ public class ShareTagAction extends Thread {
 		
 	}
 
+	protected void addToPhoneStorage() {
+        //add to phone storage
+		DatabaseHandler db = new DatabaseHandler(parent);
+		int id = db.addSharedConversation(mSharedConversation); 
+		db.close();
+		Log.i("shared messages in db", id  + " ");
+		
+	}
+
 	protected void addToSharedList(SMSMessage message) {
     	String messageID = message.getObjectId();
     	parseMessageIDs.add(messageID);
     	savedMessageCount++;
-    	if(savedMessageCount == totalMessageCount) shareViaParse();
+    	if(savedMessageCount == totalMessageCount) {
+    		finishSharing();
+    	}
     	
 	}
 
+	private void finishSharing() {
+		convo_id = mSharedConversation.getObjectId();
+		Log.i("finished sharing","convo id " + convo_id);
+		mSharedConversation.setId(convo_id);
+		shareViaParse();
+		addToPhoneStorage();
+		
+	}
+
 	private void shareViaParse() {
-		SendMessages.sendMessagetoNumber(mSharedConversation.getConfidante(),parseMessageIDs.toString());
+		JSONObject data = new JSONObject();
+		JSONArray jsonArray = new JSONArray(parseMessageIDs);
+		try {
+			data.put("action", Constants.ACTION_RECEIVE_SHARE_TAG);
+			data.put("messageArray", jsonArray);
+			data.put("convoID", convo_id);
+			data.put("type", Constants.NOTIFICATION_NEW_SHARE);
+			ParsePush push = new ParsePush();
+			push.setChannel(ContentUtils.setChannel(recipient));
+			push.setData(data);
+			push.sendInBackground();				
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private void checkParseUser(String confidante) {

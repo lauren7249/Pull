@@ -117,7 +117,7 @@ public class MainApplication extends Application {
 			user.signUp();
 	      // Hooray! Let them use the app now.
 	    	setSignedIn(true);
-	    	PushService.subscribe(mContext, "phoneNumber"+ContentUtils.addCountryCode(mPhoneNumber), ThreadsListActivity.class);		
+	    	PushService.subscribe(mContext, ContentUtils.setChannel(mPhoneNumber), ThreadsListActivity.class);		
 		} catch (ParseException e) {
 			errorCode = e.getCode();
 		}

@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.Telephony.TextBasedSmsColumns;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuItem;
@@ -71,7 +72,8 @@ public class SharedListActivity extends Activity {
 		});
 	    dbHandler = new DatabaseHandler(mContext);
 	    listview = (ListView) findViewById(R.id.listView);
-	    thread_list = dbHandler.getAllSharedConversation();
+	    thread_list = dbHandler.getAllSharedConversation(TextBasedSmsColumns.MESSAGE_TYPE_SENT);
+	    
 	    adapter = new SharedConversationsListAdapter(getApplicationContext(),
 	    		R.layout.shared_conversation_list_item, thread_list);	  
 	    listview.setAdapter(adapter);
@@ -111,51 +113,13 @@ public class SharedListActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		radioGroup.check(R.id.shared_tab);
-	    thread_list = dbHandler.getAllSharedConversation();
+	    thread_list = dbHandler.getAllSharedConversation(TextBasedSmsColumns.MESSAGE_TYPE_SENT);
 	    adapter.setItemList(thread_list);
 	    adapter.notifyDataSetChanged();
 	}
-
-//	  private class GetThreads extends AsyncTask<Void,SharedConversation,Void> {
-//		  	@Override
-//			protected Void doInBackground(Void... params) {
-//				Cursor threads = ContentUtils.getThreadsCursor(mContext);
-//				while (threads.moveToNext()) {
-//			    	String threadID = threads.getString(threads
-//			  		      .getColumnIndex("_id"));
-//			    	if(threadID == null) continue;
-//			    	if(threadID.length()==0) continue;
-//			    	boolean read = (!threads.getString(threads
-//				  		      .getColumnIndex("read")).equals("0"));	    	
-//					String[] recipientIDs = threads.getString(threads
-//				      .getColumnIndex("recipient_ids")).split(" ");
-//
-//					if(recipientIDs.length == 1 && recipientIDs[0].length()>0) {
-//						String recipientId = recipientIDs[0];
-//						String number = ContentUtils.getAddressFromID(mContext, recipientId);
-//						String name = ContentUtils
-//								.getContactDisplayNameByNumber(mContext, number);
-//						ThreadItem t = new ThreadItem(threadID, name, number, read);
-//						publishProgress(t);						
-//
-//					}
-//					
-//			    }	
-//				threads.close();
-//				return null;
-//			}
-//			@Override
-//		    protected void onProgressUpdate(ThreadItem... t) {
-//				adapter.addItem(t[0]);
-//				adapter.notifyDataSetChanged();
-//		    }				
-//			
-//			@Override
-//		    protected void onPostExecute(Void result) {
-//				super.onPostExecute(result);
-//
-//		    }			
-//
-//	  }
 	
-	} 
+	@Override
+	protected void onPause() {
+		super.onPause();
+	}	
+} 
