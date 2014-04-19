@@ -1,5 +1,6 @@
 package com.Pull.pullapp.util;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.app.AlarmManager;
@@ -8,13 +9,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 public class ShareTagAction extends Thread {
 
@@ -24,6 +25,8 @@ public class ShareTagAction extends Thread {
 	private String text;
     private SharedConversation mSharedConversation;
 	private String hashtags;
+    private ArrayList<String> parseMessageIDs;
+    private int totalMessageCount, savedMessageCount;
     
     public ShareTagAction(Context mContext,
 			SharedConversation mSharedConversation) {
@@ -38,15 +41,12 @@ public class ShareTagAction extends Thread {
     @Override
     public void run() {
     	
+    	//in the background, check if recipient is a parse user. if not, we will send via SMS
     	checkParseUser(mSharedConversation.getConfidante());
-        for(SMSMessage message : mSharedConversation.getMessages()) {
-        	message.put("parent", mSharedConversation);
-    		// This will save both message and conversation to Parse
-        	message.saveInBackground();
-        }
-        SendMessages.sendMessagetoNumber(mSharedConversation.getConfidante(),"shared a convo");
+        
+    	saveToParse();
 
-    	
+        //add to phone storage
 		DatabaseHandler db = new DatabaseHandler(parent);
 		int id = db.addSharedConversation(mSharedConversation); 
 		db.close();
@@ -55,7 +55,40 @@ public class ShareTagAction extends Thread {
       
     }
     
-    private void checkParseUser(String confidante) {
+    private void saveToParse() {
+    	//save convo to parse with associations
+    	totalMessageCount = mSharedConversation.getMessages().size();
+    	savedMessageCount = 0;
+    	parseMessageIDs = new ArrayList<String>();
+    	for(final SMSMessage message : mSharedConversation.getMessages()) {
+        	message.put("parent", mSharedConversation);
+    		// This will save both message and conversation to Parse
+        	message.saveInBackground(new SaveCallback(){
+	        	public void done(ParseException e) {
+	        		if (e == null) {
+	        			addToSharedList(message);
+				    } else {
+				    	//save did not succeed
+				    }
+				 }
+			 });
+        }
+		
+	}
+
+	protected void addToSharedList(SMSMessage message) {
+    	String messageID = message.getObjectId();
+    	parseMessageIDs.add(messageID);
+    	savedMessageCount++;
+    	if(savedMessageCount == totalMessageCount) shareViaParse();
+    	
+	}
+
+	private void shareViaParse() {
+		SendMessages.sendMessagetoNumber(mSharedConversation.getConfidante(),parseMessageIDs.toString());
+	}
+
+	private void checkParseUser(String confidante) {
     	ParseQuery<ParseUser> query = ParseUser.getQuery();
     	query.whereEqualTo("username", ContentUtils.addCountryCode(confidante));
     	query.findInBackground(new FindCallback<ParseUser>() {
