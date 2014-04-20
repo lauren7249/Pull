@@ -68,7 +68,12 @@ public class MainApplication extends Application {
 				errorCode = 0;
 				if(signUp() != 0) Log.i("error code:","error code:"+ errorCode);
 			}
-		}		
+			
+		}	
+		if (isSignedIn()) 
+			PushService.subscribe(mContext, ContentUtils.setChannel(mPhoneNumber), 
+					ThreadsListActivity.class);		
+
 	}
 	
 
@@ -117,7 +122,6 @@ public class MainApplication extends Application {
 			user.signUp();
 	      // Hooray! Let them use the app now.
 	    	setSignedIn(true);
-	    	PushService.subscribe(mContext, ContentUtils.setChannel(mPhoneNumber), ThreadsListActivity.class);		
 		} catch (ParseException e) {
 			errorCode = e.getCode();
 		}

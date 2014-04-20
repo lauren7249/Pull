@@ -35,6 +35,7 @@ public class ShareTagAction extends Thread {
     private ArrayList<String> parseMessageIDs;
     private int totalMessageCount, savedMessageCount;
 	private String convo_id;
+	private boolean isPullUser;
     
     public ShareTagAction(Context mContext,
 			SharedConversation mSharedConversation) {
@@ -109,7 +110,7 @@ public class ShareTagAction extends Thread {
 		broadcastIntent.setAction(Constants.ACTION_SHARE_COMPLETE);
 		broadcastIntent.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convo_id);
 		parent.sendBroadcast(broadcastIntent);		
-		shareViaParse();
+		if(isPullUser) shareViaParse();
 		addToPhoneStorage();
 		
 	}
@@ -137,8 +138,10 @@ public class ShareTagAction extends Thread {
     	query.whereEqualTo("username", ContentUtils.addCountryCode(confidante));
     	query.findInBackground(new FindCallback<ParseUser>() {
     	  public void done(List<ParseUser> objects, ParseException e) {
-    	    if (e == null) {
+    	    if (e == null && objects.size()>0) {
+    	    	isPullUser = true;
     	    } else {
+    	    	isPullUser = false;
     	        shareViaSMS();
     	    }
     	  }

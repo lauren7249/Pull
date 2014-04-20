@@ -1,6 +1,7 @@
 package com.Pull.pullapp.util;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -20,6 +21,10 @@ import android.util.Log;
 
 import com.Pull.pullapp.R;
 import com.Pull.pullapp.SharedListActivity;
+import com.Pull.pullapp.model.SharedConversation;
+import com.parse.FindCallback;
+import com.parse.ParseException;
+import com.parse.ParseQuery;
 
 
 public class GeneralBroadcastReceiver extends BroadcastReceiver {
@@ -57,6 +62,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         }          
         
         if (action.equals(Constants.ACTION_RECEIVE_SHARE_TAG)) {
+        	Log.i("received broadcase","ACTION_RECEIVE_SHARE_TAG");
             try {
                 JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
                 JSONArray messageArray = json.getJSONArray("messageArray"); 
@@ -64,10 +70,19 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
                 int type = json.getInt("type");
                 switch(type) {
                 case(Constants.NOTIFICATION_NEW_SHARE):
-                	notifyNewShare(context, convoID, messageArray);
+                	ArrayList<String> messages = new ArrayList<String>();     
+	                if (messageArray != null) { 
+	                   for (int i=0;i<messageArray.length();i++){ 
+	                	   messages.add(messageArray.get(i).toString());
+	                   } 
+	                } 
+                	getConvoFromParse(convoID);
+                	saveNewShare(context, convoID, messages);
+                	notifyNewShare(context, convoID, messages);
                 default:
                 }
               } catch (JSONException e) {
+            	  Log.i("exception",e.getMessage());
               }
             return;
         }   
@@ -84,7 +99,24 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         
     }
     
-    private void notifyNewShare(Context context, String convoID, JSONArray messageArray) {
+    private void getConvoFromParse(String convoID) {
+    	ParseQuery<SharedConversation> convo = ParseQuery.getQuery(SharedConversation.class);
+    	convo.whereEqualTo("objectId", convoID);
+    	convo.findInBackground(new FindCallback<SharedConversation>() {
+    	  public void done(List<SharedConversation> conversations, ParseException exception) {
+    		  if(exception == null && conversations.size()==1) Log.i("got it","found conversation!");
+    	  }
+    	});
+		
+	}
+
+	private void saveNewShare(Context context, String convoID,
+			ArrayList<String> messages) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void notifyNewShare(Context context, String convoID, ArrayList<String> messages) {
 		NotificationManager mNotificationManager = (NotificationManager) context
 				.getSystemService(Context.NOTIFICATION_SERVICE);
 		int icon;

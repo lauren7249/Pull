@@ -168,6 +168,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 						Toast.makeText(mContext, "Share failed with error code " + resultCode, 
 								Toast.LENGTH_LONG).show();
 					}
+					share.setClickable(true);
 					return;
 				}				
 				
@@ -526,7 +527,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		if(recipients.length>0 && mSharedConversation.getMessages().size()>0)
 		{
             new ShareTagAction(mContext, mSharedConversation).start();					
-            	
+            share.setClickable(false);
 	        
 		}
 					
