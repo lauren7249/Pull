@@ -20,7 +20,8 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.Pull.pullapp.R;
-import com.Pull.pullapp.SharedListActivity;
+import com.Pull.pullapp.SharedConversationActivity;
+import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.parse.FindCallback;
 import com.parse.ParseException;
@@ -28,12 +29,13 @@ import com.parse.ParseQuery;
 
 
 public class GeneralBroadcastReceiver extends BroadcastReceiver {
-
+	private SharedConversation sharedConvo;
+	private Context mContext;
     @SuppressWarnings("unused")
 	@Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
-        
+        mContext = context;
         if (action.equals(Constants.ACTION_CHECK_OUT_SMS) && Constants.LOG_SMS) {
             new SmsLogger(context).start();
             return;
@@ -72,8 +74,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
                 case(Constants.NOTIFICATION_NEW_SHARE):
                 	ArrayList<String> messages = convertJSON(messageArray);
                 	getConvoFromParse(convoID);
-                	saveNewShare(context, convoID, messages);
-                	notifyNewShare(context, convoID, messages);
+                	notifyNewShare(context, convoID);
                 default:
                 }
               } catch (JSONException e) {
@@ -108,7 +109,8 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         } 
         return messages;
 	}
-
+    
+    
 	private void getConvoFromParse(String convoID) {
     	ParseQuery<SharedConversation> convo = ParseQuery.getQuery(SharedConversation.class);
     	convo.whereEqualTo("objectId", convoID);
@@ -116,21 +118,36 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
     	  public void done(List<SharedConversation> conversations, ParseException exception) {
     		  if(exception == null && conversations.size()==1) {
     			  Log.i("got it","found conversation!");
-    			  SharedConversation s = conversations.get(0);
-    			  Log.i("messages in comvo",s.getMessages().size() + " messages in convo");
+    			  sharedConvo = conversations.get(0);
+    			  sharedConvo.setType(TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
+    			  getMessagesFromConvo(sharedConvo);
     		  }
     	  }
+
+		private void getMessagesFromConvo(final SharedConversation s) {
+	    	ParseQuery<SMSMessage> messages = ParseQuery.getQuery(SMSMessage.class);
+	    	messages.whereEqualTo("parent", s);
+	    	messages.findInBackground(new FindCallback<SMSMessage>() {
+	    	  public void done(List<SMSMessage> message_list, ParseException exception) {
+	    		  if(exception == null && message_list.size()>0) {
+	    			  Log.i("got it","found messages!");
+	    			  Log.i("messages in comvo",message_list.size() + " messages in convo");
+	    			  s.setMessages((ArrayList<SMSMessage>) message_list);
+	    			  saveNewShare(mContext);
+	    		  }
+	    	  }
+	    	});
+		}
     	});
-		
 	}
 
-	private void saveNewShare(Context context, String convoID,
-			ArrayList<String> messages) {
-		// TODO Auto-generated method stub
-		
+	private void saveNewShare(Context context) {
+		DatabaseHandler db = new DatabaseHandler(context);
+		db.addSharedConversation(sharedConvo);
+		db.close();
 	}
 
-	private void notifyNewShare(Context context, String convoID, ArrayList<String> messages) {
+	private void notifyNewShare(Context context, String convoID) {
 		NotificationManager mNotificationManager = (NotificationManager) context
 				.getSystemService(Context.NOTIFICATION_SERVICE);
 		int icon;
@@ -141,9 +158,8 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 				.setPriority(NotificationCompat.PRIORITY_LOW)
 				.setOnlyAlertOnce(true);
 		// TODO: Optional light notification.
-		Intent ni = new Intent(context, SharedListActivity.class);
-		ni.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-				| Intent.FLAG_ACTIVITY_SINGLE_TOP);
+		Intent ni = new Intent(context, SharedConversationActivity.class);
+		ni.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
 		PendingIntent pi = PendingIntent.getActivity(context, 0,
 				ni, 0);
 		mBuilder.setContentIntent(pi);
