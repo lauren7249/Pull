@@ -2,6 +2,8 @@ package com.Pull.pullapp.model;
 
 import java.util.ArrayList;
 
+import org.json.JSONArray;
+
 import com.parse.ParseClassName;
 import com.parse.ParseObject;
 
@@ -41,15 +43,18 @@ public class SharedConversation extends ParseObject {
 	}
 
 	public long getDate() {
-		return date_shared;
+		//return date_shared;
+		return getLong("date_shared");
 	}
 	
 	public String getConfidante() {
-		return confidante;
+		//return confidante;
+		return getString("confidante");
 	}
 
 	public String getOriginalRecipient() {
-		return original_recipient;
+		//return original_recipient;
+		return getString("original_recipient");
 	}
 
 
@@ -74,14 +79,17 @@ public class SharedConversation extends ParseObject {
 	}
 
 	public String getId() {
-		return this.id;
+		//return this.id;
+		return getString("id");
 	}
 	
 	public void addMessage(SMSMessage sms) {
 		conversation.add(sms);
+        sms.put("parent", this);		
 	}
 	public void addComment(Comment comment) {
 		comments.add(comment);
+		comment.put("parent", this);
 	}	
 	
 	public ArrayList<SMSMessage> getMessages(){
@@ -102,19 +110,27 @@ public class SharedConversation extends ParseObject {
 
 	public void setComments(ArrayList<Comment> comments) {
 		this.comments = comments;
+		for(Comment c : comments) {
+			c.put("parent", this);
+		}
 		
 	}
 
 	public void setMessages(ArrayList<SMSMessage> messages) {
 		this.conversation = messages;
+		for(SMSMessage c : messages) {
+			c.put("parent", this);
+		}		
 	}
 
 	public int getType() {
-		return type;
+		//return type;
+		return getInt("type");
 	}
 	
 	public void setType(int messageType) {
 		this.type = messageType;
+		put("type",type);
 	}
 
 }

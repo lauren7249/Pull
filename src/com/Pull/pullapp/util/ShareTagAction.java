@@ -65,7 +65,7 @@ public class ShareTagAction extends Thread {
     	savedMessageCount = 0;
     	parseMessageIDs = new ArrayList<String>();
     	for(final SMSMessage message : mSharedConversation.getMessages()) {
-        	message.put("parent", mSharedConversation);
+        	//message.put("parent", mSharedConversation);
     		// This will save both message and conversation to Parse
         	message.saveInBackground(new SaveCallback(){
 	        	public void done(ParseException e) {

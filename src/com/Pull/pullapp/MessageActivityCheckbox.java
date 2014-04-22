@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -76,6 +77,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	private BroadcastReceiver tickReceiver;
 	protected boolean isIdealLength;
 	private ImageView mTextIndicatorImageView;
+	private ProgressDialog progress;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -168,6 +170,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 						Toast.makeText(mContext, "Share failed with error code " + resultCode, 
 								Toast.LENGTH_LONG).show();
 					}
+					progress.dismiss(); 
 					share.setClickable(true);
 					return;
 				}				
@@ -528,6 +531,12 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		{
             new ShareTagAction(mContext, mSharedConversation).start();					
             share.setClickable(false);
+            progress = new ProgressDialog(this);
+            progress.setTitle("Sharing conversation");
+            progress.setMessage("Sending...");
+            progress.show();
+            // To dismiss the dialog
+                       
 	        
 		}
 					

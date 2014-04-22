@@ -12,7 +12,7 @@ public class SMSMessage extends ParseObject {
 	private long smsDate;
 	private String smsSender, smsMessage, smsRecipient;
     public boolean sentByMe, box, isDelayed;
-    private boolean isHashtag;
+    private boolean isHashtag = false;
 	public long futureSendTime;
 	public long launchedOn;
 	private int hashtagID = -1;
@@ -25,14 +25,20 @@ public class SMSMessage extends ParseObject {
         this.smsMessage = message;
         this.sentByMe = sentByMe;
         put("smsMessage",smsMessage);
+        put("sentByMe",sentByMe);
+        put("isHashtag",isHashtag);
+        put("hashtagID",hashtagID); 
     }
     
     public SMSMessage(String message, String sender, boolean sentByMe) {
         this.smsMessage = message;
         this.smsSender = sender;
         this.sentByMe = sentByMe;
+        put("sentByMe",sentByMe);
         put("smsMessage",smsMessage);
         put("smsSender",smsSender);
+        put("isHashtag",isHashtag);
+        put("hashtagID",hashtagID); 
     }    
     public SMSMessage(String message, String sender, int type) {
         this.smsMessage = message;
@@ -40,7 +46,11 @@ public class SMSMessage extends ParseObject {
         this.sentByMe = (type != TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
         this.isDelayed = (type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
         put("smsMessage",smsMessage);
-        put("smsSender",smsSender);        
+        put("smsSender",smsSender); 
+        put("sentByMe",sentByMe);
+        put("isDelayed",isDelayed);
+        put("isHashtag",isHashtag);
+        put("hashtagID",hashtagID); 
     }  
     
     public SMSMessage(int id, long date, String sender, String recipient, String message) {
@@ -49,10 +59,13 @@ public class SMSMessage extends ParseObject {
         this.smsSender = sender;
         this.smsRecipient = recipient;
         this.smsMessage = message;
+        put("smsId",smsId);
         put("smsMessage",smsMessage);
         put("smsSender",smsSender);    
         put("smsDate",smsDate);
         put("smsRecipient",smsRecipient);            
+        put("isHashtag",isHashtag);
+        put("hashtagID",hashtagID); 
     }
 
     public SMSMessage(long date, String message, String sender, int type) {
@@ -63,21 +76,28 @@ public class SMSMessage extends ParseObject {
         this.isDelayed = (type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
         put("smsMessage",smsMessage);
         put("smsSender",smsSender);    
-        put("smsDate",smsDate);        
+        put("smsDate",smsDate);      
+        put("sentByMe",sentByMe);
+        put("isDelayed",isDelayed);
+        put("isHashtag",isHashtag);
+        put("hashtagID",hashtagID); 
     }
 
     // Id
     public int getId() {
-        return this.smsId;
+        //return this.smsId;
+    	return getInt("smsId");
     }
 
     public void setId(int id) {
         this.smsId = id;
+        put("smsId",smsId);
     }
 
     // Date
     public long getDate() {
-    	return this.smsDate;
+    	//return this.smsDate;
+    	return getLong("smsDate");
     }
 
     public void setDate(long date) {
@@ -87,7 +107,8 @@ public class SMSMessage extends ParseObject {
 
     // Sender
     public String getSender() {
-        return this.smsSender;
+        //return this.smsSender;
+    	return getString("smsSender");
     }
      
     public void setSender(String sender){
@@ -96,7 +117,8 @@ public class SMSMessage extends ParseObject {
     }
     // Sender
     public String getRecipient() {
-        return this.smsRecipient;
+        //return this.smsRecipient;
+    	return getString("smsRecipient");
     }
      
     public void setRecipient(String recipient){
@@ -105,7 +127,8 @@ public class SMSMessage extends ParseObject {
     }
     // Message text
     public String getMessage(){
-        return this.smsMessage;
+        //return this.smsMessage;
+    	return getString("smsMessage");
     }
 
     public void setMessage(String message){
@@ -114,17 +137,20 @@ public class SMSMessage extends ParseObject {
     }
     
 	public int getHashtagID() {
-		return this.hashtagID;
+		//return this.hashtagID;
+		return getInt("hashtagID");
 	}
 
 	public void setHashtagID(int indexOf) {
 		this.hashtagID = indexOf;
-		isHashtag=true;
+		if(indexOf!=-1) isHashtag=true;
 		put("hashtagID",hashtagID); 
+		put("isHashtag",isHashtag);
 		
 	}
 
 	public boolean isHashtag() {
-		return isHashtag;
+		//return isHashtag;
+		return getBoolean("isHashtag");
 	}
 }

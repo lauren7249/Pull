@@ -104,7 +104,11 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
     	convo.whereEqualTo("objectId", convoID);
     	convo.findInBackground(new FindCallback<SharedConversation>() {
     	  public void done(List<SharedConversation> conversations, ParseException exception) {
-    		  if(exception == null && conversations.size()==1) Log.i("got it","found conversation!");
+    		  if(exception == null && conversations.size()==1) {
+    			  Log.i("got it","found conversation!");
+    			  SharedConversation s = conversations.get(0);
+    			  Log.i("messages in comvo",s.getMessages().size() + " messages in convo");
+    		  }
     	  }
     	});
 		

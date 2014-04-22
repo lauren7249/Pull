@@ -58,7 +58,7 @@ public class SharedConversationMessageListAdapter extends BaseAdapter {
 		
 		int hashtagId = message.getHashtagID();
 		
-		if(hashtagId!=-1){
+		if(message.isHashtag()){
 			final SMSViewHolder holder; 
 			if(convertView == null)
 			{
