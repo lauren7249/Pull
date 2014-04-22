@@ -22,14 +22,18 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.RelativeLayout;
+import android.widget.TableRow;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
@@ -73,10 +77,10 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	private String person_shared;
 	private SharedConversation mSharedConversation;
 	private int n_characters;
-	
+	private SimplePopupWindow popup;
 	private BroadcastReceiver tickReceiver;
 	protected boolean isIdealLength;
-	private ImageView mTextIndicatorImageView;
+	private ImageButton mTextIndicatorButton;
 	private ProgressDialog progress;
 	
 	@Override
@@ -95,7 +99,16 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		mConfidantesEditor = (RecipientsEditor)findViewById(R.id.confidantes_editor);
 		mConfidantesEditor.setAdapter(mRecipientsAdapter);
 		
-		mTextIndicatorImageView = (ImageView) findViewById(R.id.textIndicatorImageView);
+		mTextIndicatorButton = (ImageButton) findViewById(R.id.textIndicatorButton);
+		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				popup = new SimplePopupWindow(v);
+				popup.showLikePopDownMenu();
+				popup.setMessage("Write more! You haven't said enough");
+			}
+		});
+		
 		isIdealLength = false;
 		text = (EditText) this.findViewById(R.id.text);
 	    text.addTextChangedListener(new TextWatcher(){
@@ -112,15 +125,41 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	        	if(n_characters>=Constants.MIN_TEXT_LENGTH && 
 	        			n_characters<=Constants.MAX_TEXT_LENGTH && !isIdealLength) {
 	        		isIdealLength = true;
-	        		mTextIndicatorImageView.setImageDrawable(getResources().getDrawable(R.drawable.good_indicator));
+	        		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.good_indicator));
+	        		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
+	        			@Override
+	        			public void onClick(View v) {
+	        				popup = new SimplePopupWindow(v);
+	        				popup.showLikePopDownMenu();
+	        				popup.setMessage("This message looks great!");
+	        			}
+	        		});	        		
+	        		
 	        	} 
 	        	else if(isIdealLength && n_characters>Constants.MAX_TEXT_LENGTH) {
 	        		isIdealLength = false;
-	        		mTextIndicatorImageView.setImageDrawable(getResources().getDrawable(R.drawable.bad_indicator));
+	        		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.bad_indicator));
+	        		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
+	        			@Override
+	        			public void onClick(View v) {
+	        				popup = new SimplePopupWindow(v);
+	        				popup.showLikePopDownMenu();
+	        				popup.setMessage("This message is too long :/");
+	        			}
+	        		});		        		
+	        		
 	        	} 	        	
 	        	else if(isIdealLength && n_characters<Constants.MIN_TEXT_LENGTH) {
 	        		isIdealLength = false;
-	        		mTextIndicatorImageView.setImageDrawable(getResources().getDrawable(R.drawable.pendinh_indicator));
+	        		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.pendinh_indicator));
+	        		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
+	        			@Override
+	        			public void onClick(View v) {
+	        				popup = new SimplePopupWindow(v);
+	        				popup.showLikePopDownMenu();
+	        				popup.setMessage("Write more! You haven't said enough");
+	        			}
+	        		});
 	        	} 	 
 				
 			}
@@ -296,7 +335,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 				
 				getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
 		                | ActionBar.DISPLAY_SHOW_HOME);
-				
+            	getSupportActionBar().setDisplayHomeAsUpEnabled(true);				
 				getSupportActionBar().setCustomView(R.layout.recipients_editor);
 				
 				mRecipientEditor = (RecipientsEditor) getSupportActionBar().getCustomView().findViewById(R.id.recipients_editor);
@@ -326,13 +365,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
         	}
         	c.close();		     
         }
-        
-//        c = mContext.getContentResolver().query(Uri.parse("content://sms"),null,
-//   		TextBasedSmsColumns.ADDRESS + " in ('"+ContentUtils.addCountryCode(number) + "', '" +
-//   				number + "')" + " and " +
-//   		TextBasedSmsColumns.TYPE + "=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX ,null,
-//   		TextBasedSmsColumns.DATE);
-        
+               
         DatabaseHandler dh = new DatabaseHandler(mContext);
         c = dh.getPendingMessagesCursor(number);
         
@@ -410,8 +443,6 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 
 	private void readOutboxMessage(Cursor c) {
 		String body="";
-		//int type = Integer.parseInt(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.TYPE)).toString());
-		//if(type!=TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return;
 		body = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.BODY)).toString();
 		long scheduledFor = Long.parseLong(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.DATE)).toString());
 		long scheduledOn = Long.parseLong(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.DATE_SENT)).toString());
@@ -537,10 +568,10 @@ public class MessageActivityCheckbox extends SherlockListActivity {
             progress.setTitle("Sharing conversation");
             progress.setMessage("Sending...");
             progress.show();
-            // To dismiss the dialog
                        
 	        
 		}
 					
 	}	    
+		
 }

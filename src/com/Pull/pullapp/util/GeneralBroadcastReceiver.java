@@ -70,12 +70,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
                 int type = json.getInt("type");
                 switch(type) {
                 case(Constants.NOTIFICATION_NEW_SHARE):
-                	ArrayList<String> messages = new ArrayList<String>();     
-	                if (messageArray != null) { 
-	                   for (int i=0;i<messageArray.length();i++){ 
-	                	   messages.add(messageArray.get(i).toString());
-	                   } 
-	                } 
+                	ArrayList<String> messages = convertJSON(messageArray);
                 	getConvoFromParse(convoID);
                 	saveNewShare(context, convoID, messages);
                 	notifyNewShare(context, convoID, messages);
@@ -99,7 +94,22 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         
     }
     
-    private void getConvoFromParse(String convoID) {
+    private ArrayList<String> convertJSON(JSONArray messageArray) {
+    	ArrayList<String> messages = new ArrayList<String>();     
+        if (messageArray != null) { 
+           for (int i=0;i<messageArray.length();i++){ 
+        	   try {
+				messages.add(messageArray.get(i).toString());
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+           } 
+        } 
+        return messages;
+	}
+
+	private void getConvoFromParse(String convoID) {
     	ParseQuery<SharedConversation> convo = ParseQuery.getQuery(SharedConversation.class);
     	convo.whereEqualTo("objectId", convoID);
     	convo.findInBackground(new FindCallback<SharedConversation>() {

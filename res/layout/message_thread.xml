@@ -47,13 +47,14 @@
                 android:orientation="vertical"
                 android:color="@android:color/white" >
 
-                <ImageView
-                    android:id="@+id/textIndicatorImageView"
+                <ImageButton
+                    android:id="@+id/textIndicatorButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="14dp"
                     android:layout_marginTop="3dp"
-                    android:src="@drawable/pendinh_indicator" />
+                    android:color="@android:color/white"
+                    android:background="@drawable/pendinh_indicator" />
 
                 <EditText
                     android:id="@+id/text"

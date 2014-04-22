@@ -96,6 +96,7 @@ public class SharedConversation extends ParseObject {
 		return conversation;
 	}
 
+	
 	public ArrayList<Comment> getComments() {
 		return this.comments;
 	}
