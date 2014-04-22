@@ -23,14 +23,17 @@ public class Comment extends ParseObject {
 	}
 
 	public long getDate() {
-		return this.date;
+		//return this.date;
+		return getLong("date");
 	}
 
 	public String getMessage() {
-		return this.message;
+		//return this.message;
+		return getString("message");
 	}
 
 	public String getSender() {
-		return this.sender;
+		//return this.sender;
+		return getString("sender");
 	}
 }
