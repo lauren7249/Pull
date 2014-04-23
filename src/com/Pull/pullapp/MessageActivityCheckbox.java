@@ -480,10 +480,12 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	}
 	public void sendMessage(View v)
 	{
+
 		newMessage = text.getText().toString().trim(); 
 
 		if(newMessage.length() > 0)
 		{
+			
 			if(number == null) {
 				recipients = mRecipientEditor.constructContactsFromInput(false).getToNumbers();
 				if(recipients.length > 1) {
@@ -494,14 +496,10 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 					Toast.makeText(mContext, "No recipients selected", Toast.LENGTH_LONG).show();
 					return;
 				}
-				
-				if(!delayPressed && mPrefs.getBoolean(Constants.PREFERENCE_TIME_DELAY_PROMPT, true)) {
-					askAboutTimeDelay();
-					return;
-				}				
+
 				number = recipients[0];	
 			}			
-            
+          
             if(name == null) {
             	name = ContentUtils.getContactDisplayNameByNumber(mContext, number);
             	getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME);
@@ -510,7 +508,11 @@ public class MessageActivityCheckbox extends SherlockListActivity {
             	if(Constants.DEBUG==false) this.setTitle(name);
             	populateMessages();
             }
-            
+			
+			if(!delayPressed && mPrefs.getBoolean(Constants.PREFERENCE_TIME_DELAY_PROMPT, true)) {
+				askAboutTimeDelay();
+				return;
+			}               
             new DelayedSend(mContext, number, newMessage, sendDate, System.currentTimeMillis()).start();
             
         	text.setText("");
@@ -604,7 +606,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		    }
 		});
 		checkBox.setText("Never ask me about text delay");
-
+		Log.i("askabouttimedelay","about to built alertdialog");
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		    builder.setTitle("Set text delay?");
 		    builder.setMessage("I noticed you didn't set a time delay for that text. " + 

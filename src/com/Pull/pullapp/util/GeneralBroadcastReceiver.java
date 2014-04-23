@@ -21,6 +21,7 @@ import android.util.Log;
 
 import com.Pull.pullapp.R;
 import com.Pull.pullapp.SharedConversationActivity;
+import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.parse.FindCallback;
@@ -31,6 +32,7 @@ import com.parse.ParseQuery;
 public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	private SharedConversation sharedConvo;
 	private Context mContext;
+	protected Comment comment;
     @SuppressWarnings("unused")
 	@Override
     public void onReceive(Context context, Intent intent) {
@@ -74,7 +76,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
                 switch(type) {
                 case(Constants.NOTIFICATION_NEW_SHARE):
                 	//ArrayList<String> messages = convertJSON(messageArray);
-                	getConvoFromParse(convoID);
+                	getConvoFromParse(convoID, true);
                 	notifyNewShare(context, convoID, person_shared);
                 default:
                 }
@@ -83,6 +85,20 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
               }
             return;
         }   
+        
+        if (action.equals(Constants.ACTION_RECEIVE_COMMENT)) {
+        	Log.i("received broadcast","ACTION_RECEIVE_COMMENT");
+            try {
+                JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
+                String convoID = json.getString("convoID");
+                String commentID = json.getString("commentID");
+            	getCommentFromParse(commentID);
+            	notifyNewComment(context, convoID, comment);                
+              } catch (JSONException e) {
+            	  Log.i("exception",e.getMessage());
+              }
+            return;
+        }           
         
         if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
             // avoid starting the alarm scheduler if the app hasn't even been run yet
@@ -96,7 +112,45 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         
     }
     
-    private ArrayList<String> convertJSON(JSONArray messageArray) {
+    private void notifyNewComment(Context context, String convoID,
+			Comment comment) {
+		NotificationManager mNotificationManager = (NotificationManager) context
+				.getSystemService(Context.NOTIFICATION_SERVICE);
+		int icon;
+		String commenter = ContentUtils.getContactDisplayNameByNumber(mContext, comment.getSender());
+		icon = R.drawable.ic_launcher;
+		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
+				context).setSmallIcon(icon).setContentTitle(commenter + " commented")
+				.setContentText(comment.getMessage())
+				.setPriority(NotificationCompat.PRIORITY_LOW)
+				.setOnlyAlertOnce(true);
+		// TODO: Optional light notification.
+		Intent ni = new Intent(context, SharedConversationActivity.class);
+		ni.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
+		PendingIntent pi = PendingIntent.getActivity(context, 0,
+				ni, 0);
+		mBuilder.setContentIntent(pi);
+		mBuilder.setAutoCancel(true);
+		mNotificationManager.notify(777, mBuilder.build());
+		
+	}
+
+	private void getCommentFromParse(String commentID) {
+    	ParseQuery<Comment> comments = ParseQuery.getQuery(Comment.class);
+    	comments.whereEqualTo("objectId", commentID);
+    	comments.findInBackground(new FindCallback<Comment>() {
+    	  public void done(List<Comment> comment_list, ParseException exception) {
+    		  if(exception == null && comment_list != null) {
+    			  Log.i("got it","found comments!");
+    			  Log.i("messages in comvo",comment_list.size() + " comments in convo");
+    			  comment = comment_list.get(0);
+    		  }
+    	  }
+    	});
+		
+	}
+
+	private ArrayList<String> convertJSON(JSONArray messageArray) {
     	ArrayList<String> messages = new ArrayList<String>();     
         if (messageArray != null) { 
            for (int i=0;i<messageArray.length();i++){ 
@@ -112,7 +166,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	}
     
     
-	private void getConvoFromParse(String convoID) {
+	private void getConvoFromParse(String convoID, final boolean isNew) {
     	ParseQuery<SharedConversation> convo = ParseQuery.getQuery(SharedConversation.class);
     	convo.whereEqualTo("objectId", convoID);
     	convo.findInBackground(new FindCallback<SharedConversation>() {
@@ -123,11 +177,11 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
     			  sharedConvo.setType(TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
     			  sharedConvo.setId(sharedConvo.getObjectId());
     			  Log.i("got it","found conversation with id " + sharedConvo.getObjectId());
-    			  getMessagesFromConvo(sharedConvo);
+    			  getMessagesFromConvo(sharedConvo, isNew);
     		  }
     	  }
 
-		private void getMessagesFromConvo(final SharedConversation s) {
+		private void getMessagesFromConvo(final SharedConversation s, final boolean isNew) {
 	    	ParseQuery<SMSMessage> messages = ParseQuery.getQuery(SMSMessage.class);
 	    	messages.whereEqualTo("parent", s);
 	    	messages.findInBackground(new FindCallback<SMSMessage>() {
@@ -136,7 +190,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	    			  Log.i("got it","found messages!");
 	    			  Log.i("messages in comvo",message_list.size() + " messages in convo");
 	    			  s.setMessages((ArrayList<SMSMessage>) message_list);
-	    			  saveNewShare(mContext);
+	    			  if(isNew) saveNewShare(mContext);
 	    		  }
 	    	  }
 	    	});

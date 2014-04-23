@@ -132,6 +132,7 @@ public class ThreadsListActivity extends Activity {
 				
 			}
 	    });	    
+	    
 		ParseFacebookUtils.logIn(Arrays.asList(Permissions.User.BIRTHDAY, 
 				Permissions.User.HOMETOWN, Permissions.User.LOCATION),
 				this, new LogInCallback() {

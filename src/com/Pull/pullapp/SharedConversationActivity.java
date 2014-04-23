@@ -1,13 +1,16 @@
 package com.Pull.pullapp;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import android.app.AlarmManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.app.NavUtils;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -20,12 +23,18 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.Pull.pullapp.model.Comment;
+import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
+import com.Pull.pullapp.util.SendMessages;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.MenuItem;
+import com.parse.FindCallback;
+import com.parse.ParseException;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
 
 public class SharedConversationActivity extends SherlockActivity {
 	
@@ -46,7 +55,9 @@ public class SharedConversationActivity extends SherlockActivity {
 	private ArrayList<Comment> commentList = new ArrayList<Comment>();
 	private BroadcastReceiver tickReceiver;
 	private boolean isEmpty;
+	private String commentText;
 	private TextView hint;
+	protected String recipient;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -72,6 +83,13 @@ public class SharedConversationActivity extends SherlockActivity {
 	    sharedConversationCommentSendButton = (Button) findViewById(R.id.shared_conversation_comment_send_button);
 	    hint = (TextView) findViewById(R.id.hint);
 	    
+	    sharedConversation = dbHandler.getSharedConversation(sharedConversationId);
+	    if (sharedConversation.getType()==TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
+	    	recipient = sharedConversation.getConfidante();
+	    } else {
+	    	//recipient = sharedConversation.getSharer();
+	    }
+	    
 	    // Dirty Hack to detect keyboard
 		mLayout.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
 			
@@ -91,14 +109,14 @@ public class SharedConversationActivity extends SherlockActivity {
 			
 			@Override
 			public void onClick(View v) {
-				String text = sharedConversationCommentEditText.getText().toString().trim();
-				if(text.length()>0){
+				commentText = sharedConversationCommentEditText.getText().toString().trim();
+				if(commentText.length()>0){
 					if(isEmpty) {
 						isEmpty = false;
 						hint.setVisibility(View.GONE);
 						sharedConversationCommentListView.setVisibility(View.VISIBLE);
 					}
-					Comment c = new Comment(text, "Me", System.currentTimeMillis());
+					Comment c = new Comment(commentText, "Me", System.currentTimeMillis());
 					DatabaseHandler db = new DatabaseHandler(mContext);
 					db.addComment(sharedConversationId, c);
 					commentList = db.getComments(sharedConversationId);
@@ -110,14 +128,16 @@ public class SharedConversationActivity extends SherlockActivity {
 					hideKeyboard();
 					sharedConversationCommentEditText.clearFocus();
 					if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);
-					long delay = (long)(Math.random() * 4000 + 1000);
-					mHandler.postDelayed(mFakeReplayTask, delay);
+					
+					
+					checkParseUser(recipient);
+//					long delay = (long)(Math.random() * 4000 + 1000);
+//					mHandler.postDelayed(mFakeReplayTask, delay);
 					
 				}
 			}
 		});
 	    
-	    sharedConversation = dbHandler.getSharedConversation(sharedConversationId);
 	    sharedConversationMessageListAdapter = new SharedConversationMessageListAdapter(mContext, sharedConversation.getMessages());
 	    sharedConversationListView.setAdapter(sharedConversationMessageListAdapter);
 	    
@@ -173,6 +193,7 @@ public class SharedConversationActivity extends SherlockActivity {
     };
 
 
+
 	
 	
 	@Override
@@ -222,6 +243,21 @@ public class SharedConversationActivity extends SherlockActivity {
 	}
 	
 	
-	
+	private void checkParseUser(final String confidante) {
+    	ParseQuery<ParseUser> query = ParseUser.getQuery();
+    	query.whereEqualTo("username", ContentUtils.addCountryCode(confidante));
+    	query.findInBackground(new FindCallback<ParseUser>() {
+    	  public void done(List<ParseUser> objects, ParseException e) {
+    	    if (e == null && objects.size()>0) {
+    	    } else {
+    	        commentViaSMS(confidante);
+    	    }
+    	  }
+    	});
+	}
+
+	protected void commentViaSMS(String recipient) {
+		SendMessages.sendsms(mContext, recipient, commentText, 0, false);
+	}	
 
 }

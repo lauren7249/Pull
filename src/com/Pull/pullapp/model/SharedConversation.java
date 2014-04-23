@@ -2,10 +2,9 @@ package com.Pull.pullapp.model;
 
 import java.util.ArrayList;
 
-import org.json.JSONArray;
-
 import com.parse.ParseClassName;
 import com.parse.ParseObject;
+import com.parse.ParseUser;
 
 @ParseClassName("SharedConversation")
 public class SharedConversation extends ParseObject {
@@ -15,6 +14,7 @@ public class SharedConversation extends ParseObject {
 	private long date_shared;
 	private ArrayList<SMSMessage> conversation = new ArrayList<SMSMessage>();
 	private ArrayList<Comment> comments = new ArrayList<Comment>();
+	private ParseUser sharer;
 	
 	public SharedConversation() {
 	}
@@ -132,6 +132,10 @@ public class SharedConversation extends ParseObject {
 	public void setType(int messageType) {
 		this.type = messageType;
 		put("type",type);
+	}
+
+	public ParseUser getSharer() {
+		return (ParseUser) this.getParseObject("user");
 	}
 
 }

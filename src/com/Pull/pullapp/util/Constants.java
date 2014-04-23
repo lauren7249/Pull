@@ -67,6 +67,7 @@ public class Constants {
     public static final String ACTION_SHARE_TAG = "com.Pull.pullapp.util.ACTION_SHARE_TAG";
     public static final String ACTION_RECEIVE_SHARE_TAG = "com.Pull.pullapp.util.ACTION_RECEIVE_SHARE_TAG";
     public static final String ACTION_SHARE_COMPLETE = "com.Pull.pullapp.util.ACTION_SHARE_COMPLETE";
+    public static final String ACTION_RECEIVE_COMMENT = "com.Pull.pullapp.util.ACTION_RECEIVE_COMMENT";;
     
     public static final String TYPE_IN_SMS = "in_sms";
     public static final String TYPE_OUT_SMS = "out_sms";
@@ -97,6 +98,7 @@ public class Constants {
 	public static final int MAX_TEXT_LENGTH = 100;
 	public static final int NOTIFICATION_NEW_SHARE = 1;
 	public static final String PREFERENCE_TIME_DELAY_PROMPT = "PREFERENCE_TIME_DELAY_PROMPT";
+	
 	
 
 
