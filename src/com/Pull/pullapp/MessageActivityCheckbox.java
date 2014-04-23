@@ -63,7 +63,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	private String name, number, newMessage;
 	private Context mContext;
 	private final Calendar calendar = Calendar.getInstance();
-	private Button pickDelay, send, share, invisible_send1, invisible_send2;
+	private Button pickDelay, send, share;
 	private boolean isChecked, isPopulated;
 	private CustomDateTimePicker customDateTimePicker;
 	private Date sendDate;
@@ -172,9 +172,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	    }); 	
 		messages = new ArrayList<SMSMessage>();
 		adapter = new MessageAdapter(this, messages);
-		invisible_send1 = (Button) this.findViewById(R.id.invisble_send_button1);
 		send = (Button) this.findViewById(R.id.send_button);
-		invisible_send2 = (Button) this.findViewById(R.id.invisble_send_button2);
 		share = (Button) this.findViewById(R.id.share_button);
 		pickDelay = (Button) this.findViewById(R.id.time_delay_button);
 		//sendInTimeLabel = (TextView) this.findViewById(R.id.send_in_time_label);
