@@ -6,13 +6,16 @@ import java.util.Date;
 import java.util.HashMap;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -22,18 +25,17 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateUtils;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.RelativeLayout;
-import android.widget.TableRow;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
@@ -82,18 +84,22 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	protected boolean isIdealLength;
 	private ImageButton mTextIndicatorButton;
 	private ProgressDialog progress;
-	
+	private boolean delayPressed;
+	private SharedPreferences mPrefs;
+	private SharedPreferences.Editor editor;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.message_thread);
 		
 		mContext = getApplicationContext();
+		mPrefs = mContext.getSharedPreferences(Constants.PREFERENCE_TIME_DELAY_PROMPT, Context.MODE_PRIVATE);
+		
 		mListView = getListView();
 		mLayout = (RelativeLayout) findViewById(R.id.main_layout);
 		
 		isChecked = false;
-		
+		delayPressed = false;
 		
 		mRecipientsAdapter = new RecipientsAdapter(this);
 		mConfidantesEditor = (RecipientsEditor)findViewById(R.id.confidantes_editor);
@@ -271,7 +277,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 
                 @Override
                 public void onCancel() {
-
+                	delayPressed = true;
                 }
 
 				@SuppressWarnings("deprecation")
@@ -284,6 +290,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 						String AM_PM) {
 					sendDate = dateSelected;
 					updateDelayButton();
+					delayPressed = true;
 				}
             });
 	    /**
@@ -474,7 +481,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	public void sendMessage(View v)
 	{
 		newMessage = text.getText().toString().trim(); 
-		
+
 		if(newMessage.length() > 0)
 		{
 			if(number == null) {
@@ -483,6 +490,15 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 					Toast.makeText(mContext, "Can only send to 1 recipient", Toast.LENGTH_LONG).show();
 					return;
 				}
+				else if(recipients.length == 0) {
+					Toast.makeText(mContext, "No recipients selected", Toast.LENGTH_LONG).show();
+					return;
+				}
+				
+				if(!delayPressed && mPrefs.getBoolean(Constants.PREFERENCE_TIME_DELAY_PROMPT, true)) {
+					askAboutTimeDelay();
+					return;
+				}				
 				number = recipients[0];	
 			}			
             
@@ -573,5 +589,43 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		}
 					
 	}	    
+	
+	public void askAboutTimeDelay(){
+		View checkBoxView = View.inflate(this, R.layout.checkbox, null);
+		CheckBox checkBox = (CheckBox) checkBoxView.findViewById(R.id.checkbox);
+		checkBox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+		    @Override
+		    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+		    	editor = mPrefs.edit();
+		        // Save to shared preferences
+				editor.putBoolean(Constants.PREFERENCE_TIME_DELAY_PROMPT, !isChecked);	
+				editor.commit();		    	
+		    }
+		});
+		checkBox.setText("Never ask me about text delay");
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		    builder.setTitle("Set text delay?");
+		    builder.setMessage("I noticed you didn't set a time delay for that text. " + 
+		    "Maybe you will want to edit your text before it gets sent." + 
+		    " Want to set a delay?")
+		           .setView(checkBoxView)
+		           .setCancelable(false)
+		           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+		               public void onClick(DialogInterface dialog, int id) {
+		            	   dialog.cancel();
+		            	   customDateTimePicker.showDialog();	
+		            	 
+		               	}
+		           })
+		           .setNegativeButton("No", new DialogInterface.OnClickListener() {
+		               public void onClick(DialogInterface dialog, int id) {
+		                    dialog.cancel();
+		                    sendMessage(send);
+		               }
+		           }).show();		
+
+	}
 		
 }

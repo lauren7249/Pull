@@ -70,11 +70,12 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
                 //JSONArray messageArray = json.getJSONArray("messageArray"); 
                 String convoID = json.getString("convoID");
                 int type = json.getInt("type");
+                String person_shared = json.getString("person_shared");
                 switch(type) {
                 case(Constants.NOTIFICATION_NEW_SHARE):
                 	//ArrayList<String> messages = convertJSON(messageArray);
                 	getConvoFromParse(convoID);
-                	notifyNewShare(context, convoID);
+                	notifyNewShare(context, convoID, person_shared);
                 default:
                 }
               } catch (JSONException e) {
@@ -149,14 +150,14 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 		db.close();
 	}
 
-	private void notifyNewShare(Context context, String convoID) {
+	private void notifyNewShare(Context context, String convoID, String person_shared) {
 		NotificationManager mNotificationManager = (NotificationManager) context
 				.getSystemService(Context.NOTIFICATION_SERVICE);
 		int icon;
 		icon = R.drawable.ic_launcher;
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
-				context).setSmallIcon(icon).setContentTitle("name")
-				.setContentText("msg")
+				context).setSmallIcon(icon).setContentTitle("Someone shared a convo")
+				.setContentText("Check out my conversation with " + person_shared)
 				.setPriority(NotificationCompat.PRIORITY_LOW)
 				.setOnlyAlertOnce(true);
 		// TODO: Optional light notification.

@@ -29,7 +29,7 @@ public class ShareTagAction extends Thread {
     private Context parent;
     private String recipient;
 	private String person_shared;
-	private String text;
+	private String text, person_shared_name;
     private SharedConversation mSharedConversation;
 	private String hashtags;
     private ArrayList<String> parseMessageIDs;
@@ -117,11 +117,12 @@ public class ShareTagAction extends Thread {
 
 	private void shareViaParse() {
 		JSONObject data = new JSONObject();
-		JSONArray jsonArray = new JSONArray(parseMessageIDs);
+		//JSONArray jsonArray = new JSONArray(parseMessageIDs);
 		try {
 			data.put("action", Constants.ACTION_RECEIVE_SHARE_TAG);
-			data.put("messageArray", jsonArray);
+			//data.put("messageArray", jsonArray);
 			data.put("convoID", convo_id);
+			data.put("person_shared", person_shared);
 			data.put("type", Constants.NOTIFICATION_NEW_SHARE);
 			ParsePush push = new ParsePush();
 			push.setChannel(ContentUtils.setChannel(recipient));

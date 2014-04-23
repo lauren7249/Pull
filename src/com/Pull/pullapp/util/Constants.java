@@ -96,6 +96,7 @@ public class Constants {
 	public static final int MIN_TEXT_LENGTH = 40;
 	public static final int MAX_TEXT_LENGTH = 100;
 	public static final int NOTIFICATION_NEW_SHARE = 1;
+	public static final String PREFERENCE_TIME_DELAY_PROMPT = "PREFERENCE_TIME_DELAY_PROMPT";
 	
 
 
