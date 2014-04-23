@@ -1,11 +1,11 @@
 package com.Pull.pullapp;
-import com.parse.Parse;
-import com.parse.ParseAnalytics;
-import com.parse.ParseInstallation;
-import com.parse.PushService;
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,6 +13,7 @@ import android.provider.ContactsContract;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -23,7 +24,6 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
@@ -31,9 +31,18 @@ import com.Pull.pullapp.model.ThreadItem;
 import com.Pull.pullapp.util.AlarmScheduler;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
-import com.Pull.pullapp.R;
-
-import java.util.ArrayList;
+import com.facebook.Request;
+import com.facebook.Response;
+import com.facebook.Session;
+import com.facebook.model.GraphUser;
+import com.parse.LogInCallback;
+import com.parse.ParseAnalytics;
+import com.parse.ParseException;
+import com.parse.ParseFacebookUtils;
+import com.parse.PushService;
+import com.parse.ParseFacebookUtils.Permissions;
+import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 public class ThreadsListActivity extends Activity {
 	
@@ -44,7 +53,11 @@ public class ThreadsListActivity extends Activity {
 	private RadioGroup radioGroup;
     protected static final int CONTEXTMENU_DELETEITEM = 0;
     protected static final int CONTEXTMENU_CONTACTITEM = 1;	
-    
+	private SharedPreferences prefs;
+	private String mPhoneNumber;
+	private TelephonyManager tMgr;
+	private int errorCode;
+	private MainApplication mApp;	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
@@ -52,6 +65,8 @@ public class ThreadsListActivity extends Activity {
 	    setContentView(R.layout.listactivity);
 	    mContext = getApplicationContext();
 	    ParseAnalytics.trackAppOpened(getIntent());	
+	    
+	    mApp = (MainApplication) this.getApplication();
 	    
 	    if(Constants.LOG_SMS) new AlarmScheduler(mContext, false).start();
 
@@ -64,11 +79,15 @@ public class ThreadsListActivity extends Activity {
 				if(checkedId==R.id.shared_tab){
 					Intent i = new Intent(mContext, SharedListActivity.class);
 					i.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+					i.putExtra(Constants.EXTRA_SHARE_TYPE, TextBasedSmsColumns.MESSAGE_TYPE_SENT);
 					startActivity(i);
 					overridePendingTransition(0,0);
 				}else if(checkedId==R.id.shared_with_me_tab){
-					Toast.makeText(mContext, "Shared With Me feature is not avaliable yet", 1000).show();
-					radioGroup.check(R.id.my_conversation_tab);
+					Intent i = new Intent(mContext, SharedListActivity.class);
+					i.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+					i.putExtra(Constants.EXTRA_SHARE_TYPE, TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
+					startActivity(i);
+					overridePendingTransition(0,0);
 				}
 			}
 		});
@@ -113,8 +132,80 @@ public class ThreadsListActivity extends Activity {
 				
 			}
 	    });	    
+		ParseFacebookUtils.logIn(Arrays.asList(Permissions.User.BIRTHDAY, 
+				Permissions.User.HOMETOWN, Permissions.User.LOCATION),
+				this, new LogInCallback() {
+			  @Override
+			  
+			  public void done(ParseUser user, ParseException err) {
+			    if (user == null) {
+			      Log.d("MyApp", "Uh oh. The user cancelled the Facebook login.");
+			    } else {
+			    	linkAccount(user);
+			    	makeMeRequest(Session.getActiveSession());
+				    if (user.isNew()) {
+					      Log.d("MyApp", "User signed up and logged in through Facebook!");
+					    } else {
+					      Log.d("MyApp", "User logged in through Facebook!");
+					    }			    	
+			    }
+			  }
+			});		    
+	    mContext = getApplicationContext();
+	    tMgr =(TelephonyManager)this.getSystemService(Context.TELEPHONY_SERVICE);
+	    mPhoneNumber = tMgr.getLine1Number();	
+	    	
+		ParseUser currentUser = ParseUser.getCurrentUser();
+		if (currentUser != null) {
+			mApp.setSignedIn(true);
+		} else {
+			mApp.setSignedIn(false);
+			if(signIn() == ParseException.OBJECT_NOT_FOUND) {
+				errorCode = 0;
+				if(signUp() != 0) Log.i("error code:","error code:"+ errorCode);
+			}
+			
+		}	
+		if (mApp.isSignedIn()) 
+			PushService.subscribe(mContext, ContentUtils.setChannel(mPhoneNumber), 
+					ThreadsListActivity.class);				
 	}
-	
+	protected void linkAccount(final ParseUser user) {
+		if (!ParseFacebookUtils.isLinked(user)) {
+			  ParseFacebookUtils.link(user, this, new SaveCallback() {
+			    @Override
+			    public void done(ParseException ex) {
+			      if (ParseFacebookUtils.isLinked(user)) {
+			        Log.d("MyApp", "Woohoo, user logged in with Facebook!");
+			      }
+			    }
+			  });
+		}
+		
+	}	
+	private void makeMeRequest(final Session session) {
+	    Request request = Request.newMeRequest(session, 
+	            new Request.GraphUserCallback() {
+
+	        @Override
+	        public void onCompleted(GraphUser user, Response response) {
+	            // If the response is successful
+	            if (session == Session.getActiveSession()) {
+	                if (user != null) {
+	                    String facebookId = user.getId();
+	                    Log.i("facebook id", facebookId);
+	                    Log.i("birthday", user.getBirthday());
+	                    Log.i("location", user.getLocation().toString());
+	                }
+	            }
+	            if (response.getError() != null) {
+	                // Handle error
+	            }
+	        }
+	    });
+	    request.executeAsync();
+	} 	
+
     public boolean onContextItemSelected(MenuItem aItem) {
         AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
         int position = menuInfo.position;
@@ -186,5 +277,36 @@ public class ThreadsListActivity extends Activity {
 		    }			
 
 	  }
+	  
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	  super.onActivityResult(requestCode, resultCode, data);
+	  ParseFacebookUtils.finishAuthentication(requestCode, resultCode, data);
+	}	  
 	
+	
+	public int signUp() {
+		ParseUser user = new ParseUser();
+		user.setUsername(mPhoneNumber);
+		user.setPassword(mPhoneNumber);
+		
+		try {
+			user.signUp();
+	      // Hooray! Let them use the app now.
+	    	mApp.setSignedIn(true);
+		} catch (ParseException e) {
+			errorCode = e.getCode();
+		}
+		return errorCode;
+	}		
+	
+	public int signIn() {
+		try {
+			ParseUser.logIn(mPhoneNumber, mPhoneNumber);
+	    	mApp.setSignedIn(true);
+		} catch (ParseException e) {
+			errorCode = e.getCode();
+		}		
+		return errorCode;
+	}		
 	} 

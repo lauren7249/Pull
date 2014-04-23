@@ -1,7 +1,23 @@
 package com.Pull.pullapp;
 
 import java.util.ArrayList;
-import java.util.List;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.app.NavUtils;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.SharedConversation;
@@ -10,26 +26,6 @@ import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.MenuItem;
-
-import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.Bundle;
-import android.os.Handler;
-import android.support.v4.app.NavUtils;
-import android.util.Log;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.View.OnFocusChangeListener;
-import android.view.ViewTreeObserver.OnGlobalLayoutListener;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
 
 public class SharedConversationActivity extends SherlockActivity {
 	
@@ -41,15 +37,16 @@ public class SharedConversationActivity extends SherlockActivity {
 	private DatabaseHandler dbHandler;
 	private SharedConversation sharedConversation;
 	private SharedConversationMessageListAdapter sharedConversationMessageListAdapter;
-	private String sharedConversationId;
+	private String sharedConversationId, confidanteName;
 	private EditText sharedConversationCommentEditText;
 	private Button sharedConversationCommentSendButton;
 	private SharedConversationCommentListAdapter sharedConversationCommentListAdapter;
 	private View separatorView;
 	private Handler mHandler = new Handler(); 
-	
+	private ArrayList<Comment> commentList = new ArrayList<Comment>();
 	private BroadcastReceiver tickReceiver;
-	
+	private boolean isEmpty;
+	private TextView hint;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -62,9 +59,9 @@ public class SharedConversationActivity extends SherlockActivity {
 			finish();
 			return;
 		}
-		
+
 		setContentView(R.layout.shared_conversation_thread_activity);
-		
+		isEmpty = true;
 		mContext = getApplicationContext();
 		mLayout = (LinearLayout) findViewById(R.id.main_layout);
 		dbHandler = new DatabaseHandler(mContext);
@@ -73,7 +70,7 @@ public class SharedConversationActivity extends SherlockActivity {
 	    sharedConversationCommentListView = (ListView) findViewById(R.id.shared_conversation_comment_list_view);
 	    sharedConversationCommentEditText = (EditText) findViewById(R.id.shared_conversation_comment_edit_text);
 	    sharedConversationCommentSendButton = (Button) findViewById(R.id.shared_conversation_comment_send_button);
-	    
+	    hint = (TextView) findViewById(R.id.hint);
 	    
 	    // Dirty Hack to detect keyboard
 		mLayout.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
@@ -96,12 +93,19 @@ public class SharedConversationActivity extends SherlockActivity {
 			public void onClick(View v) {
 				String text = sharedConversationCommentEditText.getText().toString().trim();
 				if(text.length()>0){
+					if(isEmpty) {
+						isEmpty = false;
+						hint.setVisibility(View.GONE);
+						sharedConversationCommentListView.setVisibility(View.VISIBLE);
+					}
 					Comment c = new Comment(text, "Me", System.currentTimeMillis());
 					DatabaseHandler db = new DatabaseHandler(mContext);
 					db.addComment(sharedConversationId, c);
-					ArrayList<Comment> commentList = db.getComments(sharedConversationId);
+					commentList = db.getComments(sharedConversationId);
 					sharedConversation.setComments(commentList);
 					sharedConversationCommentListAdapter.setItemList(commentList);
+					sharedConversationCommentListView.invalidateViews();
+					sharedConversationCommentListView.refreshDrawableState();					
 					sharedConversationCommentEditText.setText("");
 					hideKeyboard();
 					sharedConversationCommentEditText.clearFocus();
@@ -120,7 +124,8 @@ public class SharedConversationActivity extends SherlockActivity {
 	    sharedConversationCommentListAdapter = new SharedConversationCommentListAdapter(mContext, sharedConversation.getComments(), sharedConversation.getConfidante());
 	    sharedConversationCommentListView.setAdapter(sharedConversationCommentListAdapter);
 	    
-	    
+	    confidanteName = ContentUtils.getContactDisplayNameByNumber(mContext,sharedConversation.getConfidante());
+	    sharedConversationCommentEditText.setHint("Write to " + confidanteName);
 	    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 	    
 		tickReceiver = new BroadcastReceiver() {
@@ -150,7 +155,7 @@ public class SharedConversationActivity extends SherlockActivity {
    private Runnable mFakeReplayTask = new Runnable() {
        public void run() {
     	   DatabaseHandler db = new DatabaseHandler(mContext);
-			ArrayList<Comment> commentList = db.getComments(sharedConversationId);
+			commentList = db.getComments(sharedConversationId);
 			String reply;
 			if(commentList.get(commentList.size()-1).getMessage().trim().endsWith("?")){
 				reply = "I don't know, what do you think?";
@@ -167,19 +172,34 @@ public class SharedConversationActivity extends SherlockActivity {
        }
     };
 
+
 	
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
+		
 		sharedConversation = dbHandler.getSharedConversation(sharedConversationId);
+		commentList = dbHandler.getComments(sharedConversationId);
+		if(commentList.size()>0) {
+			isEmpty = false;
+			hint.setVisibility(View.GONE);
+			sharedConversationCommentListView.setVisibility(View.VISIBLE);			
+		}
+		sharedConversation.setComments(commentList);
+		sharedConversationCommentListAdapter.setItemList(commentList);
+		sharedConversationCommentListView.invalidateViews();
+		sharedConversationCommentListView.refreshDrawableState();		
+				
 		sharedConversationMessageListAdapter.setItemList(sharedConversation.getMessages());
-		sharedConversationCommentListAdapter.setItemList(sharedConversation.getComments());
-		this.setTitle("Convo with " + 
-		ContentUtils.getContactDisplayNameByNumber(mContext,sharedConversation.getConfidante()) 
-		+ " about " + 
+		this.setTitle("Convo with " + confidanteName + " about " + 
 		ContentUtils.getContactDisplayNameByNumber(mContext,sharedConversation.getOriginalRecipient()) );
 		registerReceiver(tickReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
+		if(isEmpty) {
+			hint.setText("Write a comment to " + confidanteName);
+			hint.setVisibility(View.VISIBLE);
+			sharedConversationCommentListView.setVisibility(View.GONE);
+		}
 
 	}
 	

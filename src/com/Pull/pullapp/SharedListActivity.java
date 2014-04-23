@@ -42,6 +42,7 @@ public class SharedListActivity extends Activity {
 	private RadioGroup radioGroup;
     protected static final int CONTEXTMENU_DELETEITEM = 0;
     protected static final int CONTEXTMENU_CONTACTITEM = 1;	
+    private int type;
     
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -51,10 +52,11 @@ public class SharedListActivity extends Activity {
 	    mContext = getApplicationContext();
 	    
 	    if(Constants.LOG_SMS) new AlarmScheduler(mContext, false).start();
-	    
-	    
 	    radioGroup  = (RadioGroup) findViewById(R.id.switch_buttons);
-	   
+
+	    dbHandler = new DatabaseHandler(mContext);
+	    listview = (ListView) findViewById(R.id.listView);
+	    
 	    radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
 			
 			@Override
@@ -65,18 +67,51 @@ public class SharedListActivity extends Activity {
 					startActivity(i);
 					overridePendingTransition(0,0);
 				}else if(checkedId==R.id.shared_with_me_tab){
-					Toast.makeText(mContext, "Shared With Me feature is not avaliable yet", 1000).show();
-					radioGroup.check(R.id.shared_tab);
+					radioGroup.check(R.id.shared_with_me_tab);	
+					type = TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
+				    thread_list = dbHandler.getAllSharedConversation(type);
+				    adapter = new SharedConversationsListAdapter(mContext,
+				    		R.layout.shared_conversation_list_item, thread_list);	  
+				    listview.setAdapter(adapter);
+				}else if(checkedId==R.id.shared_tab){
+					radioGroup.check(R.id.shared_tab);	
+					type = TextBasedSmsColumns.MESSAGE_TYPE_SENT;
+				    thread_list = dbHandler.getAllSharedConversation(type);
+				    adapter = new SharedConversationsListAdapter(mContext,
+				    		R.layout.shared_conversation_list_item, thread_list);	  
+				    listview.setAdapter(adapter);
 				}
+				
 			}
-		});
-	    dbHandler = new DatabaseHandler(mContext);
-	    listview = (ListView) findViewById(R.id.listView);
-	    thread_list = dbHandler.getAllSharedConversation(TextBasedSmsColumns.MESSAGE_TYPE_SENT);
+		});		    
+  
+	}
+	
+    public boolean onContextItemSelected(MenuItem aItem) {
+        AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
+        int position = menuInfo.position;
+        final SharedConversation item = (SharedConversation) listview.getAdapter().getItem(position);
+
+        return false;
+    }	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		
+	    type = getIntent().getIntExtra(Constants.EXTRA_SHARE_TYPE,TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
+		
 	    
-	    adapter = new SharedConversationsListAdapter(getApplicationContext(),
+		if(type==TextBasedSmsColumns.MESSAGE_TYPE_SENT) radioGroup.check(R.id.shared_tab);
+		else radioGroup.check(R.id.shared_with_me_tab);	   
+		
+	    thread_list = dbHandler.getAllSharedConversation(type);
+	    
+	    adapter = new SharedConversationsListAdapter(mContext,
 	    		R.layout.shared_conversation_list_item, thread_list);	  
 	    listview.setAdapter(adapter);
+	     
+	
+
 	    //new GetThreads().execute();    
 	    listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 	    	
@@ -99,21 +134,7 @@ public class SharedListActivity extends Activity {
 		       // menu.add(0, CONTEXTMENU_CONTACTITEM, 0, "Add to Contacts");
 				
 			}
-	    });	    
-	}
-	
-    public boolean onContextItemSelected(MenuItem aItem) {
-        AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
-        int position = menuInfo.position;
-        final SharedConversation item = (SharedConversation) listview.getAdapter().getItem(position);
-
-        return false;
-    }	
-	@Override
-	protected void onResume() {
-		super.onResume();
-		radioGroup.check(R.id.shared_tab);
-	    thread_list = dbHandler.getAllSharedConversation(TextBasedSmsColumns.MESSAGE_TYPE_SENT);
+	    });	  	    
 	    adapter.setItemList(thread_list);
 	    adapter.notifyDataSetChanged();
 	}

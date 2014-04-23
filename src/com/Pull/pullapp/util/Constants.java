@@ -23,9 +23,6 @@ import android.content.Intent;
 
 public class Constants {
 	
-	public static final String ACCESS_KEY_ID = "AKIAJCCNLR3ZM3G6QCPQ";
-	public static final String SECRET_KEY = "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";
-	
 	public static final String PICTURE_BUCKET = "pull-lauren-julia-hackday1";
 	public static final String PICTURE_NAME = "NameOfThePicture";
 	public static final boolean DEBUG = false;
@@ -35,6 +32,7 @@ public class Constants {
 	public static final String EXTRA_NUMBER = "NUMBER";
 	public static final String EXTRA_THREAD_ID = "THREAD_ID";
 	public static final String EXTRA_SET_OF_MESSAGES = "SET_OF_MESSAGES";
+	public static final String EXTRA_SHARE_TYPE = "SHARE_TYPE";
 	public static final String IS_SIGNED_IN = "isSignedIn";
 	public static final String USER_EMAIL = "userEmail";
 	public static final String USER_NAME = "userName";
@@ -98,6 +96,7 @@ public class Constants {
 	public static final int MIN_TEXT_LENGTH = 40;
 	public static final int MAX_TEXT_LENGTH = 100;
 	public static final int NOTIFICATION_NEW_SHARE = 1;
+	
 
 
 }

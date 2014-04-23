@@ -31,6 +31,16 @@
             android:divider="#00000000" >
 
         </ListView>
+        <TextView
+            android:id="@+id/hint"
+            android:text="Write comment"
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent"
+            android:layout_marginBottom="-2dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:divider="#00000000" >
+        </TextView>      
 
     <LinearLayout
         android:id="@+id/bottom_share_box"

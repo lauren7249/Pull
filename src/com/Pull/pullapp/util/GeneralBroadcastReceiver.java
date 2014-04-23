@@ -64,15 +64,15 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         }          
         
         if (action.equals(Constants.ACTION_RECEIVE_SHARE_TAG)) {
-        	Log.i("received broadcase","ACTION_RECEIVE_SHARE_TAG");
+        	Log.i("received broadcast","ACTION_RECEIVE_SHARE_TAG");
             try {
                 JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
-                JSONArray messageArray = json.getJSONArray("messageArray"); 
+                //JSONArray messageArray = json.getJSONArray("messageArray"); 
                 String convoID = json.getString("convoID");
                 int type = json.getInt("type");
                 switch(type) {
                 case(Constants.NOTIFICATION_NEW_SHARE):
-                	ArrayList<String> messages = convertJSON(messageArray);
+                	//ArrayList<String> messages = convertJSON(messageArray);
                 	getConvoFromParse(convoID);
                 	notifyNewShare(context, convoID);
                 default:
@@ -117,9 +117,11 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
     	convo.findInBackground(new FindCallback<SharedConversation>() {
     	  public void done(List<SharedConversation> conversations, ParseException exception) {
     		  if(exception == null && conversations.size()==1) {
-    			  Log.i("got it","found conversation!");
+    			  
     			  sharedConvo = conversations.get(0);
     			  sharedConvo.setType(TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
+    			  sharedConvo.setId(sharedConvo.getObjectId());
+    			  Log.i("got it","found conversation with id " + sharedConvo.getObjectId());
     			  getMessagesFromConvo(sharedConvo);
     		  }
     	  }
@@ -129,7 +131,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	    	messages.whereEqualTo("parent", s);
 	    	messages.findInBackground(new FindCallback<SMSMessage>() {
 	    	  public void done(List<SMSMessage> message_list, ParseException exception) {
-	    		  if(exception == null && message_list.size()>0) {
+	    		  if(exception == null && message_list != null) {
 	    			  Log.i("got it","found messages!");
 	    			  Log.i("messages in comvo",message_list.size() + " messages in convo");
 	    			  s.setMessages((ArrayList<SMSMessage>) message_list);

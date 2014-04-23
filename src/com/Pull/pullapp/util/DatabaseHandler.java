@@ -48,7 +48,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         String CREATE_MESSAGES_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_SHARED_CONVERSATIONS + "("
-                + KEY_ID + " TEXT PRIMARY KEY," 
+                + KEY_ID + " TEXT," 
         		+ KEY_DATE + " DATE,"
         		+ KEY_SHARED_WITH + " TEXT,"
         		+ KEY_CONVERSATION_FROM + " TEXT," 
@@ -91,21 +91,25 @@ public class DatabaseHandler extends SQLiteOpenHelper {
  
     /**returns count in table**/
     public int addSharedConversation(SharedConversation shared) {
+    	String id = shared.getId();
+    	if(getSharedConversation(id)==null) {
+            for(SMSMessage m : shared.getMessages()) {
+            	addSharedMessage(shared.getId(), m);
+            }
+            for(Comment c : shared.getComments()) {
+            	addComment(shared.getId(), c);
+            }       		
+    	}
         ContentValues values = new ContentValues();
-        values.put(KEY_ID, shared.getId());
+        values.put(KEY_ID, id);
         values.put(KEY_DATE, shared.getDate());
         values.put(KEY_SHARED_WITH, shared.getConfidante());
         values.put(KEY_CONVERSATION_FROM, shared.getOriginalRecipient());
         values.put(TextBasedSmsColumns.TYPE, shared.getType());
         // Inserting Row
-        db.insert(TABLE_SHARED_CONVERSATIONS, null, values);
-        int count = this.getSharedCount(shared.getType());
-        for(SMSMessage m : shared.getMessages()) {
-        	addSharedMessage(shared.getId(), m);
-        }
-        for(Comment c : shared.getComments()) {
-        	addComment(shared.getId(), c);
-        }        
+        long row_id = db.insert(TABLE_SHARED_CONVERSATIONS, null, values);
+        Log.i("insert","returned " + row_id);
+        int count = this.getSharedCount(shared.getType());     
         return count;
     }
     public void addSharedMessage(String convo_id, SMSMessage msg) {
@@ -132,21 +136,34 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Cursor cursor = db.query(TABLE_SHARED_CONVERSATIONS, new String[] { KEY_ID, KEY_DATE,
                 KEY_SHARED_WITH, KEY_CONVERSATION_FROM}, KEY_ID + "=?",
                 new String[] { convo_id }, null, null, null, null);
-        if (cursor != null)
-            cursor.moveToFirst();
- 
+        if (cursor == null || !cursor.moveToFirst()) return null;
         SharedConversation shared = new SharedConversation();
+        cursor.moveToFirst();
     	shared.setId(convo_id);
         shared.setDate(cursor.getLong(1));
     	shared.setConfidante(cursor.getString(2));
     	shared.setOriginalRecipient(cursor.getString(3));
     	shared.setMessages(getMessages(convo_id));
         shared.setComments(getComments(convo_id));
-
         return shared;
     }
     
-
+    public SharedConversation getSharedConversation(String convo_id, int messageType) {
+        Cursor cursor = db.query(TABLE_SHARED_CONVERSATIONS, new String[] { KEY_ID, KEY_DATE,
+                KEY_SHARED_WITH, KEY_CONVERSATION_FROM}, 
+                KEY_ID + "=? and " + TextBasedSmsColumns.TYPE + "=?",
+                new String[] { convo_id , Integer.toString(messageType)}, null, null, null, null);
+        if (cursor == null || !cursor.moveToFirst()) return null;
+        SharedConversation shared = new SharedConversation();
+        cursor.moveToFirst();
+    	shared.setId(convo_id);
+        shared.setDate(cursor.getLong(1));
+    	shared.setConfidante(cursor.getString(2));
+    	shared.setOriginalRecipient(cursor.getString(3));
+    	shared.setMessages(getMessages(convo_id));
+        shared.setComments(getComments(convo_id));
+        return shared;
+    }
     public ArrayList<Comment> getComments(String convo_id) {
     	ArrayList<Comment> comments = new ArrayList<Comment>();
         Cursor cursor = db.query(TABLE_SHARED_CONVERSATION_COMMENTS, null, KEY_ID + "=?",
@@ -231,7 +248,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         		+ " where "	 + TextBasedSmsColumns.TYPE + "=?";
         String[] where = {Integer.toString(messageType)};
         Cursor cursor = db.rawQuery(selectQuery, where);
-        Log.i("cursor size",selectQuery + " returned " + cursor.getCount());
+        Log.i("cursor size",selectQuery + messageType + " returned " + cursor.getCount());
         // looping through all rows and adding to list
         if (cursor.moveToLast()) {
             do {

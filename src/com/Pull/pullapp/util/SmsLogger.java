@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.Pull.pullapp.R;
 import com.Pull.pullapp.model.SMSMessage;
 import com.amazonaws.services.ec2.model.Region;
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
@@ -46,7 +47,9 @@ public class SmsLogger extends Thread {
         tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         roaming = prefs.getBoolean(Constants.KEY_ROAMING_STATE, tm.isNetworkRoaming());
 		
-        AWSCredentials credentials = new BasicAWSCredentials( Constants.ACCESS_KEY_ID, Constants.SECRET_KEY );
+        AWSCredentials credentials = new BasicAWSCredentials( 
+        		context.getString(R.string.aws_access_key_id), 
+        		context.getString(R.string.aws_secret_key) );
         this.sdbClient = new AmazonSimpleDBClient( credentials);  
         
         TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);

@@ -12,8 +12,10 @@ import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
+import com.parse.LogInCallback;
 import com.parse.Parse;
 import com.parse.ParseException;
+import com.parse.ParseFacebookUtils;
 import com.parse.ParseInstallation;
 import com.parse.ParseObject;
 import com.parse.ParseUser;
@@ -37,7 +39,10 @@ public class MainApplication extends Application {
 		ParseObject.registerSubclass(SharedConversation.class);
 		ParseObject.registerSubclass(Comment.class);
 		ParseObject.registerSubclass(SMSMessage.class);
-		Parse.initialize(this, "V78CyTgjJqFRP1nOiUclf9siu8Bcja3D65i1UG34", "ccQmmMwIY3wTRaBayFecdfZc4N0EIpYR30R5KdeH");
+		
+		Parse.initialize(this, getString(R.string.parse_app_id), getString(R.string.parse_key));
+		ParseFacebookUtils.initialize(getString(R.string.facebook_app_id));	
+		
 		PushService.setDefaultPushCallback(this, ThreadsListActivity.class);
 		ParseInstallation.getCurrentInstallation().saveInBackground(new SaveCallback() {
 	        @Override
@@ -53,44 +58,13 @@ public class MainApplication extends Application {
 	                }
 	            }
 	        });
-		
-
-	    mContext = getApplicationContext();
-	    tMgr =(TelephonyManager)this.getSystemService(Context.TELEPHONY_SERVICE);
-	    mPhoneNumber = tMgr.getLine1Number();	
-	    	
 		ParseUser currentUser = ParseUser.getCurrentUser();
 		if (currentUser != null) {
 			setSignedIn(true);
 		} else {
 			setSignedIn(false);
-			if(signIn() == ParseException.OBJECT_NOT_FOUND) {
-				errorCode = 0;
-				if(signUp() != 0) Log.i("error code:","error code:"+ errorCode);
-			}
-			
-		}	
-		if (isSignedIn()) 
-			PushService.subscribe(mContext, ContentUtils.setChannel(mPhoneNumber), 
-					ThreadsListActivity.class);		
+		}
 
-	}
-	
-
-	public void setMainActivity(ThreadsListActivity main){
-		mMainActivity = main;
-	}
-
-	public ThreadsListActivity getMainActivity(){
-		return mMainActivity;
-	}	
-	
-
-	public boolean isSignedIn(){
-		if (!prefs.getBoolean(Constants.IS_SIGNED_IN, false)) return false;
-		ParseUser user = ParseUser.getCurrentUser();
-		//user.refresh();
-		return (user!=null);
 	}
 	
 	public void setSignedIn(boolean signedIn, String Email, String Name) {
@@ -108,34 +82,22 @@ public class MainApplication extends Application {
 		editor.commit();
 	}
 	
+	public boolean isSignedIn(){
+		return prefs.getBoolean(Constants.IS_SIGNED_IN, false);
+	}	
 	public void setSignedIn(boolean signedIn) {
 		SharedPreferences.Editor editor = prefs.edit();
 		editor.putBoolean(Constants.IS_SIGNED_IN, signedIn);	
 		editor.commit();
-	}
-	public int signUp() {
-		ParseUser user = new ParseUser();
-		user.setUsername(mPhoneNumber);
-		user.setPassword(mPhoneNumber);
-		
-		try {
-			user.signUp();
-	      // Hooray! Let them use the app now.
-	    	setSignedIn(true);
-		} catch (ParseException e) {
-			errorCode = e.getCode();
-		}
-		return errorCode;
-	}		
-	
-	public int signIn() {
-		try {
-			ParseUser.logIn(mPhoneNumber, mPhoneNumber);
-	    	setSignedIn(true);
-		} catch (ParseException e) {
-			errorCode = e.getCode();
-		}		
-		return errorCode;
 	}	
+
+	public void setMainActivity(ThreadsListActivity main){
+		mMainActivity = main;
+	}
+
+	public ThreadsListActivity getMainActivity(){
+		return mMainActivity;
+	}	
+
 
 }
