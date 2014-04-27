@@ -3,6 +3,7 @@ package com.Pull.pullapp;
 import java.util.List;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,10 +12,16 @@ import android.widget.TextView;
 
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.ContentUtils;
+import com.facebook.widget.ProfilePictureView;
+import com.parse.FindCallback;
+import com.parse.ParseException;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
 
 public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversation> {
     private List<SharedConversation> objects;
     private Context context;
+    
     public SharedConversationsListAdapter(Context context, int textViewResourceId,
         List<SharedConversation> objects) {
       super(context, textViewResourceId, objects);
@@ -22,19 +29,28 @@ public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversat
       this.context = context;
     }
     @Override
-    public View getView(int pos, View convertView, ViewGroup parent){    
+    public View getView(int pos, View convertView, ViewGroup parent){
+    	String mConfidante, mFacebookID;
     	View v = convertView;
     	if (v == null) {
 	        LayoutInflater vi = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 	        v = vi.inflate(R.layout.message_list_item, parent, false);
     	}
+  	
+       final ProfilePictureView profilePictureView = (ProfilePictureView) v.findViewById(R.id.profile_pic);
 	   TextView name = (TextView) v.findViewById(R.id.txt_title);
 	   TextView info = (TextView) v.findViewById(R.id.txt_message_info);
 	   SharedConversation th = objects.get(pos);
-	   name.setText(
-			   "Convo from: " + ContentUtils.getContactDisplayNameByNumber(context, th.getOriginalRecipient()) + 
-			   ", Shared with: " + ContentUtils.getContactDisplayNameByNumber(context, th.getConfidante()));
-	   info.setText("Hashtags: " + th.getHashtags());
+	   name.setText(ContentUtils.getContactDisplayNameByNumber(context, th.getOriginalRecipient()));
+	   info.setText(th.getHashtags());
+	   
+		ParseQuery<ParseUser> userQuery = ParseUser.getQuery();
+		userQuery.whereEqualTo("username", ContentUtils.addCountryCode(th.getConfidante()));
+		userQuery.findInBackground(new FindCallback<ParseUser>() {
+		public void done(List<ParseUser> results, ParseException e) {
+			profilePictureView.setProfileId(results.get(0).getString("facebookID"));
+		  }
+		});  	   
 	   return v;
     }
     @Override
@@ -54,4 +70,6 @@ public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversat
     public void addItem(SharedConversation item) {
         this.objects.add(item);
     }
+    
+    
 }

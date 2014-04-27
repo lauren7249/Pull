@@ -1,5 +1,7 @@
 package com.Pull.pullapp.util;
 
+import java.util.List;
+
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -7,13 +9,17 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import android.provider.ContactsContract;
-import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.ContactsContract.Data;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
-import android.widget.Toast;
+
+import com.parse.FindCallback;
+import com.parse.ParseException;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
 
 public class ContentUtils {
 
@@ -192,5 +198,6 @@ public class ContentUtils {
 		}
 		public static String setChannel(String recipient) {
 			return "phoneNumber"+addCountryCode(recipient);
-		}	  
+		}
+ 
 }
