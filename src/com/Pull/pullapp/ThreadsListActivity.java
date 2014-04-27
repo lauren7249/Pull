@@ -133,79 +133,8 @@ public class ThreadsListActivity extends Activity {
 			}
 	    });	    
 	    
-		ParseFacebookUtils.logIn(Arrays.asList(Permissions.User.BIRTHDAY, 
-				Permissions.User.HOMETOWN, Permissions.User.LOCATION),
-				this, new LogInCallback() {
-			  @Override
-			  
-			  public void done(ParseUser user, ParseException err) {
-			    if (user == null) {
-			      Log.d("MyApp", "Uh oh. The user cancelled the Facebook login.");
-			    } else {
-			    	linkAccount(user);
-			    	makeMeRequest(Session.getActiveSession());
-				    if (user.isNew()) {
-					      Log.d("MyApp", "User signed up and logged in through Facebook!");
-					    } else {
-					      Log.d("MyApp", "User logged in through Facebook!");
-					    }			    	
-			    }
-			  }
-			});		    
-	    mContext = getApplicationContext();
-	    tMgr =(TelephonyManager)this.getSystemService(Context.TELEPHONY_SERVICE);
-	    mPhoneNumber = tMgr.getLine1Number();	
-	    	
-		ParseUser currentUser = ParseUser.getCurrentUser();
-		if (currentUser != null) {
-			mApp.setSignedIn(true);
-		} else {
-			mApp.setSignedIn(false);
-			if(signIn() == ParseException.OBJECT_NOT_FOUND) {
-				errorCode = 0;
-				if(signUp() != 0) Log.i("error code:","error code:"+ errorCode);
-			}
-			
-		}	
-		if (mApp.isSignedIn()) 
-			PushService.subscribe(mContext, ContentUtils.setChannel(mPhoneNumber), 
-					ThreadsListActivity.class);				
-	}
-	protected void linkAccount(final ParseUser user) {
-		if (!ParseFacebookUtils.isLinked(user)) {
-			  ParseFacebookUtils.link(user, this, new SaveCallback() {
-			    @Override
-			    public void done(ParseException ex) {
-			      if (ParseFacebookUtils.isLinked(user)) {
-			        Log.d("MyApp", "Woohoo, user logged in with Facebook!");
-			      }
-			    }
-			  });
-		}
-		
-	}	
-	private void makeMeRequest(final Session session) {
-	    Request request = Request.newMeRequest(session, 
-	            new Request.GraphUserCallback() {
 
-	        @Override
-	        public void onCompleted(GraphUser user, Response response) {
-	            // If the response is successful
-	            if (session == Session.getActiveSession()) {
-	                if (user != null) {
-	                    String facebookId = user.getId();
-	                    Log.i("facebook id", facebookId);
-	                    Log.i("birthday", user.getBirthday());
-	                    Log.i("location", user.getLocation().toString());
-	                }
-	            }
-	            if (response.getError() != null) {
-	                // Handle error
-	            }
-	        }
-	    });
-	    request.executeAsync();
-	} 	
+	}
 
     public boolean onContextItemSelected(MenuItem aItem) {
         AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
@@ -279,35 +208,6 @@ public class ThreadsListActivity extends Activity {
 
 	  }
 	  
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-	  super.onActivityResult(requestCode, resultCode, data);
-	  ParseFacebookUtils.finishAuthentication(requestCode, resultCode, data);
-	}	  
-	
-	
-	public int signUp() {
-		ParseUser user = new ParseUser();
-		user.setUsername(mPhoneNumber);
-		user.setPassword(mPhoneNumber);
+
 		
-		try {
-			user.signUp();
-	      // Hooray! Let them use the app now.
-	    	mApp.setSignedIn(true);
-		} catch (ParseException e) {
-			errorCode = e.getCode();
-		}
-		return errorCode;
-	}		
-	
-	public int signIn() {
-		try {
-			ParseUser.logIn(mPhoneNumber, mPhoneNumber);
-	    	mApp.setSignedIn(true);
-		} catch (ParseException e) {
-			errorCode = e.getCode();
-		}		
-		return errorCode;
-	}		
-	} 
+} 
