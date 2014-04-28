@@ -36,7 +36,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_SHARED_WITH = "number";
     private static final String KEY_CONVERSATION_FROM = "orig_number";
     private static final String KEY_HASHTAG_ID = "hashtagID";
-    
+    private static final String KEY_SHARER = "sharer";
     
     private SQLiteDatabase db;
     public DatabaseHandler(Context context) {
@@ -52,7 +52,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         		+ KEY_DATE + " DATE,"
         		+ KEY_SHARED_WITH + " TEXT,"
         		+ KEY_CONVERSATION_FROM + " TEXT," 
-        		+ TextBasedSmsColumns.TYPE + " TEXT" + ")";    
+        		+ TextBasedSmsColumns.TYPE + " TEXT,"
+        		+ KEY_SHARER + ")";    
         String CREATE_OUTBOX_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_OUTBOX + "("
                 + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," 
         		+ TextBasedSmsColumns.DATE_SENT + " DATE,"
@@ -105,6 +106,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_DATE, shared.getDate());
         values.put(KEY_SHARED_WITH, shared.getConfidante());
         values.put(KEY_CONVERSATION_FROM, shared.getOriginalRecipient());
+        values.put(KEY_SHARER, shared.getSharer());
         values.put(TextBasedSmsColumns.TYPE, shared.getType());
         // Inserting Row
         long row_id = db.insert(TABLE_SHARED_CONVERSATIONS, null, values);
@@ -134,7 +136,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
  
     public SharedConversation getSharedConversation(String convo_id) {
         Cursor cursor = db.query(TABLE_SHARED_CONVERSATIONS, new String[] { KEY_ID, KEY_DATE,
-                KEY_SHARED_WITH, KEY_CONVERSATION_FROM}, KEY_ID + "=?",
+                KEY_SHARED_WITH, KEY_CONVERSATION_FROM, KEY_SHARER}, KEY_ID + "=?",
                 new String[] { convo_id }, null, null, null, null);
         if (cursor == null || !cursor.moveToFirst()) return null;
         SharedConversation shared = new SharedConversation();
@@ -143,6 +145,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         shared.setDate(cursor.getLong(1));
     	shared.setConfidante(cursor.getString(2));
     	shared.setOriginalRecipient(cursor.getString(3));
+    	shared.setSharer(cursor.getString(4));
     	shared.setMessages(getMessages(convo_id));
         shared.setComments(getComments(convo_id));
         return shared;

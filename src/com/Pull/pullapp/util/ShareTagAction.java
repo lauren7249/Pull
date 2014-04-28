@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.util.Log;
 
+import com.Pull.pullapp.MainApplication;
 import com.Pull.pullapp.SharedConversationActivity;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
@@ -51,7 +52,6 @@ public class ShareTagAction extends Thread {
     public void run() {
     	
     	mSharedConversation.setType(TextBasedSmsColumns.MESSAGE_TYPE_SENT);
-    	
     	//in the background, check if recipient is a parse user. if not, we will send via SMS
     	checkParseUser(mSharedConversation.getConfidante());
         

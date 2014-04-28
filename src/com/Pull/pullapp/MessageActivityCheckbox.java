@@ -87,6 +87,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	private boolean delayPressed;
 	private SharedPreferences mPrefs;
 	private SharedPreferences.Editor editor;
+	private MainApplication mApp;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -418,7 +419,9 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case android.R.id.home:
-            NavUtils.navigateUpFromSameTask(this);
+	    	Intent mIntent = new Intent(mContext, ThreadsListActivity.class);
+	    	startActivity(mIntent);				
+            //NavUtils.navigateUpFromSameTask(this);
             return true;
 		case R.id.menu_share:
 			if(isChecked) {
@@ -554,13 +557,15 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		recipients = mConfidantesEditor.constructContactsFromInput(false).getToNumbers();
 		hashtags_string = hashtag.getText().toString().trim(); 
 		
+		mApp = (MainApplication) getApplication(); 
     	mSharedConversation = new SharedConversation(date, recipients[0], number);
+    	mSharedConversation.setSharer(mApp.getUserName());
         for (SMSMessage p : messages) {
             if (p.box && !p.getMessage().equals("")) {
             	mSharedConversation.addMessage(p);
             }
         }
-        for(String h : hashtags_string.split(",")) {
+        if (hashtags_string.length()>0) for(String h : hashtags_string.split(",")) {
         	h = h.trim();
         	if(!h.isEmpty()) {
 	        	SMSMessage c = new SMSMessage();

@@ -34,10 +34,6 @@ public class MainApplication extends Application {
 
 	private SharedPreferences prefs;
 	private ViewPagerSignIn mSignIn;
-	private String mPhoneNumber;
-	private TelephonyManager tMgr;
-	private int errorCode;	
-	private Context mContext;
 	private SharedPreferences.Editor editor ;
 	
 	@Override
@@ -105,7 +101,7 @@ public class MainApplication extends Application {
 			editor.putString(Constants.USER_PASSWORD, "");
 			editor.putString(Constants.USER_NAME, "");
 		}
-
+		Log.i("user signed in with mprefs", Name);
 		editor.commit();
 	}
 	

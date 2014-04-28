@@ -94,7 +94,7 @@ public class Constants {
 			"#Satisfaction","#Trust","#Calm","#Content","#Relaxed","#Relieved","#Serene",
 			"#Interest","#Politeness","#Surprised","#WTF","#B****Please"};
 	public static List<String> ALL_HASHTAGS_LIST = Arrays.asList(ALL_HASHTAGS);
-	public static final String GOOGLE_PLAY_LINK = "https://play.google.com/store/apps/details?id=com.pull.pullapp";
+	public static final String GOOGLE_PLAY_LINK = "https://play.google.com/store/apps/details?id=com.Pull.pullapp";
 	public static final String APP_PLUG_END = "Download the app at Google play: " + GOOGLE_PLAY_LINK;
 	public static final int MIN_TEXT_LENGTH = 40;
 	public static final int MAX_TEXT_LENGTH = 100;

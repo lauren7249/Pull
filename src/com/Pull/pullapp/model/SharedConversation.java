@@ -9,12 +9,11 @@ import com.parse.ParseUser;
 @ParseClassName("SharedConversation")
 public class SharedConversation extends ParseObject {
 	
-	private String id, confidante, original_recipient;
+	private String id, confidante, original_recipient, sharer;
 	private int type;
 	private long date_shared;
 	private ArrayList<SMSMessage> conversation = new ArrayList<SMSMessage>();
 	private ArrayList<Comment> comments = new ArrayList<Comment>();
-	private ParseUser sharer;
 	
 	public SharedConversation() {
 	}
@@ -133,9 +132,13 @@ public class SharedConversation extends ParseObject {
 		this.type = messageType;
 		put("type",type);
 	}
+	public void setSharer(String sharer) {
+		this.sharer = sharer;
+		put("sharer",sharer);		
+	}
 
-	public ParseUser getSharer() {
-		return (ParseUser) this.getParseObject("user");
+	public String getSharer() {
+		return getString("sharer");
 	}
 
 }

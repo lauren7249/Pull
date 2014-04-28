@@ -3,7 +3,7 @@ package com.Pull.pullapp;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.app.AlarmManager;
+import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.app.NavUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
@@ -23,7 +24,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.Pull.pullapp.model.Comment;
-import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
@@ -35,6 +35,7 @@ import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 public class SharedConversationActivity extends SherlockActivity {
 	
@@ -58,6 +59,9 @@ public class SharedConversationActivity extends SherlockActivity {
 	private String commentText;
 	private TextView hint;
 	protected String recipient;
+	protected ParseUser parseRecipient;
+	protected Comment mCurrentComment;
+	private MainApplication mApp;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -65,6 +69,7 @@ public class SharedConversationActivity extends SherlockActivity {
 		
 		Intent i = getIntent();
 		sharedConversationId =  i.getStringExtra(Constants.EXTRA_SHARED_CONVERSATION_ID); 
+		mApp = (MainApplication) this.getApplication();
 		
 		if(sharedConversationId.equals("")){
 			finish();
@@ -87,9 +92,10 @@ public class SharedConversationActivity extends SherlockActivity {
 	    if (sharedConversation.getType()==TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
 	    	recipient = sharedConversation.getConfidante();
 	    } else {
-	    	//recipient = sharedConversation.getSharer();
+	    	recipient = sharedConversation.getSharer();
+	    	
 	    }
-	    
+	    Log.i("sharedconversation recipient", recipient);
 	    // Dirty Hack to detect keyboard
 		mLayout.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
 			
@@ -116,11 +122,11 @@ public class SharedConversationActivity extends SherlockActivity {
 						hint.setVisibility(View.GONE);
 						sharedConversationCommentListView.setVisibility(View.VISIBLE);
 					}
-					Comment c = new Comment(commentText, "Me", System.currentTimeMillis());
+					mCurrentComment = new Comment(commentText, mApp.getUserName(), System.currentTimeMillis());
+					sharedConversation.addComment(mCurrentComment);
 					DatabaseHandler db = new DatabaseHandler(mContext);
-					db.addComment(sharedConversationId, c);
+					db.addComment(sharedConversationId, mCurrentComment);
 					commentList = db.getComments(sharedConversationId);
-					sharedConversation.setComments(commentList);
 					sharedConversationCommentListAdapter.setItemList(commentList);
 					sharedConversationCommentListView.invalidateViews();
 					sharedConversationCommentListView.refreshDrawableState();					
@@ -130,7 +136,7 @@ public class SharedConversationActivity extends SherlockActivity {
 					if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);
 					
 					
-					//checkParseUser(recipient);
+					checkParseUser(recipient);
 //					long delay = (long)(Math.random() * 4000 + 1000);
 //					mHandler.postDelayed(mFakeReplayTask, delay);
 					
@@ -194,6 +200,7 @@ public class SharedConversationActivity extends SherlockActivity {
 
 
 
+
 	
 	
 	@Override
@@ -235,7 +242,10 @@ public class SharedConversationActivity extends SherlockActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case android.R.id.home:
-            NavUtils.navigateUpFromSameTask(this);
+            //NavUtils.navigateUpFromSameTask(this);
+	    	Intent mIntent = new Intent(mContext, SharedListActivity.class);
+	    	mIntent.putExtra(Constants.EXTRA_SHARE_TYPE, sharedConversation.getType());
+	    	startActivity(mIntent);						
             return true;
         default:
         	return false;
@@ -249,12 +259,34 @@ public class SharedConversationActivity extends SherlockActivity {
     	query.findInBackground(new FindCallback<ParseUser>() {
     	  public void done(List<ParseUser> objects, ParseException e) {
     	    if (e == null && objects.size()>0) {
+    	    	parseRecipient = objects.get(0);
+    	    	sendComment();
     	    } else {
-    	        commentViaSMS(confidante);
+    	        //commentViaSMS(confidante);
+    	    	//TODO: Add dialog so user can invite friends
     	    }
     	  }
     	});
 	}
+
+	protected void sendComment() {
+		// This will save both message and conversation to Parse
+		mCurrentComment.saveInBackground(new SaveCallback(){
+        	public void done(ParseException e) {
+        		if (e == null) {
+        			//addToSharedList(message);
+        			Log.i("comment saved","comment saved");
+			    } else {
+					/*Intent broadcastIntent = new Intent();
+					broadcastIntent.setAction(Constants.ACTION_SHARE_COMPLETE);
+					broadcastIntent.putExtra(Constants.EXTRA_SHARE_RESULT_CODE, e.getCode());
+					parent.sendBroadcast(broadcastIntent);	*/
+			    }
+			 }
+		 });
+		
+	}
+
 
 	protected void commentViaSMS(String recipient) {
 		SendMessages.sendsms(mContext, recipient, commentText, 0, false);
