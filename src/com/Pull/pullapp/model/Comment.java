@@ -9,6 +9,9 @@ public class Comment extends ParseObject {
 	private long date;
 	private String message;
 	private String sender;
+	private boolean isProposal = false;
+	
+
 	
 	public Comment(){
 		
@@ -36,4 +39,12 @@ public class Comment extends ParseObject {
 		//return this.sender;
 		return getString("sender");
 	}
+	
+	public void setProposal(boolean p) {
+		this.isProposal = p;
+		put("isProposal",isProposal);
+	}
+	public boolean isProposal(){
+		return getBoolean("isProposal");
+	}	
 }

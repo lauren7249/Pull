@@ -1,6 +1,7 @@
 package com.Pull.pullapp;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.content.ClipData;
 import android.content.Context;
@@ -16,6 +17,12 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.Pull.pullapp.model.Comment;
+import com.Pull.pullapp.util.ContentUtils;
+import com.facebook.widget.ProfilePictureView;
+import com.parse.FindCallback;
+import com.parse.ParseException;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
 
 public class SharedConversationCommentListAdapter extends BaseAdapter {
 	private Context mContext;
@@ -79,11 +86,22 @@ public class SharedConversationCommentListAdapter extends BaseAdapter {
 			}else{
 				convertView = LayoutInflater.from(mContext).inflate(R.layout.shared_comment_outgoing_row, parent, false);
 			}
+		    final ProfilePictureView profilePictureView = (ProfilePictureView) convertView.findViewById(R.id.contact_image);
+			ParseQuery<ParseUser> userQuery = ParseUser.getQuery();
+			userQuery.whereEqualTo("username", ContentUtils.addCountryCode(comment.getSender()));
+			userQuery.findInBackground(new FindCallback<ParseUser>() {
+			public void done(List<ParseUser> results, ParseException e) {
+				if(e == null && results.size()>0) {
+					profilePictureView.setProfileId(results.get(0).getString("facebookID"));
+					profilePictureView.setPresetSize(ProfilePictureView.LARGE);
+				}
+			  }
+			}); 
 			holder.message = (TextView) convertView.findViewById(R.id.message_text);
 			holder.time = (TextView) convertView.findViewById(R.id.message_time);
 			
 			convertView.setTag(holder);
-			if(true) convertView.setOnTouchListener(new MyTouchListener());
+			if(comment.isProposal()) convertView.setOnTouchListener(new MyTouchListener());
 		}
 		else holder = (SMSViewHolder) convertView.getTag();
 		holder.message.setText(comment.getMessage());

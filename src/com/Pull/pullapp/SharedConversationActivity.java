@@ -192,6 +192,8 @@ public class SharedConversationActivity extends SherlockActivity {
 	    View v=getCurrentFocus();
 	    if(v==null)return;
 	    inputManager.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+		if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);        			
+	
 	}
 	
 	private void updateTime(){
@@ -256,6 +258,7 @@ public class SharedConversationActivity extends SherlockActivity {
 			hint.setVisibility(View.VISIBLE);
 			sharedConversationCommentListView.setVisibility(View.GONE);
 		}
+		if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);        			
 
 	}
 	
@@ -305,7 +308,7 @@ public class SharedConversationActivity extends SherlockActivity {
         			Log.i("comment saved","comment saved");
 					DatabaseHandler db = new DatabaseHandler(mContext);
 					db.addComment(sharedConversationId, mCurrentComment);
-					commentList = db.getComments(sharedConversationId);
+					commentList.add(mCurrentComment);
 					sharedConversationCommentListAdapter.setItemList(commentList);
 					sharedConversationCommentListView.invalidateViews();
 					sharedConversationCommentListView.refreshDrawableState();					

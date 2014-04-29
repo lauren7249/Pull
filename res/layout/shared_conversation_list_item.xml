@@ -11,8 +11,8 @@
       android:paddingLeft="10dp">
     <com.facebook.widget.ProfilePictureView
         android:id="@+id/profile_pic"
-	    android:layout_width="30dp"
-	    android:layout_height="30dp"
+	    android:layout_width="50dp"
+	    android:layout_height="50dp"
 	    android:layout_margin="5dp"
 	    android:layout_gravity="left"
         facebook:preset_size="small"/>        

@@ -10,11 +10,10 @@
 
     <com.facebook.widget.ProfilePictureView
             android:id="@+id/contact_image"
-	        android:layout_width="30dp"
+	        android:layout_width="60dp"
+	        android:layout_height="60dp"
 	        android:layout_gravity="left"
-	        android:layout_height="30dp"
-	        android:layout_margin="5dp"
-            facebook:preset_size="small" /> 
+	        android:layout_margin="5dp" /> 
 
     <LinearLayout
         android:id="@+id/message_box"
