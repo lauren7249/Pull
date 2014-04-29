@@ -82,6 +82,7 @@ public class SharedConversationActivity extends SherlockActivity {
 		mLayout = (LinearLayout) findViewById(R.id.main_layout);
 		dbHandler = new DatabaseHandler(mContext);
 	    sharedConversationListView = (ListView) findViewById(R.id.shared_conversation_list_view);
+	    
 	    separatorView = findViewById(R.id.separator);
 	    sharedConversationCommentListView = (ListView) findViewById(R.id.shared_conversation_comment_list_view);
 	    sharedConversationCommentEditText = (EditText) findViewById(R.id.shared_conversation_comment_edit_text);
@@ -95,6 +96,8 @@ public class SharedConversationActivity extends SherlockActivity {
 	    	recipient = sharedConversation.getSharer();
 	    	
 	    }
+	    sharedConversationListView.setOnDragListener(new MyDragListener(this, sharedConversation));
+	    
 	    Log.i("sharedconversation recipient", recipient);
 	    // Dirty Hack to detect keyboard
 		mLayout.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {

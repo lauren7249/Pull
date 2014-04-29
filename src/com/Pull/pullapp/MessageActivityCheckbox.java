@@ -616,7 +616,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		    "Maybe you will want to edit your text before it gets sent." + 
 		    " Want to set a delay?")
 		           .setView(checkBoxView)
-		           .setCancelable(false)
+		           .setCancelable(true)
 		           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 		               public void onClick(DialogInterface dialog, int id) {
 		            	   dialog.cancel();
