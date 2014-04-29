@@ -2,11 +2,15 @@ package com.Pull.pullapp;
 
 import java.util.ArrayList;
 
+import android.content.ClipData;
 import android.content.Context;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.DragShadowBuilder;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
@@ -77,7 +81,9 @@ public class SharedConversationCommentListAdapter extends BaseAdapter {
 			}
 			holder.message = (TextView) convertView.findViewById(R.id.message_text);
 			holder.time = (TextView) convertView.findViewById(R.id.message_time);
+			
 			convertView.setTag(holder);
+			if(true) convertView.setOnTouchListener(new MyTouchListener());
 		}
 		else holder = (SMSViewHolder) convertView.getTag();
 		holder.message.setText(comment.getMessage());
@@ -99,5 +105,18 @@ public class SharedConversationCommentListAdapter extends BaseAdapter {
 		TextView time;
 		TextView message;
 	}
-	
+	// This defines your touch listener
+	private final class MyTouchListener implements OnTouchListener {
+	  public boolean onTouch(View view, MotionEvent motionEvent) {
+	    if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+	      ClipData data = ClipData.newPlainText("", "");
+	      DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(view);
+	      view.startDrag(data, shadowBuilder, view, 0);
+	      view.setVisibility(View.INVISIBLE);
+	      return true;
+	    } else {
+	    return false;
+	    }
+	  }
+	} 	
 }

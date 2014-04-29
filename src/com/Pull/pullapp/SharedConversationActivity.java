@@ -135,7 +135,6 @@ public class SharedConversationActivity extends SherlockActivity {
 					sharedConversationCommentEditText.clearFocus();
 					if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);
 					
-					
 					checkParseUser(recipient);
 //					long delay = (long)(Math.random() * 4000 + 1000);
 //					mHandler.postDelayed(mFakeReplayTask, delay);
