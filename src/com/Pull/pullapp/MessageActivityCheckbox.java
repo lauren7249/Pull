@@ -608,6 +608,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 				editor.commit();		    	
 		    }
 		});
+		delayPressed = true;
 		checkBox.setText("Never ask me about text delay");
 		Log.i("askabouttimedelay","about to built alertdialog");
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
