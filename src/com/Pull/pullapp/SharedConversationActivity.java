@@ -3,6 +3,9 @@ package com.Pull.pullapp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -34,6 +37,7 @@ import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.MenuItem;
 import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParsePush;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
@@ -127,19 +131,8 @@ public class SharedConversationActivity extends SherlockActivity {
 						sharedConversationCommentListView.setVisibility(View.VISIBLE);
 					}
 					mCurrentComment = new Comment(commentText, mApp.getUserName(), System.currentTimeMillis());
-					sharedConversation.addComment(mCurrentComment);
-					DatabaseHandler db = new DatabaseHandler(mContext);
-					db.addComment(sharedConversationId, mCurrentComment);
-					commentList = db.getComments(sharedConversationId);
-					sharedConversationCommentListAdapter.setItemList(commentList);
-					sharedConversationCommentListView.invalidateViews();
-					sharedConversationCommentListView.refreshDrawableState();					
-					sharedConversationCommentEditText.setText("");
-					hideKeyboard();
-					sharedConversationCommentEditText.clearFocus();
-					if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);
-					
-					checkParseUser(recipient);
+
+					attemptSend(recipient);
 //					long delay = (long)(Math.random() * 4000 + 1000);
 //					mHandler.postDelayed(mFakeReplayTask, delay);
 					
@@ -169,9 +162,23 @@ public class SharedConversationActivity extends SherlockActivity {
 				} else if(action.equals(Constants.ACTION_SEND_COMMENT_CONFIRMED)) {
 					//send comment
 					
-				}
-				else if (action.equals(Constants.ACTION_TIME_TICK)) {
+				} else if (action.equals(Constants.ACTION_TIME_TICK)) {
 					updateTime();
+				} else if(action.equals(Constants.ACTION_SHARE_COMPLETE)) {
+					int resultCode = intent.getIntExtra(Constants.EXTRA_SHARE_RESULT_CODE, 0);
+					switch(resultCode) {
+					case(0):	
+			            break;
+					case(ParseException.CONNECTION_FAILED):
+						Toast.makeText(mContext, "Share failed: not connected", 
+								Toast.LENGTH_LONG).show();	
+						break;
+					default:
+						Toast.makeText(mContext, "Share failed with error code " + resultCode, 
+								Toast.LENGTH_LONG).show();
+						break;
+					}
+					return;
 				}
 			}
 		};
@@ -235,12 +242,13 @@ public class SharedConversationActivity extends SherlockActivity {
 		sharedConversationCommentListView.refreshDrawableState();		
 				
 		sharedConversationMessageListAdapter.setItemList(sharedConversation.getMessages());
-		this.setTitle("Convo with " + confidanteName + " about " + 
-		ContentUtils.getContactDisplayNameByNumber(mContext,sharedConversation.getOriginalRecipient()) );
+		this.setTitle("Comments re: " + ContentUtils.getContactDisplayNameByNumber(mContext,
+				sharedConversation.getOriginalRecipient()));
 		
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(Constants.ACTION_TIME_TICK);
 		intentFilter.addAction(Constants.ACTION_SEND_COMMENT_CANCELED);		
+		intentFilter.addAction(Constants.ACTION_SHARE_COMPLETE);	
 		registerReceiver(tickReceiver,intentFilter);	
 		
 		if(isEmpty) {
@@ -273,7 +281,7 @@ public class SharedConversationActivity extends SherlockActivity {
 	}
 	
 	
-	private void checkParseUser(final String confidante) {
+	private void attemptSend(final String confidante) {
     	ParseQuery<ParseUser> query = ParseUser.getQuery();
     	query.whereEqualTo("username", ContentUtils.addCountryCode(confidante));
     	query.findInBackground(new FindCallback<ParseUser>() {
@@ -282,7 +290,6 @@ public class SharedConversationActivity extends SherlockActivity {
     	    	parseRecipient = objects.get(0);
     	    	sendComment();
     	    } else {
-    	        //commentViaSMS(confidante);
     	    	//TODO: Add dialog so user can invite friends
     	    }
     	  }
@@ -291,19 +298,50 @@ public class SharedConversationActivity extends SherlockActivity {
 
 	protected void sendComment() {
 		// This will save both message and conversation to Parse
+		sharedConversation.addComment(mCurrentComment);
 		mCurrentComment.saveInBackground(new SaveCallback(){
         	public void done(ParseException e) {
         		if (e == null) {
-        			//addToSharedList(message);
         			Log.i("comment saved","comment saved");
-			    } else {
-					/*Intent broadcastIntent = new Intent();
+					DatabaseHandler db = new DatabaseHandler(mContext);
+					db.addComment(sharedConversationId, mCurrentComment);
+					commentList = db.getComments(sharedConversationId);
+					sharedConversationCommentListAdapter.setItemList(commentList);
+					sharedConversationCommentListView.invalidateViews();
+					sharedConversationCommentListView.refreshDrawableState();					
+					sharedConversationCommentEditText.setText("");
+					hideKeyboard();
+					sharedConversationCommentEditText.clearFocus();
+					if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);        			
+					String comment_id = mCurrentComment.getObjectId();
+					sendNotifications(comment_id);
+        		} else {
+					Intent broadcastIntent = new Intent();
 					broadcastIntent.setAction(Constants.ACTION_SHARE_COMPLETE);
 					broadcastIntent.putExtra(Constants.EXTRA_SHARE_RESULT_CODE, e.getCode());
-					parent.sendBroadcast(broadcastIntent);	*/
+					mContext.sendBroadcast(broadcastIntent);	
 			    }
 			 }
 		 });
+		
+	}
+
+
+	protected void sendNotifications(String comment_id) {
+		JSONObject data = new JSONObject();
+		try {
+			data.put("action", Constants.ACTION_RECEIVE_COMMENT);
+			data.put("commentID", comment_id);
+			data.put("convoID", this.sharedConversationId);
+			data.put("type", Constants.NOTIFICATION_COMMENT);
+			ParsePush push = new ParsePush();
+			push.setChannel(ContentUtils.setChannel(recipient));
+			push.setData(data);
+			push.sendInBackground();				
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 

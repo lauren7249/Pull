@@ -48,7 +48,9 @@ public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversat
 		userQuery.whereEqualTo("username", ContentUtils.addCountryCode(th.getConfidante()));
 		userQuery.findInBackground(new FindCallback<ParseUser>() {
 		public void done(List<ParseUser> results, ParseException e) {
-			profilePictureView.setProfileId(results.get(0).getString("facebookID"));
+			if(e == null && results.size()>0) {
+				profilePictureView.setProfileId(results.get(0).getString("facebookID"));
+			}
 		  }
 		});  	   
 	   return v;

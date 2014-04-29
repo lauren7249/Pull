@@ -131,6 +131,7 @@
 		        android:value="com.Pull.pullapp.SharedListActivity" />
             <intent-filter>
                 <action android:name="com.Pull.pullapp.util.ACTION_SEND_COMMENT_CANCELED" />
+                <action android:name="com.Pull.pullapp.util.ACTION_SHARE_COMPLETE" />
                 <action android:name="com.Pull.pullapp.util.ACTION_TIME_TICK" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>            

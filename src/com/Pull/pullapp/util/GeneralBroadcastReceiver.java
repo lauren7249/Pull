@@ -33,6 +33,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	private SharedConversation sharedConvo;
 	private Context mContext;
 	protected Comment comment;
+	private String commentID, convoID;
     @SuppressWarnings("unused")
 	@Override
     public void onReceive(Context context, Intent intent) {
@@ -69,7 +70,6 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         	Log.i("received broadcast","ACTION_RECEIVE_SHARE_TAG");
             try {
                 JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
-                //JSONArray messageArray = json.getJSONArray("messageArray"); 
                 String convoID = json.getString("convoID");
                 int type = json.getInt("type");
                 String person_shared = json.getString("person_shared");
@@ -90,10 +90,11 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         	Log.i("received broadcast","ACTION_RECEIVE_COMMENT");
             try {
                 JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
-                String convoID = json.getString("convoID");
-                String commentID = json.getString("commentID");
-            	getCommentFromParse(commentID);
-            	notifyNewComment(context, convoID, comment);                
+                convoID = json.getString("convoID");
+                commentID = json.getString("commentID");
+                Log.i("comment id",commentID);
+            	getCommentFromParse();
+            	//notifyNewComment(context, convoID, comment);                
               } catch (JSONException e) {
             	  Log.i("exception",e.getMessage());
               }
@@ -135,15 +136,16 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 		
 	}
 
-	private void getCommentFromParse(String commentID) {
+	private void getCommentFromParse() {
     	ParseQuery<Comment> comments = ParseQuery.getQuery(Comment.class);
     	comments.whereEqualTo("objectId", commentID);
     	comments.findInBackground(new FindCallback<Comment>() {
     	  public void done(List<Comment> comment_list, ParseException exception) {
-    		  if(exception == null && comment_list != null) {
-    			  Log.i("got it","found comments!");
-    			  Log.i("messages in comvo",comment_list.size() + " comments in convo");
+    		  if(exception == null && comment_list.size()>0) {
+    			  Log.i("got it","found comment!");
     			  comment = comment_list.get(0);
+    			  saveNewComment(mContext);
+    			  notifyNewComment();
     		  }
     	  }
     	});
@@ -203,7 +205,11 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 		db.addSharedConversation(sharedConvo);
 		db.close();
 	}
-
+	private void saveNewComment(Context context) {
+		DatabaseHandler db = new DatabaseHandler(context);
+		db.addComment(convoID, comment);
+		db.close();
+	}
 	private void notifyNewShare(Context context, String convoID, String person_shared) {
 		NotificationManager mNotificationManager = (NotificationManager) context
 				.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -224,7 +230,26 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 		mNotificationManager.notify(777, mBuilder.build());
 		
 	}
-
+	private void notifyNewComment() {
+		NotificationManager mNotificationManager = (NotificationManager) mContext
+				.getSystemService(Context.NOTIFICATION_SERVICE);
+		int icon;
+		icon = R.drawable.ic_launcher;
+		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
+				mContext).setSmallIcon(icon).setContentTitle("New comment")
+				.setContentText(comment.getMessage())
+				.setPriority(NotificationCompat.PRIORITY_LOW)
+				.setOnlyAlertOnce(true);
+		// TODO: Optional light notification.
+		Intent ni = new Intent(mContext, SharedConversationActivity.class);
+		ni.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
+		PendingIntent pi = PendingIntent.getActivity(mContext, 0,
+				ni, 0);
+		mBuilder.setContentIntent(pi);
+		mBuilder.setAutoCancel(true);
+		mNotificationManager.notify(777, mBuilder.build());
+		
+	}
 	private boolean messagedAfterLaunch(Context context, String address, long launchTime) {
         Uri SMS_URI = Uri.parse("content://sms/inbox");
         String[] COLUMNS = new String[] {TextBasedSmsColumns.DATE,TextBasedSmsColumns.ADDRESS};
