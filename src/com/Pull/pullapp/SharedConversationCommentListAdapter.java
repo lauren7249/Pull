@@ -100,7 +100,7 @@ public class SharedConversationCommentListAdapter extends BaseAdapter {
 		return convertView;
 	}
 	
-	private static class SMSViewHolder
+	public static class SMSViewHolder
 	{
 		TextView time;
 		TextView message;

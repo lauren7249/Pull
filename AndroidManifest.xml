@@ -129,6 +129,11 @@
             <meta-data
 		        android:name="android.support.PARENT_ACTIVITY"
 		        android:value="com.Pull.pullapp.SharedListActivity" />
+            <intent-filter>
+                <action android:name="com.Pull.pullapp.util.ACTION_SEND_COMMENT_CANCELED" />
+                <action android:name="com.Pull.pullapp.util.ACTION_TIME_TICK" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>            
         </activity>	
 		<service android:name="com.parse.PushService" />
 		<receiver android:name="com.parse.ParseBroadcastReceiver">

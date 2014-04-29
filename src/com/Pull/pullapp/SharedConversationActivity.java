@@ -22,6 +22,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.SharedConversation;
@@ -43,14 +44,14 @@ public class SharedConversationActivity extends SherlockActivity {
 	private Context mContext;
 	private LinearLayout mLayout;
 	private ListView sharedConversationListView;
-	private ListView sharedConversationCommentListView;
+	public ListView sharedConversationCommentListView;
 	private DatabaseHandler dbHandler;
 	private SharedConversation sharedConversation;
 	private SharedConversationMessageListAdapter sharedConversationMessageListAdapter;
 	private String sharedConversationId, confidanteName;
 	private EditText sharedConversationCommentEditText;
 	private Button sharedConversationCommentSendButton;
-	private SharedConversationCommentListAdapter sharedConversationCommentListAdapter;
+	public SharedConversationCommentListAdapter sharedConversationCommentListAdapter;
 	private View separatorView;
 	private Handler mHandler = new Handler(); 
 	private ArrayList<Comment> commentList = new ArrayList<Comment>();
@@ -159,7 +160,19 @@ public class SharedConversationActivity extends SherlockActivity {
 		tickReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				updateTime();
+				String action = intent.getAction();
+				
+				if(action.equals(Constants.ACTION_SEND_COMMENT_CANCELED)) {
+					//return comment to its previous position
+					sharedConversationCommentListAdapter = new SharedConversationCommentListAdapter(mContext, sharedConversation.getComments(), sharedConversation.getConfidante());
+				    sharedConversationCommentListView.setAdapter(sharedConversationCommentListAdapter);
+				} else if(action.equals(Constants.ACTION_SEND_COMMENT_CONFIRMED)) {
+					//send comment
+					
+				}
+				else if (action.equals(Constants.ACTION_TIME_TICK)) {
+					updateTime();
+				}
 			}
 		};
 
@@ -224,7 +237,12 @@ public class SharedConversationActivity extends SherlockActivity {
 		sharedConversationMessageListAdapter.setItemList(sharedConversation.getMessages());
 		this.setTitle("Convo with " + confidanteName + " about " + 
 		ContentUtils.getContactDisplayNameByNumber(mContext,sharedConversation.getOriginalRecipient()) );
-		registerReceiver(tickReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
+		
+		IntentFilter intentFilter = new IntentFilter();
+		intentFilter.addAction(Constants.ACTION_TIME_TICK);
+		intentFilter.addAction(Constants.ACTION_SEND_COMMENT_CANCELED);		
+		registerReceiver(tickReceiver,intentFilter);	
+		
 		if(isEmpty) {
 			hint.setText("Write a comment to " + confidanteName);
 			hint.setVisibility(View.VISIBLE);

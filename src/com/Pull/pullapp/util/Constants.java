@@ -69,7 +69,10 @@ public class Constants {
     public static final String ACTION_SHARE_TAG = PACKAGE_NAME + ".util.ACTION_SHARE_TAG";
     public static final String ACTION_RECEIVE_SHARE_TAG = PACKAGE_NAME + ".util.ACTION_RECEIVE_SHARE_TAG";
     public static final String ACTION_SHARE_COMPLETE = PACKAGE_NAME + ".util.ACTION_SHARE_COMPLETE";
-    public static final String ACTION_RECEIVE_COMMENT = PACKAGE_NAME + ".util.ACTION_RECEIVE_COMMENT";;
+    public static final String ACTION_RECEIVE_COMMENT = PACKAGE_NAME + ".util.ACTION_RECEIVE_COMMENT";
+    public static final String ACTION_SEND_COMMENT_CANCELED = PACKAGE_NAME + ".util.ACTION_SEND_COMMENT_CANCELED";
+    public static final String ACTION_SEND_COMMENT_CONFIRMED = PACKAGE_NAME + ".util.ACTION_SEND_COMMENT_CONFIRMED";
+    public static final String ACTION_TIME_TICK = PACKAGE_NAME + ".util.ACTION_TIME_TICK";
     
     public static final String TYPE_IN_SMS = "in_sms";
     public static final String TYPE_OUT_SMS = "out_sms";
@@ -101,6 +104,9 @@ public class Constants {
 	public static final int NOTIFICATION_NEW_SHARE = 1;
 	public static final String PREFERENCE_TIME_DELAY_PROMPT = "PREFERENCE_TIME_DELAY_PROMPT";
 	public static final String FACEBOOK_USER_ID = PACKAGE_NAME + "_FACEBOOK_ID" ;
+	
+	
+	
 	
 	
 	
