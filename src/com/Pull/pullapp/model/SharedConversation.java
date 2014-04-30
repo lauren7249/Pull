@@ -14,6 +14,7 @@ public class SharedConversation extends ParseObject {
 	private long date_shared;
 	private ArrayList<SMSMessage> conversation = new ArrayList<SMSMessage>();
 	private ArrayList<Comment> comments = new ArrayList<Comment>();
+	private String originalRecipientName;
 	
 	public SharedConversation() {
 	}
@@ -140,5 +141,15 @@ public class SharedConversation extends ParseObject {
 	public String getSharer() {
 		return getString("sharer");
 	}
+
+	public String getOriginalRecipientName() {
+		// TODO Auto-generated method stub
+		return getString("originalRecipientName");
+	}
+	public void setOriginalRecipientName(String originalRecipientName) {
+		this.originalRecipientName = originalRecipientName;
+		put("originalRecipientName",originalRecipientName);		
+	}	
+	
 
 }

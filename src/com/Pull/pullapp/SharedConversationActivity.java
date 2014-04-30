@@ -6,9 +6,11 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.AlertDialog;
 import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -54,7 +56,7 @@ public class SharedConversationActivity extends SherlockActivity {
 	private SharedConversationMessageListAdapter sharedConversationMessageListAdapter;
 	private String sharedConversationId, confidanteName;
 	private EditText sharedConversationCommentEditText;
-	private Button sharedConversationCommentSendButton;
+	private Button sharedConversationCommentSendButton, proposeButton;
 	public SharedConversationCommentListAdapter sharedConversationCommentListAdapter;
 	private View separatorView;
 	private Handler mHandler = new Handler(); 
@@ -67,7 +69,7 @@ public class SharedConversationActivity extends SherlockActivity {
 	protected ParseUser parseRecipient;
 	protected Comment mCurrentComment;
 	private MainApplication mApp;
-
+	private String mOriginalRecipientName;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -92,6 +94,7 @@ public class SharedConversationActivity extends SherlockActivity {
 	    sharedConversationCommentListView = (ListView) findViewById(R.id.shared_conversation_comment_list_view);
 	    sharedConversationCommentEditText = (EditText) findViewById(R.id.shared_conversation_comment_edit_text);
 	    sharedConversationCommentSendButton = (Button) findViewById(R.id.shared_conversation_comment_send_button);
+	    proposeButton = (Button) findViewById(R.id.shared_conversation_propose_button);
 	    hint = (TextView) findViewById(R.id.hint);
 	    
 	    sharedConversation = dbHandler.getSharedConversation(sharedConversationId);
@@ -101,6 +104,8 @@ public class SharedConversationActivity extends SherlockActivity {
 	    	recipient = sharedConversation.getSharer();
 	    	
 	    }
+	    mOriginalRecipientName = sharedConversation.getOriginalRecipientName();
+	    
 	    sharedConversationListView.setOnDragListener(new MyDragListener(this, sharedConversation));
 	    
 	    Log.i("sharedconversation recipient", recipient);
@@ -133,17 +138,16 @@ public class SharedConversationActivity extends SherlockActivity {
 					mCurrentComment = new Comment(commentText, mApp.getUserName(), System.currentTimeMillis());
 
 					attemptSend(recipient);
-//					long delay = (long)(Math.random() * 4000 + 1000);
-//					mHandler.postDelayed(mFakeReplayTask, delay);
 					
 				}
 			}
 		});
-	    
+		
 	    sharedConversationMessageListAdapter = new SharedConversationMessageListAdapter(mContext, sharedConversation.getMessages());
 	    sharedConversationListView.setAdapter(sharedConversationMessageListAdapter);
 	    
-	    sharedConversationCommentListAdapter = new SharedConversationCommentListAdapter(mContext, sharedConversation.getComments(), sharedConversation.getConfidante());
+	    sharedConversationCommentListAdapter = new SharedConversationCommentListAdapter(mContext, sharedConversation.getComments(), 
+	    			sharedConversation.getConfidante(), mOriginalRecipientName);
 	    sharedConversationCommentListView.setAdapter(sharedConversationCommentListAdapter);
 	    
 	    confidanteName = ContentUtils.getContactDisplayNameByNumber(mContext,sharedConversation.getConfidante());
@@ -157,7 +161,8 @@ public class SharedConversationActivity extends SherlockActivity {
 				
 				if(action.equals(Constants.ACTION_SEND_COMMENT_CANCELED)) {
 					//return comment to its previous position
-					sharedConversationCommentListAdapter = new SharedConversationCommentListAdapter(mContext, sharedConversation.getComments(), sharedConversation.getConfidante());
+					sharedConversationCommentListAdapter = new SharedConversationCommentListAdapter(mContext, 
+							sharedConversation.getComments(), sharedConversation.getConfidante(), mOriginalRecipientName);
 				    sharedConversationCommentListView.setAdapter(sharedConversationCommentListAdapter);
 				} else if(action.equals(Constants.ACTION_SEND_COMMENT_CONFIRMED)) {
 					//send comment
@@ -232,6 +237,7 @@ public class SharedConversationActivity extends SherlockActivity {
 		super.onResume();
 		
 		sharedConversation = dbHandler.getSharedConversation(sharedConversationId);
+		mOriginalRecipientName = sharedConversation.getOriginalRecipientName();
 		commentList = dbHandler.getComments(sharedConversationId);
 		if(commentList.size()>0) {
 			isEmpty = false;
@@ -244,8 +250,7 @@ public class SharedConversationActivity extends SherlockActivity {
 		sharedConversationCommentListView.refreshDrawableState();		
 				
 		sharedConversationMessageListAdapter.setItemList(sharedConversation.getMessages());
-		this.setTitle("Comments re: " + ContentUtils.getContactDisplayNameByNumber(mContext,
-				sharedConversation.getOriginalRecipient()));
+		this.setTitle("Comments re: " + mOriginalRecipientName);
 		
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(Constants.ACTION_TIME_TICK);
@@ -348,7 +353,38 @@ public class SharedConversationActivity extends SherlockActivity {
 		
 	}
 
+	public void propose(View v) {
+		commentText = sharedConversationCommentEditText.getText().toString().trim();					
+		if(commentText.length()>0){
+	    	AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		    builder.setTitle("Propose sending this to " + 
+		    	ContentUtils.getContactDisplayNameByNumber(mContext,sharedConversation.getOriginalRecipient()) 
+		    	+ "?");
+		    builder.setMessage(commentText)
+		           .setCancelable(true)
+		           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+		               public void onClick(DialogInterface dialog, int id) {
+		            	   dialog.cancel();
+							if(isEmpty) {
+								isEmpty = false;
+								hint.setVisibility(View.GONE);
+								sharedConversationCommentListView.setVisibility(View.VISIBLE);
+							}
+							mCurrentComment = new Comment(commentText, mApp.getUserName(), System.currentTimeMillis());
+							mCurrentComment.setProposal(true);
+							attemptSend(recipient);				            	   
+		               	}
+		           })
+		           .setNegativeButton("No", new DialogInterface.OnClickListener() {
+		               public void onClick(DialogInterface dialog, int id) {
+		                    dialog.cancel();
+		                    commentText = "";
+		               }
+		           }).show();					
 
+		}
+				
+	}
 	protected void commentViaSMS(String recipient) {
 		SendMessages.sendsms(mContext, recipient, commentText, 0, false);
 	}	

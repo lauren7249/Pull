@@ -560,6 +560,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		mApp = (MainApplication) getApplication(); 
     	mSharedConversation = new SharedConversation(date, recipients[0], number);
     	mSharedConversation.setSharer(mApp.getUserName());
+    	mSharedConversation.setOriginalRecipientName(name);
         for (SMSMessage p : messages) {
             if (p.box && !p.getMessage().equals("")) {
             	mSharedConversation.addMessage(p);

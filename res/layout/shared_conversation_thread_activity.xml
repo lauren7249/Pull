@@ -48,7 +48,16 @@
         android:layout_height="wrap_content"
         android:background="@drawable/comment_box_background"
         android:orientation="horizontal" >
-
+        <Button
+            android:id="@+id/shared_conversation_propose_button"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="center"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+			android:text="\?"
+			android:background="@android:color/white"
+			android:onClick="propose" />
         <LinearLayout
             android:id="@+id/LinearLayout02"
             android:layout_width="0dp"

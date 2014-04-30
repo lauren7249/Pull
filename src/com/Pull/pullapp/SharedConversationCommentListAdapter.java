@@ -7,6 +7,7 @@ import android.content.ClipData;
 import android.content.Context;
 import android.text.format.DateUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -14,6 +15,7 @@ import android.view.View.DragShadowBuilder;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 
 import com.Pull.pullapp.model.Comment;
@@ -27,13 +29,14 @@ import com.parse.ParseUser;
 public class SharedConversationCommentListAdapter extends BaseAdapter {
 	private Context mContext;
 	private ArrayList<Comment> mComments;
-	private String mConfidante;
+	private String mConfidante, mOriginalRecipientName;
 	
-	public SharedConversationCommentListAdapter(Context context, ArrayList<Comment> comments, String confidante) {
+	public SharedConversationCommentListAdapter(Context context, ArrayList<Comment> comments, String confidante, String orig_recipient) {
 		super();
 		this.mContext = context;
 		this.mComments = comments;
 		this.mConfidante = confidante;
+		this.mOriginalRecipientName = orig_recipient;
 	}
 
 	@Override
@@ -101,19 +104,30 @@ public class SharedConversationCommentListAdapter extends BaseAdapter {
 			holder.time = (TextView) convertView.findViewById(R.id.message_time);
 			
 			convertView.setTag(holder);
-			if(comment.isProposal()) convertView.setOnTouchListener(new MyTouchListener());
+			if(comment.isProposal()) {
+				convertView.setOnTouchListener(new MyTouchListener());
+				//profilePictureView.setVisibility(View.GONE);
+				//LayoutParams lp = (LayoutParams) convertView.getLayoutParams();
+				//lp.gravity = Gravity.CENTER;
+			}
 		}
 		else holder = (SMSViewHolder) convertView.getTag();
 		holder.message.setText(comment.getMessage());
 		
-		CharSequence relativeTime;
-		if(System.currentTimeMillis()-comment.getDate()>DateUtils.MINUTE_IN_MILLIS){
-			relativeTime = DateUtils.getRelativeDateTimeString(mContext, comment.getDate(), DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
-		}else{
-			relativeTime = "Just Now";
+		if(comment.isProposal()) {
+			holder.time.setText("Drag up to send to " + mOriginalRecipientName);
+		} else {
+			CharSequence relativeTime;
+			if(System.currentTimeMillis()-comment.getDate()>DateUtils.MINUTE_IN_MILLIS){
+				relativeTime = DateUtils.getRelativeDateTimeString(mContext, comment.getDate(), DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+			}else{
+				relativeTime = "Just Now";
+			}		
+			holder.time.setText(relativeTime);
 		}
+
 		
-		holder.time.setText(relativeTime);
+		
 		
 		return convertView;
 	}
