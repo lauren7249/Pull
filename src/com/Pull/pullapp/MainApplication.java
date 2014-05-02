@@ -51,43 +51,30 @@ public class MainApplication extends Application {
 		ParseFacebookUtils.initialize(getString(R.string.facebook_app_id));	
 		
 		PushService.setDefaultPushCallback(this, ViewPagerSignIn.class);
-		ParseInstallation.getCurrentInstallation().saveInBackground(new SaveCallback() {
-	        @Override
-	        public void done(ParseException e) {
-	        		if (e == null) {
-	                    Toast toast = Toast.makeText(getApplicationContext(), "success", Toast.LENGTH_SHORT);
-	                    //toast.show();
-	                } else {
-	                    e.printStackTrace();
 
-	                    Toast toast = Toast.makeText(getApplicationContext(), "failure", Toast.LENGTH_SHORT);
-	                   // toast.show();
-	                }
-	            }
-	        });
 		ParseUser currentUser = ParseUser.getCurrentUser();
 		if (currentUser != null) {
 			setSignedIn(true);
+			ParseInstallation installation = ParseInstallation.getCurrentInstallation();
+			installation.put("user", currentUser);
+			installation.saveInBackground(new SaveCallback() {
+		        @Override
+		        public void done(ParseException e) {
+		        		if (e == null) {
+		                    Toast toast = Toast.makeText(getApplicationContext(), "success", Toast.LENGTH_SHORT);
+		                    //toast.show();
+		                } else {
+		                    e.printStackTrace();
+
+		                    Toast toast = Toast.makeText(getApplicationContext(), "failure", Toast.LENGTH_SHORT);
+		                   // toast.show();
+		                }
+		            }
+		        });				
 		} else {
 			setSignedIn(false);
 		}
 		
-	    // Add code to print out the key hash
-	    try {
-	        PackageInfo info = getPackageManager().getPackageInfo(
-	                "com.Pull.pullapp", 
-	                PackageManager.GET_SIGNATURES);
-	        for (Signature signature : info.signatures) {
-	            MessageDigest md = MessageDigest.getInstance("SHA");
-	            md.update(signature.toByteArray());
-	            Log.d("KeyHash:", Base64.encodeToString(md.digest(), Base64.DEFAULT));
-	            }
-	    } catch (NameNotFoundException e) {
-
-	    } catch (NoSuchAlgorithmException e) {
-
-	    }	 		
-
 	}
 	
 	public void setSignedIn(boolean signedIn, String Name, String Password) {

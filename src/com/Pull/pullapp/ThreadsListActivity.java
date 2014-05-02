@@ -107,21 +107,7 @@ public class ThreadsListActivity extends Activity {
 	    		R.layout.message_list_item, thread_list);	  
 	    listview.setAdapter(adapter);
 	    new GetThreads().execute();    
-	    listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-	    	
-		      public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
-		    	  final ThreadItem item = (ThreadItem) parent.getItemAtPosition(position);
-    
-		          Intent intent = new Intent(mContext, MessageActivityCheckbox.class);
-		          intent.putExtra(Constants.EXTRA_THREAD_ID,item.ID);
-		          intent.putExtra(Constants.EXTRA_NAME,item.displayName);
-		          intent.putExtra(Constants.EXTRA_READ,item.read);
-		          intent.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(item.number));
-		          //Log.i("phone number",PhoneNumberUtils.stripSeparators(item.number));
-		          startActivity(intent);	    	  
-		     }
 		
-		   });			
 	    listview.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
 	    	 
 			@Override
@@ -203,7 +189,21 @@ public class ThreadsListActivity extends Activity {
 		    protected void onPostExecute(Void result) {
 				super.onPostExecute(result);
 				threads.close();
-
+			    listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			    	
+				      public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
+				    	  final ThreadItem item = (ThreadItem) parent.getItemAtPosition(position);
+		    
+				          Intent intent = new Intent(mContext, MessageActivityCheckbox.class);
+				          intent.putExtra(Constants.EXTRA_THREAD_ID,item.ID);
+				          intent.putExtra(Constants.EXTRA_NAME,item.displayName);
+				          intent.putExtra(Constants.EXTRA_READ,item.read);
+				          intent.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(item.number));
+				          //Log.i("phone number",PhoneNumberUtils.stripSeparators(item.number));
+				          startActivity(intent);	    	  
+				     }
+				
+				   });	
 		    }			
 
 	  }

@@ -138,10 +138,12 @@ public class ContentUtils {
 			return null;
 		}
 	    public static String subtractCountryCode(String number) {
+	    	if(number == null) return number;
 	    	if(number.trim().length()<=10) return number;
 	    	return number.substring(number.length()-10);
 	    }	
 	    public static String addCountryCode(String number) {
+	    	if(number == null) return number;
 	    	if(number.substring(0,1).equals("+")) return number.substring(1);
 	    	if(number.trim().length()==10) return "1"+number;
 	    	return number;
