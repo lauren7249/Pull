@@ -7,16 +7,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.AlertDialog;
-import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.Telephony.TextBasedSmsColumns;
-import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -98,12 +96,22 @@ public class SharedConversationActivity extends SherlockActivity {
 	    hint = (TextView) findViewById(R.id.hint);
 	    
 	    sharedConversation = dbHandler.getSharedConversation(sharedConversationId);
-	    if (sharedConversation.getType()==TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
+	    //if (sharedConversation.getType()==TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
+	    if(ContentUtils.addCountryCode(sharedConversation.getSharer()) 
+	    		.equals(ContentUtils.addCountryCode(mApp.getUserName()))) { 
 	    	recipient = sharedConversation.getConfidante();
+
 	    } else {
-	    	recipient = sharedConversation.getSharer();
+	    	recipient = sharedConversation.getSharer();             
 	    	
 	    }
+	    
+       /* Toast.makeText(mContext, "sharer:" + ContentUtils.addCountryCode(sharedConversation.getSharer()), 
+        		Toast.LENGTH_LONG).show();
+        Toast.makeText(mContext, "username:" + ContentUtils.addCountryCode(mApp.getUserName()), 
+        		Toast.LENGTH_LONG).show();	   
+        Toast.makeText(mContext, "recipient:" + recipient, 
+        		Toast.LENGTH_LONG).show();	*/ 	    
 	    mOriginalRecipientName = sharedConversation.getOriginalRecipientName();
 	    
 	    sharedConversationListView.setOnDragListener(new MyDragListener(this, sharedConversation));
@@ -299,21 +307,48 @@ public class SharedConversationActivity extends SherlockActivity {
     	    	sendComment();
     	    } else {
     	    	//TODO: Add dialog so user can invite friends
+    	    	askToInviteFriend();
     	    }
     	  }
     	});
 	}
 
+	protected void askToInviteFriend() {
+		String recipient_name = ContentUtils.getContactDisplayNameByNumber(mContext, recipient);
+    	AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	    builder.setTitle("Get " + recipient_name + " on Pull"); 
+	    builder.setMessage("Before " + recipient_name + " can get your comments, " +
+	    		"they need to download the app! Do you want to send them a link?")
+	           .setCancelable(true)
+	           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+	               public void onClick(DialogInterface dialog, int id) {
+	            	   dialog.cancel();
+	            	   Intent sendIntent = new Intent(Intent.ACTION_VIEW);     
+	            	   sendIntent.putExtra("address", recipient);
+	            	   sendIntent.putExtra("sms_body", Constants.GOOGLE_PLAY_LINK); 
+	            	   sendIntent.setData(Uri.parse("smsto:" + recipient));
+	            	   startActivity(sendIntent);
+		            	   
+	               	}
+	           })
+	           .setNegativeButton("No", new DialogInterface.OnClickListener() {
+	               public void onClick(DialogInterface dialog, int id) {
+	                    dialog.cancel();
+	               }
+	           }).show();	
+	}
+
+
 	protected void sendComment() {
 		// This will save both message and conversation to Parse
 		sharedConversation.addComment(mCurrentComment);
+		commentList = sharedConversation.getComments();
 		mCurrentComment.saveInBackground(new SaveCallback(){
         	public void done(ParseException e) {
         		if (e == null) {
         			Log.i("comment saved","comment saved");
 					DatabaseHandler db = new DatabaseHandler(mContext);
 					db.addComment(sharedConversationId, mCurrentComment);
-					commentList.add(mCurrentComment);
 					sharedConversationCommentListAdapter.setItemList(commentList);
 					sharedConversationCommentListView.invalidateViews();
 					sharedConversationCommentListView.refreshDrawableState();					

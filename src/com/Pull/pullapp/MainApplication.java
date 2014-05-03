@@ -46,7 +46,7 @@ public class MainApplication extends Application {
 		ParseObject.registerSubclass(SharedConversation.class);
 		ParseObject.registerSubclass(Comment.class);
 		ParseObject.registerSubclass(SMSMessage.class);
-		
+
 		Parse.initialize(this, getString(R.string.parse_app_id), getString(R.string.parse_key));
 		ParseFacebookUtils.initialize(getString(R.string.facebook_app_id));	
 		

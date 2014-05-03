@@ -41,7 +41,7 @@ public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversat
 	   TextView name = (TextView) v.findViewById(R.id.txt_title);
 	   TextView info = (TextView) v.findViewById(R.id.txt_message_info);
 	   SharedConversation th = objects.get(pos);
-	   name.setText(th.getOriginalRecipientName());
+	   name.setText("Conversation about " + th.getOriginalRecipientName());
 	   info.setText(th.getHashtags());
 	   
 		ParseQuery<ParseUser> userQuery = ParseUser.getQuery();
