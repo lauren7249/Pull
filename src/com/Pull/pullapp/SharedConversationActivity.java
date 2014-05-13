@@ -16,6 +16,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
@@ -42,7 +44,9 @@ import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 
-public class SharedConversationActivity extends SherlockActivity {
+public class SharedConversationActivity extends SherlockActivity implements
+							GestureDetector.OnGestureListener,
+							GestureDetector.OnDoubleTapListener {
 	
 	
 	private Context mContext;
@@ -68,6 +72,8 @@ public class SharedConversationActivity extends SherlockActivity {
 	protected Comment mCurrentComment;
 	private MainApplication mApp;
 	private String mOriginalRecipientName;
+	private GestureDetector mGestureDetector;
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -195,6 +201,8 @@ public class SharedConversationActivity extends SherlockActivity {
 				}
 			}
 		};
+		
+		mGestureDetector = new GestureDetector(this,this);
 
 	}
 	
@@ -272,7 +280,7 @@ public class SharedConversationActivity extends SherlockActivity {
 			sharedConversationCommentListView.setVisibility(View.GONE);
 		}
 		if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);        			
-
+		
 	}
 	
 	@Override
@@ -424,4 +432,94 @@ public class SharedConversationActivity extends SherlockActivity {
 		SendMessages.sendsms(mContext, recipient, commentText, 0, false);
 	}	
 
+	private void createFakeConvo(){
+
+		Comment c;
+		c = new Comment("he didn't say he flaked", sharedConversation.getConfidante(), System.currentTimeMillis());
+		commentList.add(c);
+		c = new Comment("look at the timestamps! thats the last message. tonight is clearly not happening", sharedConversation.getSharer(), System.currentTimeMillis());
+		commentList.add(c);		
+		c = new Comment("i know, i can see the timestamps because you turned on auto-forwarding. he would not flake, he totally likes you", sharedConversation.getConfidante(), System.currentTimeMillis());
+		commentList.add(c);
+		c = new Comment("if i dont start getting ready now, i wont make it on time ", sharedConversation.getSharer(), System.currentTimeMillis());
+		commentList.add(c);	
+		
+		c = new Comment("so text him!", sharedConversation.getConfidante(), System.currentTimeMillis());
+		commentList.add(c);
+		c = new Comment("no. that would be clingy", sharedConversation.getSharer(), System.currentTimeMillis());
+		commentList.add(c);		
+		c = new Comment("im looking at your message history and the last time this happened, it turned out he he was at the gym", sharedConversation.getConfidante(), System.currentTimeMillis());
+		commentList.add(c);
+		c = new Comment("true", sharedConversation.getSharer(), System.currentTimeMillis());
+		commentList.add(c);		
+		
+		c = new Comment(" hi andrew, since you still haven't texted me i assume we are not meeting tonight.", sharedConversation.getSharer(), System.currentTimeMillis());
+		c.setProposal(true);
+		commentList.add(c);	
+		c = new Comment("hey, just got out of class. running a little late! see you at 6:30?", sharedConversation.getConfidante(), System.currentTimeMillis());
+		c.setProposal(true);
+		commentList.add(c);		
+		sharedConversation.setComments(commentList);
+		sharedConversationCommentListAdapter.setItemList(commentList);
+		sharedConversationCommentListView.invalidateViews();
+		sharedConversationCommentListView.refreshDrawableState();		
+		if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);
+		
+	}
+
+	@Override
+	public boolean onSingleTapConfirmed(MotionEvent e) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean onDoubleTap(MotionEvent e) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean onDoubleTapEvent(MotionEvent e) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean onDown(MotionEvent e) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void onShowPress(MotionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean onSingleTapUp(MotionEvent e) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
+			float distanceY) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void onLongPress(MotionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+			float velocityY) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

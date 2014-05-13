@@ -17,6 +17,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.app.NotificationCompat;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.Pull.pullapp.R;
@@ -34,11 +35,13 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	private Context mContext;
 	protected Comment comment;
 	private String commentID, convoID;
+	private TelephonyManager tmgr;
     @SuppressWarnings("unused")
 	@Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
         mContext = context;
+        tmgr = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         if (action.equals(Constants.ACTION_CHECK_OUT_SMS) && Constants.LOG_SMS) {
             new SmsLogger(context).start();
             return;
@@ -253,7 +256,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	private boolean messagedAfterLaunch(Context context, String address, long launchTime) {
         Uri SMS_URI = Uri.parse("content://sms/inbox");
         String[] COLUMNS = new String[] {TextBasedSmsColumns.DATE,TextBasedSmsColumns.ADDRESS};
-        String WHERE = TextBasedSmsColumns.ADDRESS + "='" + ContentUtils.addCountryCode(address) + "' and " +
+        String WHERE = TextBasedSmsColumns.ADDRESS + "='" + ContentUtils.addCountryCode(tmgr,address) + "' and " +
         		TextBasedSmsColumns.TYPE + "=" + TextBasedSmsColumns.MESSAGE_TYPE_INBOX; 	
         Cursor cursor = context.getContentResolver().query(SMS_URI, COLUMNS,
                 WHERE + " AND " + TextBasedSmsColumns.DATE + "> " + launchTime, null, 

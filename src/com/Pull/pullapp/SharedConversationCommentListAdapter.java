@@ -7,15 +7,15 @@ import android.content.ClipData;
 import android.content.Context;
 import android.text.format.DateUtils;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.DragShadowBuilder;
+import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.LinearLayout.LayoutParams;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.Pull.pullapp.model.Comment;
@@ -102,20 +102,17 @@ public class SharedConversationCommentListAdapter extends BaseAdapter {
 			}); 
 			holder.message = (TextView) convertView.findViewById(R.id.message_text);
 			holder.time = (TextView) convertView.findViewById(R.id.message_time);
-			
+			holder.box = (LinearLayout) convertView.findViewById(R.id.message_box);
 			convertView.setTag(holder);
-			if(comment.isProposal()) {
-				convertView.setOnTouchListener(new MyTouchListener());
-				//profilePictureView.setVisibility(View.GONE);
-				//LayoutParams lp = (LayoutParams) convertView.getLayoutParams();
-				//lp.gravity = Gravity.CENTER;
-			}
+
 		}
 		else holder = (SMSViewHolder) convertView.getTag();
 		holder.message.setText(comment.getMessage());
 		
 		if(comment.isProposal()) {
 			holder.time.setText("Drag up to send to " + mOriginalRecipientName);
+			convertView.setOnLongClickListener(new DragTouchListener());
+			
 		} else {
 			CharSequence relativeTime;
 			if(System.currentTimeMillis()-comment.getDate()>DateUtils.MINUTE_IN_MILLIS){
@@ -136,19 +133,16 @@ public class SharedConversationCommentListAdapter extends BaseAdapter {
 	{
 		TextView time;
 		TextView message;
+		LinearLayout box;
 	}
-	// This defines your touch listener
-	private final class MyTouchListener implements OnTouchListener {
-	  public boolean onTouch(View view, MotionEvent motionEvent) {
-	    if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+
+   public static class DragTouchListener implements OnLongClickListener {
+	  public boolean onLongClick(View view) {
 	      ClipData data = ClipData.newPlainText("", "");
 	      DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(view);
 	      view.startDrag(data, shadowBuilder, view, 0);
 	      view.setVisibility(View.INVISIBLE);
 	      return true;
-	    } else {
-	    return false;
-	    }
-	  }
+	  } 
 	} 	
 }

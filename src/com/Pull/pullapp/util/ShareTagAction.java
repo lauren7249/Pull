@@ -3,7 +3,6 @@ package com.Pull.pullapp.util;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -12,10 +11,9 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.provider.Telephony.TextBasedSmsColumns;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
-import com.Pull.pullapp.MainApplication;
-import com.Pull.pullapp.SharedConversationActivity;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.parse.FindCallback;
@@ -37,6 +35,7 @@ public class ShareTagAction extends Thread {
     private int totalMessageCount, savedMessageCount;
 	private String convo_id;
 	private boolean isPullUser;
+    private TelephonyManager tmgr;
     
     public ShareTagAction(Context mContext,
 			SharedConversation mSharedConversation) {
@@ -46,6 +45,7 @@ public class ShareTagAction extends Thread {
     			mSharedConversation.getOriginalRecipient()); 
     	this.recipient = mSharedConversation.getConfidante();
     	this.hashtags = mSharedConversation.getHashtags();
+    	this.tmgr = (TelephonyManager)parent.getSystemService(Context.TELEPHONY_SERVICE);
     }
 
     @Override
@@ -125,7 +125,7 @@ public class ShareTagAction extends Thread {
 			data.put("person_shared", person_shared);
 			data.put("type", Constants.NOTIFICATION_NEW_SHARE);
 			ParsePush push = new ParsePush();
-			push.setChannel(ContentUtils.setChannel(recipient));
+			push.setChannel(ContentUtils.setChannel(tmgr,recipient));
 			push.setData(data);
 			push.sendInBackground();				
 		} catch (JSONException e) {
@@ -136,7 +136,7 @@ public class ShareTagAction extends Thread {
 
 	private void checkParseUser(String confidante) {
     	ParseQuery<ParseUser> query = ParseUser.getQuery();
-    	query.whereEqualTo("username", ContentUtils.addCountryCode(confidante));
+    	query.whereEqualTo("username", ContentUtils.addCountryCode(tmgr,confidante));
     	query.findInBackground(new FindCallback<ParseUser>() {
     	  public void done(List<ParseUser> objects, ParseException e) {
     	    if (e == null && objects.size()>0) {

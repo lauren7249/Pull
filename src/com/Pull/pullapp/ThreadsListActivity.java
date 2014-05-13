@@ -14,7 +14,6 @@ import android.provider.Telephony.TextBasedSmsColumns;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuItem;
@@ -31,18 +30,9 @@ import com.Pull.pullapp.model.ThreadItem;
 import com.Pull.pullapp.util.AlarmScheduler;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
-import com.facebook.Request;
-import com.facebook.Response;
-import com.facebook.Session;
-import com.facebook.model.GraphUser;
-import com.parse.LogInCallback;
 import com.parse.ParseAnalytics;
-import com.parse.ParseException;
-import com.parse.ParseFacebookUtils;
+import com.parse.ParseInstallation;
 import com.parse.PushService;
-import com.parse.ParseFacebookUtils.Permissions;
-import com.parse.ParseUser;
-import com.parse.SaveCallback;
 
 public class ThreadsListActivity extends Activity {
 	
@@ -62,32 +52,35 @@ public class ThreadsListActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 
-	    setContentView(R.layout.listactivity);
+	    setContentView(R.layout.threads_listactivity);
 	    mContext = getApplicationContext();
 	    ParseAnalytics.trackAppOpened(getIntent());	
 	    
 	    mApp = (MainApplication) this.getApplication();
-	    
+	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();
+		if(mPhoneNumber != null) {
+		       ParseInstallation installation = ParseInstallation.getCurrentInstallation();
+		       installation.addAllUnique("channels", Arrays.asList(ContentUtils.setChannel(mPhoneNumber)));
+		       installation.saveInBackground();			
+		}
+		
 	    if(Constants.LOG_SMS) new AlarmScheduler(mContext, false).start();
 
 	    radioGroup  = (RadioGroup) findViewById(R.id.switch_buttons);
-		   
+	   // radioGroup.check(R.id.my_conversation_tab);	   
 	    radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-			
+			    	
 			@Override
 			public void onCheckedChanged(RadioGroup group, int checkedId) {
+				Intent i = new Intent(mContext, SharedListActivity.class);			
 				if(checkedId==R.id.shared_tab){
-					Intent i = new Intent(mContext, SharedListActivity.class);
-					i.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+					radioGroup.check(R.id.shared_tab);	
 					i.putExtra(Constants.EXTRA_SHARE_TYPE, TextBasedSmsColumns.MESSAGE_TYPE_SENT);
 					startActivity(i);
-					overridePendingTransition(0,0);
 				}else if(checkedId==R.id.shared_with_me_tab){
-					Intent i = new Intent(mContext, SharedListActivity.class);
-					i.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+					radioGroup.check(R.id.shared_with_me_tab);	
 					i.putExtra(Constants.EXTRA_SHARE_TYPE, TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
 					startActivity(i);
-					overridePendingTransition(0,0);
 				}
 			}
 		});
@@ -146,7 +139,9 @@ public class ThreadsListActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		radioGroup.check(R.id.my_conversation_tab);
-		((ThreadItemsListAdapter) listview.getAdapter()).notifyDataSetChanged();
+		new GetThreads().execute();  
+		listview.invalidateViews();
+		listview.refreshDrawableState();			
 	}
 
 	  private class GetThreads extends AsyncTask<Void,ThreadItem,Void> {

@@ -23,7 +23,6 @@
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
         android:background="@drawable/incoming"
-        android:minWidth="150dp"
         android:orientation="vertical" >
 
         <TextView

@@ -20,7 +20,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony.TextBasedSmsColumns;
-import android.support.v4.app.NavUtils;
+import android.telephony.PhoneNumberUtils;
+import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateUtils;
@@ -88,12 +89,15 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	private SharedPreferences mPrefs;
 	private SharedPreferences.Editor editor;
 	private MainApplication mApp;
+	private String thread_id;
+	private TelephonyManager tmgr;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.message_thread);
 		
 		mContext = getApplicationContext();
+		tmgr = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
 		mPrefs = mContext.getSharedPreferences(Constants.PREFERENCE_TIME_DELAY_PROMPT, Context.MODE_PRIVATE);
 		
 		mListView = getListView();
@@ -331,7 +335,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		
 			number =  getIntent().getStringExtra(Constants.EXTRA_NUMBER); 
 			name =  getIntent().getStringExtra(Constants.EXTRA_NAME); 
-			
+			thread_id = getIntent().getStringExtra(Constants.EXTRA_THREAD_ID); 
 			
 			if(number!=null && name!=null) {
 				populateMessages();
@@ -359,11 +363,21 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	
 	
 	private void populateMessages(){
-		Cursor c = mContext.getContentResolver().query(Uri.parse("content://sms"),null,
-	       		TextBasedSmsColumns.ADDRESS + " in ('"+ContentUtils.addCountryCode(number) + "', '" +
-	       				number + "')" + " and " +
-        		TextBasedSmsColumns.TYPE + "!=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX ,null,
-        		TextBasedSmsColumns.DATE);
+		String querystring;
+		if(thread_id == null) {
+			querystring = 
+			"REPLACE(REPLACE(REPLACE(REPLACE(" + TextBasedSmsColumns.ADDRESS + ",'(',''),')',''),' ',''),'-','') " 
+					+ " in ('"+ 
+	   				ContentUtils.subtractCountryCode(number) + "', '" +
+	   				ContentUtils.addCountryCode(number) + "', '+" +
+	   				ContentUtils.addCountryCode(number) + "', '" +
+	   				number + "')" + " and " +
+			TextBasedSmsColumns.TYPE + "!=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX;					
+		}
+		else querystring = TextBasedSmsColumns.THREAD_ID + "=" + thread_id + " and " +
+		TextBasedSmsColumns.TYPE + "!=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX;
+		Cursor c = mContext.getContentResolver().query(Uri.parse("content://sms"),
+				null,querystring ,null,TextBasedSmsColumns.DATE);
         if(c.moveToFirst()) {
         	readMessage(c);
         	while(c.moveToNext()) {
@@ -473,7 +487,8 @@ public class MessageActivityCheckbox extends SherlockListActivity {
     	read = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.READ)).toString();
     	date = c.getLong(c.getColumnIndexOrThrow(TextBasedSmsColumns.DATE));
     	addNewMessage(new SMSMessage(date, body, address, type));
-    	if(read.equals("0") && !SmsMessageId.equals("")) {
+    	Log.i("new message", address);
+    	if(!SmsMessageId.equals("")) {
         	ContentValues values = new ContentValues();
     		values.put("read",true);
     		getContentResolver().update(Uri.parse("content://sms/"),values, "_id="+SmsMessageId, null);	

@@ -1,7 +1,5 @@
 package com.Pull.pullapp.util;
 
-import java.util.List;
-
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -14,12 +12,8 @@ import android.provider.ContactsContract.Data;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
+import android.telephony.TelephonyManager;
 import android.util.Log;
-
-import com.parse.FindCallback;
-import com.parse.ParseException;
-import com.parse.ParseQuery;
-import com.parse.ParseUser;
 
 public class ContentUtils {
 
@@ -142,7 +136,14 @@ public class ContentUtils {
 	    	if(number.trim().length()<=10) return number;
 	    	return number.substring(number.length()-10);
 	    }	
+	    
 	    public static String addCountryCode(String number) {
+	    	if(number == null) return number;
+	    	if(number.substring(0,1).equals("+")) return number.substring(1);
+	    	if(number.trim().length()==10) return "1"+number;
+	    	return number;
+	    }		    
+	    public static String addCountryCode(TelephonyManager tmgr, String number) {
 	    	if(number == null) return number;
 	    	if(number.substring(0,1).equals("+")) return number.substring(1);
 	    	if(number.trim().length()==10) return "1"+number;
@@ -198,8 +199,11 @@ public class ContentUtils {
 		    }*/
 		    return result;
 		}
+		public static String setChannel(TelephonyManager tmgr, String recipient) {
+			return "phoneNumber"+addCountryCode(tmgr,recipient);
+		}
 		public static String setChannel(String recipient) {
 			return "phoneNumber"+addCountryCode(recipient);
-		}
+		}		
  
 }

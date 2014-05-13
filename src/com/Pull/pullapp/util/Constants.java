@@ -25,7 +25,8 @@ public class Constants {
 	
 	public static final String PICTURE_BUCKET = "pull-lauren-julia-hackday1";
 	public static final String PICTURE_NAME = "NameOfThePicture";
-	public static final boolean DEBUG = false;
+	public static final boolean DEBUG = false  ;
+	
 	public static final boolean LOG_SMS = false;
 	public static final String EXTRA_NAME = "NAME";
 	public static final String EXTRA_READ = "READ";
