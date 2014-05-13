@@ -142,7 +142,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
  
     public SharedConversation getSharedConversation(String convo_id) {
         Cursor cursor = db.query(TABLE_SHARED_CONVERSATIONS, new String[] { KEY_ID, KEY_DATE,
-                KEY_SHARED_WITH, KEY_CONVERSATION_FROM, KEY_CONVERSATION_FROM_NAME, KEY_SHARER}, 
+                KEY_SHARED_WITH, KEY_CONVERSATION_FROM, KEY_CONVERSATION_FROM_NAME, KEY_SHARER,
+                TextBasedSmsColumns.TYPE}, 
                 KEY_ID + "=?",
                 new String[] { convo_id }, null, null, null, null);
         if (cursor == null || !cursor.moveToFirst()) return null;
@@ -154,8 +155,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     	shared.setOriginalRecipient(cursor.getString(3));
     	shared.setOriginalRecipientName(cursor.getString(4));
     	shared.setSharer(cursor.getString(5));
+    	shared.setType(Integer.parseInt(cursor.getString(6)));
     	shared.setMessages(getMessages(convo_id));
         shared.setComments(getComments(convo_id));
+        
         return shared;
     }
     

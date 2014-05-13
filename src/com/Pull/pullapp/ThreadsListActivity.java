@@ -66,8 +66,7 @@ public class ThreadsListActivity extends Activity {
 		
 	    if(Constants.LOG_SMS) new AlarmScheduler(mContext, false).start();
 
-	    radioGroup  = (RadioGroup) findViewById(R.id.switch_buttons);
-	   // radioGroup.check(R.id.my_conversation_tab);	   
+	    radioGroup  = (RadioGroup) findViewById(R.id.switch_buttons);   
 	    radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
 			    	
 			@Override

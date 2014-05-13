@@ -97,7 +97,11 @@ public class SharedListActivity extends Activity {
 	    adapter = new SharedConversationsListAdapter(mContext,
 	    		R.layout.shared_conversation_list_item, thread_list);	  
 	    listview.setAdapter(adapter);
-	     
+	    
+	    type = getIntent().getIntExtra(Constants.EXTRA_SHARE_TYPE,TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
+		
+	    if(type==TextBasedSmsColumns.MESSAGE_TYPE_SENT) radioGroup.check(R.id.shared_tab);
+		else radioGroup.check(R.id.shared_with_me_tab);	   		     
 	
 
 	    //new GetThreads().execute();    
