@@ -10,9 +10,8 @@ public class Comment extends ParseObject {
 	private String message;
 	private String sender;
 	private boolean isProposal = false;
-	
+	public boolean failedToDeliver;
 
-	
 	public Comment(){
 		
 	}

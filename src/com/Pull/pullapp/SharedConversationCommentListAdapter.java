@@ -11,15 +11,18 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.DragShadowBuilder;
+import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.util.ContentUtils;
+import com.Pull.pullapp.util.SendMessages;
 import com.facebook.widget.ProfilePictureView;
 import com.parse.FindCallback;
 import com.parse.ParseException;
@@ -88,6 +91,15 @@ public class SharedConversationCommentListAdapter extends BaseAdapter {
 				convertView = LayoutInflater.from(mContext).inflate(R.layout.shared_comment_incoming_row, parent, false);
 			}else{
 				convertView = LayoutInflater.from(mContext).inflate(R.layout.shared_comment_outgoing_row, parent, false);
+				holder.retry = (Button) convertView.findViewById(R.id.retry_button);
+				if(comment.failedToDeliver) holder.retry.setVisibility(View.VISIBLE);
+				else holder.retry.setVisibility(View.GONE);
+		        holder.retry.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						//do something
+					};
+		        });    				
 			}
 		    final ProfilePictureView profilePictureView = (ProfilePictureView) convertView.findViewById(R.id.contact_image);
 			ParseQuery<ParseUser> userQuery = ParseUser.getQuery();
@@ -103,6 +115,7 @@ public class SharedConversationCommentListAdapter extends BaseAdapter {
 			holder.message = (TextView) convertView.findViewById(R.id.message_text);
 			holder.time = (TextView) convertView.findViewById(R.id.message_time);
 			holder.box = (LinearLayout) convertView.findViewById(R.id.message_box);
+			
 			convertView.setTag(holder);
 
 		}
@@ -134,6 +147,7 @@ public class SharedConversationCommentListAdapter extends BaseAdapter {
 		TextView time;
 		TextView message;
 		LinearLayout box;
+		Button retry;
 	}
 
    public static class DragTouchListener implements OnLongClickListener {

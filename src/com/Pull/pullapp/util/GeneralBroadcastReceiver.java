@@ -34,7 +34,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	private SharedConversation sharedConvo;
 	private Context mContext;
 	protected Comment comment;
-	private String commentID, convoID;
+	//private String commentID, convoID;
 	private TelephonyManager tmgr;
     @SuppressWarnings("unused")
 	@Override
@@ -93,11 +93,10 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         	Log.i("received broadcast","ACTION_RECEIVE_COMMENT");
             try {
                 JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
-                convoID = json.getString("convoID");
-                commentID = json.getString("commentID");
+                String convoID = json.getString("convoID");
+                String commentID = json.getString("commentID");
                 Log.i("comment id",commentID);
-            	getCommentFromParse();
-            	//notifyNewComment(context, convoID, comment);                
+            	getCommentFromParse(convoID, commentID);                
               } catch (JSONException e) {
             	  Log.i("exception",e.getMessage());
               }
@@ -116,30 +115,8 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         
     }
     
-    private void notifyNewComment(Context context, String convoID,
-			Comment comment) {
-		NotificationManager mNotificationManager = (NotificationManager) context
-				.getSystemService(Context.NOTIFICATION_SERVICE);
-		int icon;
-		String commenter = ContentUtils.getContactDisplayNameByNumber(mContext, comment.getSender());
-		icon = R.drawable.ic_launcher;
-		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
-				context).setSmallIcon(icon).setContentTitle(commenter + " commented")
-				.setContentText(comment.getMessage())
-				.setPriority(NotificationCompat.PRIORITY_LOW)
-				.setOnlyAlertOnce(true);
-		// TODO: Optional light notification.
-		Intent ni = new Intent(context, SharedConversationActivity.class);
-		ni.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
-		PendingIntent pi = PendingIntent.getActivity(context, 0,
-				ni, 0);
-		mBuilder.setContentIntent(pi);
-		mBuilder.setAutoCancel(true);
-		mNotificationManager.notify(777, mBuilder.build());
-		
-	}
 
-	private void getCommentFromParse() {
+	private void getCommentFromParse(final String convoID, final String commentID) {
     	ParseQuery<Comment> comments = ParseQuery.getQuery(Comment.class);
     	comments.whereEqualTo("objectId", commentID);
     	comments.findInBackground(new FindCallback<Comment>() {
@@ -147,8 +124,9 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
     		  if(exception == null && comment_list.size()>0) {
     			  Log.i("got it","found comment!");
     			  comment = comment_list.get(0);
-    			  saveNewComment(mContext);
-    			  notifyNewComment();
+    			  Log.i("from convo",convoID);
+    			  saveNewComment(mContext, commentID);
+    			  notifyNewComment(convoID);
     		  }
     	  }
     	});
@@ -208,7 +186,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 		db.addSharedConversation(sharedConvo);
 		db.close();
 	}
-	private void saveNewComment(Context context) {
+	private void saveNewComment(Context context, String convoID) {
 		DatabaseHandler db = new DatabaseHandler(context);
 		db.addComment(convoID, comment);
 		db.close();
@@ -225,15 +203,18 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 				.setOnlyAlertOnce(true);
 		// TODO: Optional light notification.
 		Intent ni = new Intent(context, SharedConversationActivity.class);
+		ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);		
 		ni.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
+		Log.i("putting extra convo id", convoID);
 		PendingIntent pi = PendingIntent.getActivity(context, 0,
-				ni, 0);
+				ni, PendingIntent.FLAG_CANCEL_CURRENT);
 		mBuilder.setContentIntent(pi);
 		mBuilder.setAutoCancel(true);
 		mNotificationManager.notify(777, mBuilder.build());
 		
 	}
-	private void notifyNewComment() {
+	private void notifyNewComment(String convoID) {
 		NotificationManager mNotificationManager = (NotificationManager) mContext
 				.getSystemService(Context.NOTIFICATION_SERVICE);
 		int icon;
@@ -245,9 +226,12 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 				.setOnlyAlertOnce(true);
 		// TODO: Optional light notification.
 		Intent ni = new Intent(mContext, SharedConversationActivity.class);
+		ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);		
 		ni.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
+		Log.i("putting extra convo id", convoID);
 		PendingIntent pi = PendingIntent.getActivity(mContext, 0,
-				ni, 0);
+				ni, PendingIntent.FLAG_CANCEL_CURRENT);
 		mBuilder.setContentIntent(pi);
 		mBuilder.setAutoCancel(true);
 		mNotificationManager.notify(777, mBuilder.build());

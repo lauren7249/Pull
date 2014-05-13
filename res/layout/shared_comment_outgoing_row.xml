@@ -42,6 +42,17 @@
             android:textColor="@color/textColor"
             android:textSize="12sp"
             android:textStyle="bold" />
+        <Button
+            android:id="@+id/retry_button"
+            android:layout_width="match_parent"
+            android:layout_height="25dp"
+            android:layout_marginBottom="-5dp"
+            android:layout_marginLeft="-5dp"
+            android:layout_marginRight="-5dp"
+            android:text="Retry sending"
+            android:visibility="gone"
+            android:textColor="@color/cheeryBlossm"
+            android:textSize="12sp" />        
     </LinearLayout>
     <com.facebook.widget.ProfilePictureView
             android:id="@+id/contact_image"

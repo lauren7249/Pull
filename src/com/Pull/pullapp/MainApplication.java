@@ -1,34 +1,18 @@
 package com.Pull.pullapp;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.telephony.TelephonyManager;
-import android.util.Base64;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
-import com.Pull.pullapp.util.ContentUtils;
-import com.parse.LogInCallback;
 import com.parse.Parse;
-import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
-import com.parse.ParseInstallation;
 import com.parse.ParseObject;
-import com.parse.ParseUser;
 import com.parse.PushService;
-import com.parse.SaveCallback;
 
 public class MainApplication extends Application {
 
@@ -52,29 +36,6 @@ public class MainApplication extends Application {
 		
 		PushService.setDefaultPushCallback(this, ViewPagerSignIn.class);
 
-		ParseUser currentUser = ParseUser.getCurrentUser();
-		if (currentUser != null) {
-			setSignedIn(true);
-			ParseInstallation installation = ParseInstallation.getCurrentInstallation();
-			installation.put("user", currentUser);
-			installation.saveInBackground(new SaveCallback() {
-		        @Override
-		        public void done(ParseException e) {
-		        		if (e == null) {
-		                    Toast toast = Toast.makeText(getApplicationContext(), "success", Toast.LENGTH_SHORT);
-		                    //toast.show();
-		                } else {
-		                    e.printStackTrace();
-
-		                    Toast toast = Toast.makeText(getApplicationContext(), "failure", Toast.LENGTH_SHORT);
-		                   // toast.show();
-		                }
-		            }
-		        });				
-		} else {
-			setSignedIn(false);
-		}
-		
 	}
 	
 	public void setSignedIn(boolean signedIn, String Name, String Password) {

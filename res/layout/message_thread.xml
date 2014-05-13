@@ -130,7 +130,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:completionThreshold="1"
-                    android:hint="Enter Confidantes"
+                    android:hint="Enter Friend"
                     android:isScrollContainer="true"
                     android:textSize="20sp" />
 

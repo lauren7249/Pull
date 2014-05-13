@@ -86,7 +86,8 @@ public class SharedConversationActivity extends SherlockActivity implements
 			finish();
 			return;
 		}
-
+		
+		
 		setContentView(R.layout.shared_conversation_thread_activity);
 		isEmpty = true;
 		mContext = getApplicationContext();
@@ -102,16 +103,18 @@ public class SharedConversationActivity extends SherlockActivity implements
 	    hint = (TextView) findViewById(R.id.hint);
 	    
 	    sharedConversation = dbHandler.getSharedConversation(sharedConversationId);
+	    if(sharedConversation == null) Log.i("shared convo is null", sharedConversationId);
 	    //if (sharedConversation.getType()==TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
 	    if(ContentUtils.addCountryCode(sharedConversation.getSharer()) 
 	    		.equals(ContentUtils.addCountryCode(mApp.getUserName()))) { 
+	    	 Log.i("convo id", sharedConversationId);
 	    	recipient = sharedConversation.getConfidante();
 
 	    } else {
 	    	recipient = sharedConversation.getSharer();             
 	    	
 	    }
-	    
+	   
        /* Toast.makeText(mContext, "sharer:" + ContentUtils.addCountryCode(sharedConversation.getSharer()), 
         		Toast.LENGTH_LONG).show();
         Toast.makeText(mContext, "username:" + ContentUtils.addCountryCode(mApp.getUserName()), 
@@ -157,7 +160,8 @@ public class SharedConversationActivity extends SherlockActivity implements
 			}
 		});
 		
-	    sharedConversationMessageListAdapter = new SharedConversationMessageListAdapter(mContext, sharedConversation.getMessages());
+	    sharedConversationMessageListAdapter = new SharedConversationMessageListAdapter(mContext, 
+	    		sharedConversation.getMessages());
 	    sharedConversationListView.setAdapter(sharedConversationMessageListAdapter);
 	    
 	    sharedConversationCommentListAdapter = new SharedConversationCommentListAdapter(mContext, sharedConversation.getComments(), 
@@ -185,16 +189,22 @@ public class SharedConversationActivity extends SherlockActivity implements
 					updateTime();
 				} else if(action.equals(Constants.ACTION_SHARE_COMPLETE)) {
 					int resultCode = intent.getIntExtra(Constants.EXTRA_SHARE_RESULT_CODE, 0);
+					int commentNum = intent.getIntExtra(Constants.EXTRA_COMMENT_NUMBER, -1);
 					switch(resultCode) {
 					case(0):	
 			            break;
-					case(ParseException.CONNECTION_FAILED):
+					/*case(ParseException.CONNECTION_FAILED):
 						Toast.makeText(mContext, "Share failed: not connected", 
 								Toast.LENGTH_LONG).show();	
 						break;
+					case(ParseException.INCORRECT_TYPE):
+						Toast.makeText(mContext, "Share failed: incorrect type", 
+								Toast.LENGTH_LONG).show();	
+						break;*/						
 					default:
-						Toast.makeText(mContext, "Share failed with error code " + resultCode, 
-								Toast.LENGTH_LONG).show();
+						/*Toast.makeText(mContext, "Share failed with error code " + resultCode, 
+								Toast.LENGTH_LONG).show();*/
+						
 						break;
 					}
 					return;
@@ -237,9 +247,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 			db.addComment(sharedConversationId, c);
 			commentList.add(c);
 			sharedConversation.setComments(commentList);
-			sharedConversationCommentListAdapter.setItemList(commentList);
-			sharedConversationCommentEditText.setText("");
-			if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);
+			updateViews();
        }
     };
 
@@ -261,9 +269,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 			sharedConversationCommentListView.setVisibility(View.VISIBLE);			
 		}
 		sharedConversation.setComments(commentList);
-		sharedConversationCommentListAdapter.setItemList(commentList);
-		sharedConversationCommentListView.invalidateViews();
-		sharedConversationCommentListView.refreshDrawableState();		
+		updateViews();
 				
 		sharedConversationMessageListAdapter.setItemList(sharedConversation.getMessages());
 		this.setTitle("Comments re: " + mOriginalRecipientName);
@@ -351,29 +357,39 @@ public class SharedConversationActivity extends SherlockActivity implements
 		// This will save both message and conversation to Parse
 		sharedConversation.addComment(mCurrentComment);
 		commentList = sharedConversation.getComments();
+		final int commentNum = commentList.size()-1;
+		mCurrentComment.put("parent",sharedConversation);
+		updateViews();
 		mCurrentComment.saveInBackground(new SaveCallback(){
         	public void done(ParseException e) {
         		if (e == null) {
+        			//everything is good
         			Log.i("comment saved","comment saved");
 					DatabaseHandler db = new DatabaseHandler(mContext);
 					db.addComment(sharedConversationId, mCurrentComment);
-					sharedConversationCommentListAdapter.setItemList(commentList);
-					sharedConversationCommentListView.invalidateViews();
-					sharedConversationCommentListView.refreshDrawableState();					
-					sharedConversationCommentEditText.setText("");
-					hideKeyboard();
-					sharedConversationCommentEditText.clearFocus();
-					if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);        			
 					String comment_id = mCurrentComment.getObjectId();
 					sendNotifications(comment_id);
         		} else {
 					Intent broadcastIntent = new Intent();
 					broadcastIntent.setAction(Constants.ACTION_SHARE_COMPLETE);
 					broadcastIntent.putExtra(Constants.EXTRA_SHARE_RESULT_CODE, e.getCode());
+					broadcastIntent.putExtra(Constants.EXTRA_COMMENT_NUMBER, commentNum);
 					mContext.sendBroadcast(broadcastIntent);	
 			    }
 			 }
 		 });
+		
+	}
+
+
+	protected void updateViews() {
+		sharedConversationCommentListAdapter.setItemList(commentList);
+		sharedConversationCommentListView.invalidateViews();
+		sharedConversationCommentListView.refreshDrawableState();					
+		sharedConversationCommentEditText.setText("");
+		hideKeyboard();
+		sharedConversationCommentEditText.clearFocus();
+		if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);     
 		
 	}
 
@@ -460,11 +476,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 		c.setProposal(true);
 		commentList.add(c);		
 		sharedConversation.setComments(commentList);
-		sharedConversationCommentListAdapter.setItemList(commentList);
-		sharedConversationCommentListView.invalidateViews();
-		sharedConversationCommentListView.refreshDrawableState();		
-		if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);
-		
+		updateViews();	
 	}
 
 	@Override

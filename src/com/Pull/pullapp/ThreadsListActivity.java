@@ -1,6 +1,10 @@
 package com.Pull.pullapp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.Context;
@@ -14,6 +18,7 @@ import android.provider.Telephony.TextBasedSmsColumns;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuItem;
@@ -30,9 +35,20 @@ import com.Pull.pullapp.model.ThreadItem;
 import com.Pull.pullapp.util.AlarmScheduler;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
+import com.facebook.FacebookRequestError;
+import com.facebook.Request;
+import com.facebook.Response;
+import com.facebook.Session;
+import com.facebook.model.GraphUser;
+import com.parse.FindCallback;
 import com.parse.ParseAnalytics;
+import com.parse.ParseException;
+import com.parse.ParseFacebookUtils;
 import com.parse.ParseInstallation;
-import com.parse.PushService;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
+import com.parse.SaveCallback;
+import com.parse.SignUpCallback;
 
 public class ThreadsListActivity extends Activity {
 	
@@ -48,6 +64,10 @@ public class ThreadsListActivity extends Activity {
 	private TelephonyManager tMgr;
 	private int errorCode;
 	private MainApplication mApp;	
+	private GraphUser mGraphUser;
+	private String mFacebookID;	
+	private ParseUser currentUser;
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
@@ -58,12 +78,13 @@ public class ThreadsListActivity extends Activity {
 	    
 	    mApp = (MainApplication) this.getApplication();
 	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();
-		if(mPhoneNumber != null) {
-		       ParseInstallation installation = ParseInstallation.getCurrentInstallation();
-		       installation.addAllUnique("channels", Arrays.asList(ContentUtils.setChannel(mPhoneNumber)));
-		       installation.saveInBackground();			
-		}
 		
+		// Fetch Facebook user info if the session is active
+		Session session = ParseFacebookUtils.getSession();
+		if (session != null && session.isOpened()) {
+			makeMeRequest(session);
+		}
+	
 	    if(Constants.LOG_SMS) new AlarmScheduler(mContext, false).start();
 
 	    radioGroup  = (RadioGroup) findViewById(R.id.switch_buttons);   
@@ -137,13 +158,29 @@ public class ThreadsListActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		radioGroup.check(R.id.my_conversation_tab);
-		new GetThreads().execute();  
-		listview.invalidateViews();
-		listview.refreshDrawableState();			
+		currentUser = ParseUser.getCurrentUser();
+		if (currentUser != null) {
+			radioGroup.check(R.id.my_conversation_tab);
+			new GetThreads().execute();  
+			listview.invalidateViews();
+			listview.refreshDrawableState();
+		} else {
+			// If the user is not logged in, go to the
+			// activity showing the login view.
+			startLoginActivity();
+		}		
+			
 	}
 
-	  private class GetThreads extends AsyncTask<Void,ThreadItem,Void> {
+	  private void startLoginActivity() {
+		Intent intent = new Intent(this, ViewPagerSignIn.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		startActivity(intent);
+		
+	}
+
+	private class GetThreads extends AsyncTask<Void,ThreadItem,Void> {
 		  	Cursor threads;
 		  	@Override
 			protected Void doInBackground(Void... params) {
@@ -202,6 +239,151 @@ public class ThreadsListActivity extends Activity {
 
 	  }
 	  
+	private void makeMeRequest(Session session) {
+		Request request = Request.newMeRequest(session,
+				new Request.GraphUserCallback() {
+					@Override
+					public void onCompleted(GraphUser user, Response response) {
+						if (user != null) {
+							mGraphUser = user;
+							mFacebookID = user.getId();
+							linkAccount();
+							augmentProfile(mGraphUser);
+							saveUserInfo(mPhoneNumber,mFacebookID);
+						} else if (response.getError() != null) {
+							if ((response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_RETRY)
+									|| (response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_REOPEN_SESSION)) {
+								Log.d("tag",
+										"The facebook session was invalidated.");
+								onLogoutButtonClicked();
+							} else {
+								Log.d("tag",
+										"Some other error: "
+												+ response.getError()
+														.getErrorMessage());
+							}
+						}
+					}
+				});
+		request.executeAsync();
 
+	}
+	protected void onLogoutButtonClicked() {
+		ParseUser.logOut();
+		startLoginActivity();
 		
+	}
+
+	private void saveUserInfo(final String username, final String password) {
+    	ParseQuery<ParseUser> query = ParseUser.getQuery();
+    	query.whereEqualTo("username", ContentUtils.addCountryCode(mPhoneNumber));
+    	query.findInBackground(new FindCallback<ParseUser>() {
+    	  public void done(List<ParseUser> objects, ParseException e) {
+    	    if (objects.size()>0) {
+    	    	currentUser = objects.get(0);
+    	    	finishSavingUser();
+    	    } else {
+    	    	signUp(username, password);
+    	    }
+    	  }
+    	});		
+		
+	}	
+	
+	protected void finishSavingUser() {
+		saveInstallation();
+		mApp.setSignedIn(true, mPhoneNumber, mFacebookID);
+	}
+
+	protected void signUp(String username, String password) {
+		currentUser.setUsername(username);
+		currentUser.setPassword(password);
+		currentUser.signUpInBackground(new SignUpCallback() {
+        	  public void done(ParseException e) {
+        	    if (e == null) {
+        	    	Log.i("saved","data saved to server");    	       
+        	    } else {
+        	    	Log.i("not saved","not saved " + e.getCode());
+        	    }
+        	    checkUser();
+        	  }
+        	});	
+		
+	}
+
+	protected void checkUser() {
+    	ParseQuery<ParseUser> query = ParseUser.getQuery();
+    	query.whereEqualTo("username", ContentUtils.addCountryCode(mPhoneNumber));
+    	query.findInBackground(new FindCallback<ParseUser>() {
+    	  public void done(List<ParseUser> objects, ParseException e) {
+    	    if (e == null && objects.size()>0) {
+    	    	currentUser = objects.get(0);
+    	    	finishSavingUser();
+    	    } else {
+    	    	onLogoutButtonClicked();
+    	    }
+    	  }
+    	});
+		
+  
+		
+	}
+
+	private void augmentProfile(GraphUser user){
+		currentUser.put("facebookID", user.getId());
+		currentUser.put("name", user.getName());
+		if(user.getLocation() != null) {
+			if (user.getLocation().getProperty("name") != null) {
+				currentUser.put("location", (String) user
+						.getLocation().getProperty("name"));
+			}
+		}
+		if (user.getProperty("gender") != null) {
+			currentUser.put("gender",
+					(String) user.getProperty("gender"));
+		}
+		if (user.getBirthday() != null) {
+			currentUser.put("birthday",
+					user.getBirthday());
+		}
+		if (user.getProperty("relationship_status") != null) {
+			currentUser
+					.put("relationship_status",
+							(String) user
+									.getProperty("relationship_status"));
+		}
+	}
+	/**
+	 * Links a parse user to a facebook account if the user is not already linked
+	 * @param user
+	 */
+	private void linkAccount() {
+		if (!ParseFacebookUtils.isLinked(currentUser)) {
+			  ParseFacebookUtils.link(currentUser, this, new SaveCallback() {
+			    @Override
+			    public void done(ParseException ex) {
+			    	if(ex != null) {
+			    		Log.i("tried to link account but error code " , " " +ex.getCode());
+			    	}
+			    	else {
+				       if (ParseFacebookUtils.isLinked(currentUser)) {
+				    	   Log.d("MyApp", "Woohoo, user logged in with Facebook!");
+				       } else {
+				    	   Log.i("signin.linkaccount","did not link with facebook");
+				       }
+			    	}
+			    
+			    }
+			  });
+		} else {
+			Log.i("signin.linkaccount","user already linked in facebook");
+		}
+		
+	}	
+	private void saveInstallation(){
+       ParseInstallation installation = ParseInstallation.getCurrentInstallation();
+       installation.put("user", currentUser);
+       installation.addAllUnique("channels", Arrays.asList(ContentUtils.setChannel(mPhoneNumber)));
+       installation.saveInBackground();				
+	}
 } 
