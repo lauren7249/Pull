@@ -121,10 +121,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
     public void addSharedMessage(String convo_id, SMSMessage msg) {
         ContentValues values = new ContentValues();
+        int type;
+        if(msg.isSentByMe()) type = TextBasedSmsColumns.MESSAGE_TYPE_SENT;
+        else type = TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
         values.put(KEY_ID, convo_id);
         values.put(TextBasedSmsColumns.DATE, msg.getDate());
         values.put(TextBasedSmsColumns.BODY, msg.getMessage());
-        values.put(TextBasedSmsColumns.TYPE, msg.sentByMe);
+        values.put(TextBasedSmsColumns.TYPE, type);
         values.put(KEY_HASHTAG_ID, msg.getHashtagID());
         db.insert(TABLE_SHARED_CONVERSATION_SMS, null, values);
     }
@@ -205,7 +208,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             	SMSMessage m = new SMSMessage();
             	m.setDate(cursor.getLong(1));
             	m.setMessage(cursor.getString(2));
-            	m.sentByMe = cursor.getInt(3)>0;
+            	m.setSentByMe(cursor.getInt(3)==TextBasedSmsColumns.MESSAGE_TYPE_SENT);
             	m.setHashtagID(cursor.getInt(4));
             	messages.add(m);
             } while (cursor.moveToPrevious());

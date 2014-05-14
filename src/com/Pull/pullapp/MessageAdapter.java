@@ -101,7 +101,7 @@ public class MessageAdapter extends BaseAdapter{
 		LayoutParams lp = (LayoutParams) holder.messageBox.getLayoutParams();
 
 		//Check whether message is mine to show green background and align to right
-		if(message.sentByMe)
+		if(message.isSentByMe())
 		{
 			holder.messageBox.setBackgroundResource(R.drawable.outgoing);
 			lp.gravity = Gravity.RIGHT;

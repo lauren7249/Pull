@@ -11,7 +11,8 @@ public class SMSMessage extends ParseObject {
 	private int smsId;
 	private long smsDate;
 	private String smsSender, smsMessage, smsRecipient;
-    public boolean sentByMe, box, isDelayed;
+    private boolean sentByMe;
+    public boolean box, isDelayed;
     private boolean isHashtag = false;
 	public long futureSendTime;
 	public long launchedOn;
@@ -152,5 +153,12 @@ public class SMSMessage extends ParseObject {
 	public boolean isHashtag() {
 		//return isHashtag;
 		return getBoolean("isHashtag");
+	}
+	public boolean isSentByMe() {
+		return getBoolean("sentByMe");
+	}
+	public void setSentByMe(boolean s) {
+		this.sentByMe = s;
+		put("sentByMe",sentByMe);
 	}
 }

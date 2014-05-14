@@ -125,7 +125,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
     			  Log.i("got it","found comment!");
     			  comment = comment_list.get(0);
     			  Log.i("from convo",convoID);
-    			  saveNewComment(mContext, commentID);
+    			  saveNewComment(mContext, convoID);
     			  notifyNewComment(convoID);
     		  }
     	  }

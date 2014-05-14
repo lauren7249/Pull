@@ -165,7 +165,7 @@ public class ShareTagAction extends Thread {
 				e.printStackTrace();
 			}
         	if(!m.isHashtag()){
-	        	if(m.sentByMe) text =  "Me: " + m.getMessage();
+	        	if(m.isSentByMe()) text =  "Me: " + m.getMessage();
 	        	else text = person_shared + ": " + m.getMessage();
 	        	setSendAlarm(am, text, (int) (System.currentTimeMillis()+(i*2000)), System.currentTimeMillis()+(i*2000));
         	}

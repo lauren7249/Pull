@@ -87,10 +87,10 @@ public class SmsLogger extends Thread {
                 type = cursor.getString(cursor.getColumnIndex("type"));
                 if (type.equals("2")) {
                     smsLog = new SMSMessage(Integer.parseInt(id), date, simNumber, address, body);
-                    smsLog.sentByMe = true;                	
+                    smsLog.setSentByMe(true);                	
                 } else {
                     smsLog = new SMSMessage(Integer.parseInt(id), date, address, simNumber, body);
-                    smsLog.sentByMe = false;                  	
+                    smsLog.setSentByMe(false);                  	
                 }
  
                 if (smsLogs.contains(smsLog)) {

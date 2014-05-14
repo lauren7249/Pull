@@ -87,7 +87,7 @@ public class SharedConversationMessageListAdapter extends BaseAdapter {
 		
 		LayoutParams lp = (LayoutParams) holder.messageBox.getLayoutParams();
 		
-		if(message.sentByMe)
+		if(message.isSentByMe())
 		{
 			holder.messageBox.setBackgroundResource(R.drawable.outgoing);
 			lp.gravity = Gravity.RIGHT;
