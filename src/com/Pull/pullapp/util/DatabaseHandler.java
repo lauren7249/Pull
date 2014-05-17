@@ -278,6 +278,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             	shared.setConfidante(cursor.getString(2));
             	shared.setOriginalRecipient(cursor.getString(3));
             	shared.setOriginalRecipientName(cursor.getString(4));
+            	shared.setType(Integer.parseInt(cursor.getString(5)));
+            	shared.setSharer(cursor.getString(6));
             	shared.setMessages(getMessages(convo_id));
                 shared.setComments(getComments(convo_id));
                 sharedList.add(shared);

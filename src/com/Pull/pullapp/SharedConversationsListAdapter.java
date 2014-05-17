@@ -3,6 +3,7 @@ package com.Pull.pullapp;
 import java.util.List;
 
 import android.content.Context;
+import android.provider.Telephony.TextBasedSmsColumns;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,16 +22,16 @@ import com.parse.ParseUser;
 public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversation> {
     private List<SharedConversation> objects;
     private Context context;
-    
+    private int type;
     public SharedConversationsListAdapter(Context context, int textViewResourceId,
-        List<SharedConversation> objects) {
+        List<SharedConversation> objects, int type) {
       super(context, textViewResourceId, objects);
       this.objects = (List<SharedConversation>) objects;
       this.context = context;
+      this.type = type;
     }
     @Override
     public View getView(int pos, View convertView, ViewGroup parent){
-    	String mConfidante, mFacebookID;
     	View v = convertView;
     	if (v == null) {
 	        LayoutInflater vi = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -44,8 +45,16 @@ public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversat
 	   name.setText("Conversation about " + th.getOriginalRecipientName());
 	   info.setText(th.getHashtags());
 	   
+	   String conversant;
+	   if(type == TextBasedSmsColumns.MESSAGE_TYPE_SENT) 
+		   conversant = ContentUtils.addCountryCode(th.getConfidante());
+	   else {
+		   conversant = ContentUtils.addCountryCode(th.getSharer());
+		   //Log.i("conversant",conversant);
+	   }
+	   
 		ParseQuery<ParseUser> userQuery = ParseUser.getQuery();
-		userQuery.whereEqualTo("username", ContentUtils.addCountryCode(th.getConfidante()));
+		userQuery.whereEqualTo("username", conversant);
 		userQuery.findInBackground(new FindCallback<ParseUser>() {
 		public void done(List<ParseUser> results, ParseException e) {
 			if(e == null && results.size()>0) {

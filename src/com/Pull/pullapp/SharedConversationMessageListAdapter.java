@@ -2,21 +2,19 @@ package com.Pull.pullapp;
 
 import java.util.ArrayList;
 
-import com.Pull.pullapp.model.SMSMessage;
-
 import android.content.Context;
-import android.database.Cursor;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.LinearLayout.LayoutParams;
+import android.widget.TextView;
+
+import com.Pull.pullapp.model.SMSMessage;
 
 public class SharedConversationMessageListAdapter extends BaseAdapter {
 	private Context mContext;
@@ -53,21 +51,15 @@ public class SharedConversationMessageListAdapter extends BaseAdapter {
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		final SMSMessage message = mMessages.get(position);
-		
-	
-		
 		int hashtagId = message.getHashtagID();
 		
 		if(message.isHashtag()){
+			Log.i("hashtag id",""+hashtagId);
 			final SMSViewHolder holder; 
-			if(convertView == null)
-			{
-				holder = new SMSViewHolder();
-				convertView = LayoutInflater.from(mContext).inflate(R.layout.hashtag_row, parent, false);
-				holder.message = (TextView) convertView.findViewById(R.id.hashtag_text_view);
-				convertView.setTag(holder);
-			}
-			else holder = (SMSViewHolder) convertView.getTag();
+			holder = new SMSViewHolder();
+			convertView = LayoutInflater.from(mContext).inflate(R.layout.hashtag_row, parent, false);
+			holder.message = (TextView) convertView.findViewById(R.id.hashtag_text_view);
+			convertView.setTag(holder);
 			holder.message.setText(message.getMessage());
 			return convertView;
 		}

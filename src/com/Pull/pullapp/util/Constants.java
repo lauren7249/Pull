@@ -96,7 +96,9 @@ public class Constants {
 			"#Amusement","#Delight","#Elation","#Excitement","#Happiness","#Joy","#Pleasure",
 			"#Affection","#Empathy","#Friendliness","#Love","#Courage","#Hope","#Pride",
 			"#Satisfaction","#Trust","#Calm","#Content","#Relaxed","#Relieved","#Serene",
-			"#Interest","#Politeness","#Surprised","#WTF","#B****Please"};
+			"#Interest","#Politeness","#Surprised","#WTF","#B****Please","#OMG","i have a date",
+			"#flake","#player","#socute","#icanteven","#entitled","look who stopped responding",
+			"make this person go away","#dyinginside"};
 	public static List<String> ALL_HASHTAGS_LIST = Arrays.asList(ALL_HASHTAGS);
 	public static final String GOOGLE_PLAY_LINK = "https://play.google.com/store/apps/details?id=com.Pull.pullapp";
 	public static final String APP_PLUG_END = "Download the app at Google play: " + GOOGLE_PLAY_LINK;

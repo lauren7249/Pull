@@ -13,7 +13,7 @@ public class SMSMessage extends ParseObject {
 	private String smsSender, smsMessage, smsRecipient;
     private boolean sentByMe;
     public boolean box, isDelayed;
-    private boolean isHashtag = false;
+    private boolean isHashtag;
 	public long futureSendTime;
 	public long launchedOn;
 	private int hashtagID = -1;
