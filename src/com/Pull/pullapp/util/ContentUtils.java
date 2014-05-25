@@ -18,6 +18,7 @@ import android.util.Log;
 public class ContentUtils {
 
 	public static String getContactDisplayNameByNumber(Context context, String number) {
+		if(number == null) return null;
 		Uri uri = Uri.withAppendedPath(
 				ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
 				Uri.encode(number));
@@ -49,6 +50,7 @@ public class ContentUtils {
 		  if (c!=null) while (c.moveToNext()) {
 			  address = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.ADDRESS)).toString();	  
 		  }
+		  c.close();
 		  return address;
 	  }
 	  public static Cursor getThreadsCursor(Context context) {

@@ -116,6 +116,7 @@ public class ThreadsListActivity extends Activity {
        
 	    thread_list = new ArrayList<ThreadItem>();
 	    listview = (ListView) findViewById(R.id.listview);
+	    listview.setOnItemClickListener(lvLis);
 	    adapter = new ThreadItemsListAdapter(getApplicationContext(),
 	    		R.layout.message_list_item, thread_list);	  
 	    listview.setAdapter(adapter);
@@ -212,29 +213,15 @@ public class ThreadsListActivity extends Activity {
 			}
 			@Override
 		    protected void onProgressUpdate(ThreadItem... t) {
-				adapter.addItem(t[0]);
+				adapter.addItem(t[0]);	
 				adapter.notifyDataSetChanged();
 		    }				
 			
 			@Override
 		    protected void onPostExecute(Void result) {
 				super.onPostExecute(result);
+				adapter.notifyDataSetChanged();
 				threads.close();
-			    listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-			    	
-				      public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
-				    	  final ThreadItem item = (ThreadItem) parent.getItemAtPosition(position);
-		    
-				          Intent intent = new Intent(mContext, MessageActivityCheckbox.class);
-				          intent.putExtra(Constants.EXTRA_THREAD_ID,item.ID);
-				          intent.putExtra(Constants.EXTRA_NAME,item.displayName);
-				          intent.putExtra(Constants.EXTRA_READ,item.read);
-				          intent.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(item.number));
-				          //Log.i("phone number",PhoneNumberUtils.stripSeparators(item.number));
-				          startActivity(intent);	    	  
-				     }
-				
-				   });	
 		    }			
 
 	  }
@@ -386,4 +373,21 @@ public class ThreadsListActivity extends Activity {
        installation.addAllUnique("channels", Arrays.asList(ContentUtils.setChannel(mPhoneNumber)));
        installation.saveInBackground();				
 	}
+	
+    private AdapterView.OnItemClickListener lvLis=new AdapterView.OnItemClickListener(){  
+        @Override  
+	      public void onItemClick(AdapterView<?> parent, final View view, int position, long id) { 
+	    	  final ThreadItem item = (ThreadItem) parent.getItemAtPosition(position);
+			    
+	          Intent intent = new Intent(mContext, MessageActivityCheckbox.class);
+	          intent.putExtra(Constants.EXTRA_THREAD_ID,item.ID);
+	          intent.putExtra(Constants.EXTRA_NAME,item.displayName);
+	          intent.putExtra(Constants.EXTRA_READ,item.read);
+	          intent.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(item.number));
+	          //Log.i("phone number",PhoneNumberUtils.stripSeparators(item.number));
+	          startActivity(intent);
+   
+        }  
+   
+    };	
 } 

@@ -48,7 +48,7 @@ public class MessageAdapter extends BaseAdapter{
 
 	@SuppressLint("ResourceAsColor")
 	public View getView(final int position, View convertView, ViewGroup parent) {
-		final SMSMessage message = this.getItem(position);
+		final SMSMessage message = this.getItem(getCount() - position - 1);
 
 		final ViewHolder holder; 
 		if(convertView == null)

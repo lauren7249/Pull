@@ -18,15 +18,18 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Telephony.TextBasedSmsColumns;
-import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -102,6 +105,14 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		
 		mListView = getListView();
 		mLayout = (RelativeLayout) findViewById(R.id.main_layout);
+	   
+		// Dirty Hack to detect keyboard
+		mLayout.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
+			@Override
+			public void onGlobalLayout() {
+			}
+		});
+		
 		
 		isChecked = false;
 		delayPressed = false;
@@ -122,6 +133,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		
 		isIdealLength = false;
 		text = (EditText) this.findViewById(R.id.text);
+		
 	    text.addTextChangedListener(new TextWatcher(){
 	        public void beforeTextChanged(CharSequence s, int start, int count, int after){}
 			@Override
@@ -175,6 +187,9 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 				
 			}
 	    }); 	
+	    hideKeyboard();
+	    text.clearFocus();
+	    
 		messages = new ArrayList<SMSMessage>();
 		adapter = new MessageAdapter(this, messages);
 		send = (Button) this.findViewById(R.id.send_button);
@@ -203,7 +218,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 				String action = intent.getAction();
 				
 				if(action.equals(Constants.ACTION_SHARE_COMPLETE)) {
-					Log.i("received broadcast","got broadcoast");
+					//Log.i("received broadcast","got broadcoast");
 					int resultCode = intent.getIntExtra(Constants.EXTRA_SHARE_RESULT_CODE, 0);
 					switch(resultCode) {
 					case(0):
@@ -239,12 +254,12 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 								
 							if(delayedMessages.containsKey(scheduledOn) && scheduledOn>0) {
 								int id = delayedMessages.get(scheduledOn);
-								removeMessage(id);
+								removeMessage(messages.size() - id - 1);
 								delayedMessages.remove(scheduledOn);
 							}
 							SMSMessage message = new SMSMessage(intent_message, true);
 							message.setDate(System.currentTimeMillis());
-							addNewMessage(message);
+							addNewMessage(message, false);
 							break;
 						}
 						default: {
@@ -261,12 +276,12 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 					m.futureSendTime = scheduledFor;
 					m.launchedOn = scheduledOn;
 					m.setRecipient(intent_number);
-					addNewMessage(m);
+					addNewMessage(m, false);
 
 				} else if(action.equals(Constants.ACTION_SMS_UNOUTBOXED)) {
 					
 					int id = delayedMessages.get(scheduledOn);
-					removeMessage(id);
+					removeMessage(messages.size() - id - 1);
 					delayedMessages.remove(id);
 					text.setText(intent_message);
 					
@@ -303,10 +318,10 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	    customDateTimePicker.set24HourFormat(false);		
 	    customDateTimePicker.setDate(Calendar.getInstance());
         if(Constants.DEBUG==true) {
-    		addNewMessage(new SMSMessage("hi",true));
-    		addNewMessage(new SMSMessage("whats up",false));
-    		addNewMessage(new SMSMessage("asl?",true));
-    		addNewMessage(new SMSMessage("14/f/nm",false));        	
+    		addNewMessage(new SMSMessage("hi",true),false);
+    		addNewMessage(new SMSMessage("whats up",false),false);
+    		addNewMessage(new SMSMessage("asl?",true),false);
+    		addNewMessage(new SMSMessage("14/f/nm",false),false);        	
         }		
         
 		tickReceiver = new BroadcastReceiver() {
@@ -315,8 +330,8 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 				updateTime();
 			}
 		};
-
-        
+		hideKeyboard();
+		text.clearFocus();		
 	}
 	
 
@@ -339,8 +354,8 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 			
 			if(number!=null && name!=null) {
 				populateMessages();
+				
 				if(Constants.DEBUG==false) this.setTitle(name);
-				if(messages.size()>0) mListView.setSelection(messages.size()-1);
 			} else {
 				
 				getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
@@ -358,49 +373,80 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		calendar.get(Calendar.HOUR_OF_DAY);
 		calendar.get(Calendar.MINUTE);	
 		registerReceiver(tickReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
-					
+		hideKeyboard();
+		text.clearFocus();
 	}	
 	
 	
 	private void populateMessages(){
-		String querystring;
-		if(thread_id == null) {
-			querystring = 
-			"REPLACE(REPLACE(REPLACE(REPLACE(" + TextBasedSmsColumns.ADDRESS + ",'(',''),')',''),' ',''),'-','') " 
-					+ " in ('"+ 
-	   				ContentUtils.subtractCountryCode(number) + "', '" +
-	   				ContentUtils.addCountryCode(number) + "', '+" +
-	   				ContentUtils.addCountryCode(number) + "', '" +
-	   				number + "')" + " and " +
-			TextBasedSmsColumns.TYPE + "!=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX;					
-		}
-		else querystring = TextBasedSmsColumns.THREAD_ID + "=" + thread_id + " and " +
-		TextBasedSmsColumns.TYPE + "!=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX;
-		Cursor c = mContext.getContentResolver().query(Uri.parse("content://sms"),
-				null,querystring ,null,TextBasedSmsColumns.DATE);
-        if(c.moveToFirst()) {
-        	readMessage(c);
-        	while(c.moveToNext()) {
-        		readMessage(c);
-        	}
-        	c.close();		     
-        }
-               
-        DatabaseHandler dh = new DatabaseHandler(mContext);
-        c = dh.getPendingMessagesCursor(number);
-        
-        if(c.moveToFirst()) {
-        	readOutboxMessage(c);
-        	while(c.moveToNext()) {
-        		readOutboxMessage(c);
-        	}
-        	c.close();		     
-        }	        
-        isPopulated=true;
+		new GetMessages().execute(); 
+		isPopulated = true;
 	}
 	
+	private class GetMessages extends AsyncTask<Void,SMSMessage,Void> {
+		DatabaseHandler dh;
+	  	Cursor messages_cursor;
+	  	SMSMessage m;
+	  	@Override
+		protected Void doInBackground(Void... params) {
+			String querystring;
+			if(thread_id == null) {
+				querystring = 
+				"REPLACE(REPLACE(REPLACE(REPLACE(" + TextBasedSmsColumns.ADDRESS + 
+						",'(',''),')',''),' ',''),'-','') " 
+						+ " in ('"+ 
+		   				ContentUtils.subtractCountryCode(number) + "', '" +
+		   				ContentUtils.addCountryCode(number) + "', '+" +
+		   				ContentUtils.addCountryCode(number) + "', '" +
+		   				number + "')" + " and " +
+				TextBasedSmsColumns.TYPE + "!=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX;					
+			}
+			else querystring = TextBasedSmsColumns.THREAD_ID + "=" + thread_id + " and " +
+					TextBasedSmsColumns.TYPE + "!=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX;
+			
+	        dh = new DatabaseHandler(mContext);
+	        messages_cursor = dh.getPendingMessagesCursor(number);
+	        
+	        if(messages_cursor.moveToFirst()) {
+	        	m = getNextOutboxMessage(messages_cursor);
+	        	publishProgress(m);	
+	        	while(messages_cursor.moveToNext()) {
+	        		m = getNextOutboxMessage(messages_cursor);
+	        		publishProgress(m);	
+	        	}	     
+	        }	  
+	        
+			messages_cursor = mContext.getContentResolver().query(Uri.parse("content://sms"),
+					null,querystring ,null,TextBasedSmsColumns.DATE + " desc");
+			
+	        if(messages_cursor.moveToFirst()) {
+	        	m = getNextMessage(messages_cursor);
+	        	publishProgress(m);		
+	        	while(messages_cursor.moveToNext()) {
+	        		m = getNextMessage(messages_cursor);
+	        		publishProgress(m);		
+	        	}	     
+	        }
+	          	        
+			return null;
+		}
+		@Override
+	    protected void onProgressUpdate(SMSMessage... t) {
+			addNewMessage(t[0],true);
+	    }				
+		
+		@Override
+	    protected void onPostExecute(Void result) {
+			super.onPostExecute(result);
+			adapter.notifyDataSetChanged();
+			messages_cursor.close();
+			dh.close();
+	    }			
+
+  }	
+	
 	private void updateTime(){
-		Log.i("time", "Updated Time");
+		//Log.i("time", "Updated Time");
 		updateDelayButton();
 		adapter.notifyDataSetChanged();
 	}
@@ -452,8 +498,6 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 			mListView.invalidateViews();
 			mListView.refreshDrawableState();
 			setListAdapter(adapter);
-			mListView.setSelection(messages.size()-1);
-			//Toast.makeText(mContext, "hi", Toast.LENGTH_LONG).show();
 			return true;		
 		case R.id.menu_autoforward:
 			
@@ -463,7 +507,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		}
 	}	
 
-	private void readOutboxMessage(Cursor c) {
+	private SMSMessage getNextOutboxMessage(Cursor c) {
 		String body="";
 		body = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.BODY)).toString();
 		long scheduledFor = Long.parseLong(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.DATE)).toString());
@@ -474,26 +518,27 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		m.futureSendTime = scheduledFor;
 		m.launchedOn = scheduledOn;
 		m.setRecipient(number);
-		addNewMessage(m);	
+		return m;	
 	}	
-	private void readMessage(Cursor c) {
+	
+	private SMSMessage getNextMessage(Cursor c) {
 		String body="", SmsMessageId="", address="", read="";
 		long date;
 		int type = Integer.parseInt(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.TYPE)).toString());
-		if(type==TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return;
+		if(type==TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return null;
 		body = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.BODY)).toString();
     	SmsMessageId = c.getString(c.getColumnIndexOrThrow("_id")).toString();
     	address = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.ADDRESS)).toString();
     	read = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.READ)).toString();
     	date = c.getLong(c.getColumnIndexOrThrow(TextBasedSmsColumns.DATE));
-    	addNewMessage(new SMSMessage(date, body, address, type));
-    	Log.i("new message", address);
     	if(!SmsMessageId.equals("")) {
         	ContentValues values = new ContentValues();
     		values.put("read",true);
     		getContentResolver().update(Uri.parse("content://sms/"),values, "_id="+SmsMessageId, null);	
-    	}		
-	}
+    	}	
+    	return new SMSMessage(date, body, address, type);
+	}	
+
 	public void sendMessage(View v)
 	{
 
@@ -540,16 +585,18 @@ public class MessageActivityCheckbox extends SherlockListActivity {
             
             
 		}
-		mListView.setSelection(messages.size()-1);
+		hideKeyboard();
+		text.clearFocus();
 	}
 	
 	public void pickTime(View v) {
 		customDateTimePicker.showDialog();		
 	}
 	
-	private void addNewMessage(SMSMessage m)
+	private void addNewMessage(SMSMessage m, boolean onTop)
 	{
-		messages.add(m);
+		if(onTop) messages.add(m);
+		else  messages.add(0, m);
 		adapter.notifyDataSetChanged();
 		mListView.setSelection(messages.size()-1);
 	}
@@ -557,13 +604,11 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	public void removeEditOption(int id) {
 		adapter.getItem(id).isDelayed = false;
 		adapter.notifyDataSetChanged();	
-		mListView.setSelection(messages.size()-1);
 	}
 	
 	public void removeMessage(int id) {
 		messages.remove(id);
 		adapter.notifyDataSetChanged();	
-		mListView.setSelection(messages.size()-1);
 	}	
 
     public void getShareContent() {
@@ -626,7 +671,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		});
 		delayPressed = true;
 		checkBox.setText("Never ask me about text delay");
-		Log.i("askabouttimedelay","about to built alertdialog");
+		//Log.i("askabouttimedelay","about to built alertdialog");
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		    builder.setTitle("Set text delay?");
 		    builder.setMessage("I noticed you didn't set a time delay for that text. " + 
@@ -649,5 +694,10 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		           }).show();		
 
 	}
+	private void hideKeyboard(){
+		getWindow().setSoftInputMode(
+			      WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);	
+		
+	}	
 		
 }
