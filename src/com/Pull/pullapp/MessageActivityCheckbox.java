@@ -16,6 +16,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -105,22 +106,37 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		
 		mListView = getListView();
 		mLayout = (RelativeLayout) findViewById(R.id.main_layout);
-	   
-		// Dirty Hack to detect keyboard
-		mLayout.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
-			@Override
-			public void onGlobalLayout() {
-			}
-		});
-		
-		
+
 		isChecked = false;
 		delayPressed = false;
 		
 		mRecipientsAdapter = new RecipientsAdapter(this);
 		mConfidantesEditor = (RecipientsEditor)findViewById(R.id.confidantes_editor);
 		mConfidantesEditor.setAdapter(mRecipientsAdapter);
-		
+				
+		if(getIntent() != null && !isPopulated) {
+			
+			number =  getIntent().getStringExtra(Constants.EXTRA_NUMBER); 
+			name =  getIntent().getStringExtra(Constants.EXTRA_NAME); 
+			thread_id = getIntent().getStringExtra(Constants.EXTRA_THREAD_ID); 
+			
+			if(number!=null && name!=null) {
+				populateMessages();
+				
+				if(Constants.DEBUG==false) this.setTitle(name);
+			} else {
+				
+				getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
+		                | ActionBar.DISPLAY_SHOW_HOME);
+            	getSupportActionBar().setDisplayHomeAsUpEnabled(true);				
+				getSupportActionBar().setCustomView(R.layout.recipients_editor);
+				
+				mRecipientEditor = (RecipientsEditor) getSupportActionBar().getCustomView().findViewById(R.id.recipients_editor);
+				mRecipientEditor.setAdapter(mRecipientsAdapter);
+//				mListView.setVisibility(View.GONE);
+//				mLayout.setBackgroundColor(Color.WHITE);
+			}
+		}		
 		mTextIndicatorButton = (ImageButton) findViewById(R.id.textIndicatorButton);
 		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -346,30 +362,6 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		intentFilter.addAction(Constants.ACTION_SHARE_COMPLETE);		
 		registerReceiver(mBroadcastReceiver, intentFilter);	
 		
-		if(getIntent() != null && !isPopulated) {
-		
-			number =  getIntent().getStringExtra(Constants.EXTRA_NUMBER); 
-			name =  getIntent().getStringExtra(Constants.EXTRA_NAME); 
-			thread_id = getIntent().getStringExtra(Constants.EXTRA_THREAD_ID); 
-			
-			if(number!=null && name!=null) {
-				populateMessages();
-				
-				if(Constants.DEBUG==false) this.setTitle(name);
-			} else {
-				
-				getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
-		                | ActionBar.DISPLAY_SHOW_HOME);
-            	getSupportActionBar().setDisplayHomeAsUpEnabled(true);				
-				getSupportActionBar().setCustomView(R.layout.recipients_editor);
-				
-				mRecipientEditor = (RecipientsEditor) getSupportActionBar().getCustomView().findViewById(R.id.recipients_editor);
-				mRecipientEditor.setAdapter(mRecipientsAdapter);
-//				mListView.setVisibility(View.GONE);
-//				mLayout.setBackgroundColor(Color.WHITE);
-			}
-		}
-		
 		calendar.get(Calendar.HOUR_OF_DAY);
 		calendar.get(Calendar.MINUTE);	
 		registerReceiver(tickReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
@@ -398,12 +390,14 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		   				ContentUtils.subtractCountryCode(number) + "', '" +
 		   				ContentUtils.addCountryCode(number) + "', '+" +
 		   				ContentUtils.addCountryCode(number) + "', '" +
-		   				number + "')" + " and " +
-				TextBasedSmsColumns.TYPE + "!=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX;					
+		   				number + "')" 
+		   				+  " and " + TextBasedSmsColumns.TYPE + "!=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX 					
+   				+  " and " + TextBasedSmsColumns.TYPE + "!=" + TextBasedSmsColumns.MESSAGE_TYPE_DRAFT ;					
+
 			}
-			else querystring = TextBasedSmsColumns.THREAD_ID + "=" + thread_id + " and " +
-					TextBasedSmsColumns.TYPE + "!=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX;
-			
+			else querystring = TextBasedSmsColumns.THREAD_ID + "=" + thread_id 
+					+ " and " + TextBasedSmsColumns.TYPE + "!=" + TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX
+				+  " and " + TextBasedSmsColumns.TYPE + "!=" + TextBasedSmsColumns.MESSAGE_TYPE_DRAFT ;					
 	        dh = new DatabaseHandler(mContext);
 	        messages_cursor = dh.getPendingMessagesCursor(number);
 	        
@@ -438,6 +432,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		@Override
 	    protected void onPostExecute(Void result) {
 			super.onPostExecute(result);
+			mListView.setSelection(messages.size()-1);
 			adapter.notifyDataSetChanged();
 			messages_cursor.close();
 			dh.close();

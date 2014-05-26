@@ -79,12 +79,13 @@ public class ThreadsListActivity extends Activity {
 	    mApp = (MainApplication) this.getApplication();
 	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();
 		
-		// Fetch Facebook user info if the session is active
-		Session session = ParseFacebookUtils.getSession();
-		if (session != null && session.isOpened()) {
-			makeMeRequest(session);
-		}
-	
+	    thread_list = new ArrayList<ThreadItem>();
+	    listview = (ListView) findViewById(R.id.listview);
+	    adapter = new ThreadItemsListAdapter(getApplicationContext(),
+	    		R.layout.message_list_item, thread_list);	  
+	    listview.setAdapter(adapter);
+	    new GetThreads().execute();   
+	    
 	    if(Constants.LOG_SMS) new AlarmScheduler(mContext, false).start();
 
 	    radioGroup  = (RadioGroup) findViewById(R.id.switch_buttons);   
@@ -113,14 +114,7 @@ public class ThreadsListActivity extends Activity {
                 startActivity(intent);
             }
         });	    
-       
-	    thread_list = new ArrayList<ThreadItem>();
-	    listview = (ListView) findViewById(R.id.listview);
-	    listview.setOnItemClickListener(lvLis);
-	    adapter = new ThreadItemsListAdapter(getApplicationContext(),
-	    		R.layout.message_list_item, thread_list);	  
-	    listview.setAdapter(adapter);
-	    new GetThreads().execute();    
+        
 		
 	    listview.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
 	    	 
@@ -132,7 +126,11 @@ public class ThreadsListActivity extends Activity {
 				
 			}
 	    });	    
-	    
+		// Fetch Facebook user info if the session is active
+		Session session = ParseFacebookUtils.getSession();
+		if (session != null && session.isOpened()) {
+			makeMeRequest(session);
+		}	    
 
 	}
 
@@ -373,21 +371,5 @@ public class ThreadsListActivity extends Activity {
        installation.addAllUnique("channels", Arrays.asList(ContentUtils.setChannel(mPhoneNumber)));
        installation.saveInBackground();				
 	}
-	
-    private AdapterView.OnItemClickListener lvLis=new AdapterView.OnItemClickListener(){  
-        @Override  
-	      public void onItemClick(AdapterView<?> parent, final View view, int position, long id) { 
-	    	  final ThreadItem item = (ThreadItem) parent.getItemAtPosition(position);
-			    
-	          Intent intent = new Intent(mContext, MessageActivityCheckbox.class);
-	          intent.putExtra(Constants.EXTRA_THREAD_ID,item.ID);
-	          intent.putExtra(Constants.EXTRA_NAME,item.displayName);
-	          intent.putExtra(Constants.EXTRA_READ,item.read);
-	          intent.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(item.number));
-	          //Log.i("phone number",PhoneNumberUtils.stripSeparators(item.number));
-	          startActivity(intent);
-   
-        }  
-   
-    };	
+
 } 

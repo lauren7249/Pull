@@ -5,13 +5,17 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.Pull.pullapp.model.ThreadItem;
+import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.R;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
+import android.telephony.PhoneNumberUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
@@ -33,11 +37,26 @@ public class ThreadItemsListAdapter extends ArrayAdapter<ThreadItem> {
     	}
 	   TextView name = (TextView) v.findViewById(R.id.txt_title);
 	   TextView snippet = (TextView) v.findViewById(R.id.txt_message_info);
-	   ThreadItem th = objects.get(pos);
+	   final ThreadItem th = objects.get(pos);
 	   name.setText(th.displayName);
 	   snippet.setText(th.snippet);
 	   if(!th.read) v.setBackgroundResource(R.drawable.unread_row);
 	   else v.setBackgroundResource(R.drawable.read_row);
+	   
+	   v.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+		          Intent intent = new Intent(context, MessageActivityCheckbox.class);
+		          intent.putExtra(Constants.EXTRA_THREAD_ID,th.ID);
+		          intent.putExtra(Constants.EXTRA_NAME,th.displayName);
+		          intent.putExtra(Constants.EXTRA_READ,th.read);
+		          intent.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(th.number));
+		          intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		          //Log.i("phone number",PhoneNumberUtils.stripSeparators(item.number));
+		          context.startActivity(intent);
+			}
+		});	   
 	   return v;
     }
     @Override
