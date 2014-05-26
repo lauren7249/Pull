@@ -95,6 +95,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	private MainApplication mApp;
 	private String thread_id;
 	private TelephonyManager tmgr;
+	private GetMessages loader;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -109,6 +110,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 
 		isChecked = false;
 		delayPressed = false;
+		loader = new GetMessages();
 		
 		mRecipientsAdapter = new RecipientsAdapter(this);
 		mConfidantesEditor = (RecipientsEditor)findViewById(R.id.confidantes_editor);
@@ -347,7 +349,8 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 			}
 		};
 		hideKeyboard();
-		text.clearFocus();		
+		text.clearFocus();	
+		mListView.setSelection(messages.size()-1);
 	}
 	
 
@@ -371,7 +374,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	
 	
 	private void populateMessages(){
-		new GetMessages().execute(); 
+		loader.execute(); 
 		isPopulated = true;
 	}
 	
@@ -407,6 +410,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	        	while(messages_cursor.moveToNext()) {
 	        		m = getNextOutboxMessage(messages_cursor);
 	        		publishProgress(m);	
+	        		if (isCancelled()) break;
 	        	}	     
 	        }	  
 	        
@@ -419,9 +423,10 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	        	while(messages_cursor.moveToNext()) {
 	        		m = getNextMessage(messages_cursor);
 	        		publishProgress(m);		
+	        		if (isCancelled()) break;
 	        	}	     
 	        }
-	          	        
+	        
 			return null;
 		}
 		@Override
@@ -432,8 +437,6 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		@Override
 	    protected void onPostExecute(Void result) {
 			super.onPostExecute(result);
-			mListView.setSelection(messages.size()-1);
-			adapter.notifyDataSetChanged();
 			messages_cursor.close();
 			dh.close();
 	    }			
@@ -474,6 +477,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case android.R.id.home:
+			loader.cancel(true);
 	    	Intent mIntent = new Intent(mContext, ThreadsListActivity.class);
 	    	startActivity(mIntent);				
             //NavUtils.navigateUpFromSameTask(this);

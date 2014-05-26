@@ -3,20 +3,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony.TextBasedSmsColumns;
-import android.provider.Telephony.ThreadsColumns;
-import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -24,7 +17,6 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnCreateContextMenuListener;
-import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Button;
 import android.widget.ListView;
@@ -83,8 +75,7 @@ public class ThreadsListActivity extends Activity {
 	    listview = (ListView) findViewById(R.id.listview);
 	    adapter = new ThreadItemsListAdapter(getApplicationContext(),
 	    		R.layout.message_list_item, thread_list);	  
-	    listview.setAdapter(adapter);
-	    new GetThreads().execute();   
+	    listview.setAdapter(adapter);  
 	    
 	    if(Constants.LOG_SMS) new AlarmScheduler(mContext, false).start();
 
@@ -160,7 +151,6 @@ public class ThreadsListActivity extends Activity {
 		currentUser = ParseUser.getCurrentUser();
 		if (currentUser != null) {
 			radioGroup.check(R.id.my_conversation_tab);
-			new GetThreads().execute();  
 			listview.invalidateViews();
 			listview.refreshDrawableState();
 		} else {
@@ -179,51 +169,6 @@ public class ThreadsListActivity extends Activity {
 		
 	}
 
-	private class GetThreads extends AsyncTask<Void,ThreadItem,Void> {
-		  	Cursor threads;
-		  	@Override
-			protected Void doInBackground(Void... params) {
-				threads = ContentUtils.getThreadsCursor(mContext);
-				while (threads.moveToNext()) {
-			    	String threadID = threads.getString(threads
-			  		      .getColumnIndex(ThreadsColumns._ID));
-			    	String snippet = threads.getString(threads
-				  		      .getColumnIndex(ThreadsColumns.SNIPPET));			    	
-			    	if(threadID == null) continue;
-			    	if(threadID.length()==0) continue;
-			    	boolean read = (!threads.getString(threads
-				  		      .getColumnIndex(ThreadsColumns.READ)).equals("0"));	    	
-					String[] recipientIDs = threads.getString(threads
-				      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS)).split(" ");
-
-					if(recipientIDs.length == 1 && recipientIDs[0].length()>0) {
-						String recipientId = recipientIDs[0];
-						String number = ContentUtils.getAddressFromID(mContext, recipientId);
-						String name = ContentUtils
-								.getContactDisplayNameByNumber(mContext, number);
-						ThreadItem t = new ThreadItem(threadID, name, number, snippet, read);
-						publishProgress(t);						
-
-					}
-					
-			    }	
-				return null;
-			}
-			@Override
-		    protected void onProgressUpdate(ThreadItem... t) {
-				adapter.addItem(t[0]);	
-				adapter.notifyDataSetChanged();
-		    }				
-			
-			@Override
-		    protected void onPostExecute(Void result) {
-				super.onPostExecute(result);
-				adapter.notifyDataSetChanged();
-				threads.close();
-		    }			
-
-	  }
-	  
 	private void makeMeRequest(Session session) {
 		Request request = Request.newMeRequest(session,
 				new Request.GraphUserCallback() {

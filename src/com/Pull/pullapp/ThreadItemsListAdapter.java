@@ -1,32 +1,37 @@
 package com.Pull.pullapp;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-
-import com.Pull.pullapp.model.ThreadItem;
-import com.Pull.pullapp.util.Constants;
-import com.Pull.pullapp.R;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
+import android.database.Cursor;
+import android.os.AsyncTask;
+import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.Pull.pullapp.model.ThreadItem;
+import com.Pull.pullapp.util.Constants;
+import com.Pull.pullapp.util.ContentUtils;
 
 public class ThreadItemsListAdapter extends ArrayAdapter<ThreadItem> {
     private ArrayList<ThreadItem> objects;
     private Context context;
+    private GetThreads loader;
     public ThreadItemsListAdapter(Context context, int textViewResourceId,
         List<ThreadItem> objects) {
       super(context, textViewResourceId, objects);
       this.objects = (ArrayList<ThreadItem>) objects;
       this.context = context;
+      this.loader = new GetThreads();
+      loader.execute(); 
     }
     @Override
     public View getView(int pos, View convertView, ViewGroup parent){    
@@ -47,14 +52,16 @@ public class ThreadItemsListAdapter extends ArrayAdapter<ThreadItem> {
 			
 			@Override
 			public void onClick(View v) {
-		          Intent intent = new Intent(context, MessageActivityCheckbox.class);
-		          intent.putExtra(Constants.EXTRA_THREAD_ID,th.ID);
-		          intent.putExtra(Constants.EXTRA_NAME,th.displayName);
-		          intent.putExtra(Constants.EXTRA_READ,th.read);
-		          intent.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(th.number));
-		          intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				//Toast.makeText(context, "clicked", Toast.LENGTH_LONG).show();
+				loader.cancel(true);
+		        Intent intent = new Intent(context, MessageActivityCheckbox.class);
+		        intent.putExtra(Constants.EXTRA_THREAD_ID,th.ID);
+		        intent.putExtra(Constants.EXTRA_NAME,th.displayName);
+		        intent.putExtra(Constants.EXTRA_READ,th.read);
+		        intent.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(th.number));
+		        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		          //Log.i("phone number",PhoneNumberUtils.stripSeparators(item.number));
-		          context.startActivity(intent);
+		        context.startActivity(intent);
 			}
 		});	   
 	   return v;
@@ -76,4 +83,47 @@ public class ThreadItemsListAdapter extends ArrayAdapter<ThreadItem> {
     public void addItem(ThreadItem item) {
         this.objects.add(item);
     }
+	private class GetThreads extends AsyncTask<Void,ThreadItem,Void> {
+	  	Cursor threads;
+	  	@Override
+		protected Void doInBackground(Void... params) {
+			threads = ContentUtils.getThreadsCursor(context);
+			while (threads.moveToNext()) {
+		    	String threadID = threads.getString(threads
+		  		      .getColumnIndex(ThreadsColumns._ID));
+		    	String snippet = threads.getString(threads
+			  		      .getColumnIndex(ThreadsColumns.SNIPPET));			    	
+		    	if(threadID == null) continue;
+		    	if(threadID.length()==0) continue;
+		    	boolean read = (!threads.getString(threads
+			  		      .getColumnIndex(ThreadsColumns.READ)).equals("0"));	    	
+				String[] recipientIDs = threads.getString(threads
+			      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS)).split(" ");
+
+				if(recipientIDs.length == 1 && recipientIDs[0].length()>0) {
+					String recipientId = recipientIDs[0];
+					String number = ContentUtils.getAddressFromID(context, recipientId);
+					String name = ContentUtils
+							.getContactDisplayNameByNumber(context, number);
+					ThreadItem t = new ThreadItem(threadID, name, number, snippet, read);
+					publishProgress(t);						
+					if (isCancelled()) break;
+				}
+				
+		    }	
+			return null;
+		}
+		@Override
+	    protected void onProgressUpdate(ThreadItem... t) {
+			addItem(t[0]);	
+			notifyDataSetChanged();
+	    }				
+		
+		@Override
+	    protected void onPostExecute(Void result) {
+			super.onPostExecute(result);
+			threads.close();
+	    }			
+
+  }    
 }
