@@ -16,21 +16,18 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Telephony.TextBasedSmsColumns;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -46,6 +43,7 @@ import android.widget.ViewSwitcher;
 
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
+import com.Pull.pullapp.model.ThreadItem;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
@@ -636,7 +634,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
         	}
         }
     }     
-    
+
 	public void shareMessages(View v) throws InterruptedException
 	{
 		getShareContent();

@@ -34,7 +34,7 @@ public class ThreadItemsListAdapter extends ArrayAdapter<ThreadItem> {
       loader.execute(); 
     }
     @Override
-    public View getView(int pos, View convertView, ViewGroup parent){    
+    public synchronized View getView(int pos, View convertView, ViewGroup parent){    
     	View v = convertView;
     	if (v == null) {
 	        LayoutInflater vi = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -47,7 +47,7 @@ public class ThreadItemsListAdapter extends ArrayAdapter<ThreadItem> {
 	   snippet.setText(th.snippet);
 	   if(!th.read) v.setBackgroundResource(R.drawable.unread_row);
 	   else v.setBackgroundResource(R.drawable.read_row);
-	   
+	   /*
 	   v.setOnClickListener(new OnClickListener() {
 			
 			@Override
@@ -63,7 +63,7 @@ public class ThreadItemsListAdapter extends ArrayAdapter<ThreadItem> {
 		          //Log.i("phone number",PhoneNumberUtils.stripSeparators(item.number));
 		        context.startActivity(intent);
 			}
-		});	   
+		});	   */
 	   return v;
     }
     @Override

@@ -3,13 +3,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import android.app.Activity;
+import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony.TextBasedSmsColumns;
+import android.provider.Telephony.ThreadsColumns;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -42,11 +45,12 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.parse.SignUpCallback;
 
-public class ThreadsListActivity extends Activity {
+public class ThreadsListActivity extends ListActivity {
 	
-	private ThreadItemsListAdapter adapter;
+	//private ThreadItemsListAdapter adapter;
+	private ThreadItemsCursorAdapter adapter;
 	private ListView listview;
-	private ArrayList<ThreadItem> thread_list;
+	//private ArrayList<ThreadItem> thread_list;
 	private Context mContext;
 	private RadioGroup radioGroup;
     protected static final int CONTEXTMENU_DELETEITEM = 0;
@@ -59,7 +63,7 @@ public class ThreadsListActivity extends Activity {
 	private GraphUser mGraphUser;
 	private String mFacebookID;	
 	private ParseUser currentUser;
-	
+	private Cursor threads_cursor;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
@@ -71,11 +75,13 @@ public class ThreadsListActivity extends Activity {
 	    mApp = (MainApplication) this.getApplication();
 	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();
 		
-	    thread_list = new ArrayList<ThreadItem>();
-	    listview = (ListView) findViewById(R.id.listview);
-	    adapter = new ThreadItemsListAdapter(getApplicationContext(),
-	    		R.layout.message_list_item, thread_list);	  
-	    listview.setAdapter(adapter);  
+	    //thread_list = new ArrayList<ThreadItem>();
+	    listview = getListView();
+	    threads_cursor = ContentUtils.getThreadsCursor(mContext);
+	    //adapter = new ThreadItemsListAdapter(getApplicationContext(),R.layout.message_list_item, thread_list);	  
+	    adapter = new ThreadItemsCursorAdapter(
+	            mContext, threads_cursor);
+	    setListAdapter(adapter);  
 	    
 	    if(Constants.LOG_SMS) new AlarmScheduler(mContext, false).start();
 
@@ -116,7 +122,7 @@ public class ThreadsListActivity extends Activity {
 		        menu.add(0, CONTEXTMENU_CONTACTITEM, 0, "Add to Contacts");
 				
 			}
-	    });	    
+	    });	   
 		// Fetch Facebook user info if the session is active
 		Session session = ParseFacebookUtils.getSession();
 		if (session != null && session.isOpened()) {
@@ -283,6 +289,43 @@ public class ThreadsListActivity extends Activity {
 									.getProperty("relationship_status"));
 		}
 	}
+	@Override
+	protected void onPause(){
+		super.onPause();
+		threads_cursor.close();
+	}
+	
+	
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        // Note: don't read the thread id data from the ConversationListItem view passed in.
+        // It's unreliable to read the cached data stored in the view because the ListItem
+        // can be recycled, and the same view could be assigned to a different position
+        // if you click the list item fast enough. Instead, get the cursor at the position
+        // clicked and load the data from the cursor.
+        // (ConversationListAdapter extends CursorAdapter, so getItemAtPosition() should
+        // return the cursor object, which is moved to the position passed in)
+    	Cursor threads  = (Cursor) getListView().getItemAtPosition(position);
+    	String threadID = threads.getString(threads
+	  		      .getColumnIndex(ThreadsColumns._ID));   
+  		boolean read = (!threads.getString(threads
+	  		      .getColumnIndex(ThreadsColumns.READ)).equals("0"));    	
+		String[] recipientIDs = threads.getString(threads
+			      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS)).split(" ");
+		if(recipientIDs.length == 0) return;
+		threads.close();
+		String recipientId = recipientIDs[0];
+		String number = ContentUtils.getAddressFromID(mContext, recipientId);
+		String name = ContentUtils
+				.getContactDisplayNameByNumber(mContext, number);  		
+        Intent intent = new Intent(mContext, MessageActivityCheckbox.class);
+        intent.putExtra(Constants.EXTRA_THREAD_ID,threadID);
+        intent.putExtra(Constants.EXTRA_NAME,name);
+        intent.putExtra(Constants.EXTRA_READ,read);
+        intent.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(number));
+        startActivity(intent);        
+
+    }    	
 	/**
 	 * Links a parse user to a facebook account if the user is not already linked
 	 * @param user
