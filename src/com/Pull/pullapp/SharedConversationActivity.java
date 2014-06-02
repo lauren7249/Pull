@@ -73,6 +73,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 	private MainApplication mApp;
 	private String mOriginalRecipientName;
 	private GestureDetector mGestureDetector;
+	private String recipientName;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -168,8 +169,11 @@ public class SharedConversationActivity extends SherlockActivity implements
 	    			sharedConversation.getConfidante(), mOriginalRecipientName);
 	    sharedConversationCommentListView.setAdapter(sharedConversationCommentListAdapter);
 	    
+	    
 	    confidanteName = ContentUtils.getContactDisplayNameByNumber(mContext,sharedConversation.getConfidante());
-	    sharedConversationCommentEditText.setHint("Write to " + confidanteName);
+	    recipientName = ContentUtils.getContactDisplayNameByNumber(mContext,recipient);
+
+	    sharedConversationCommentEditText.setHint("Write to " + recipientName);
 	    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 	    
 		tickReceiver = new BroadcastReceiver() {

@@ -39,13 +39,13 @@ public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversat
     	}
   	
        final ProfilePictureView profilePictureView = (ProfilePictureView) v.findViewById(R.id.profile_pic);
-	   TextView name = (TextView) v.findViewById(R.id.txt_title);
+	   final TextView name = (TextView) v.findViewById(R.id.txt_title);
 	   TextView info = (TextView) v.findViewById(R.id.txt_message_info);
-	   SharedConversation th = objects.get(pos);
-	   name.setText("Conversation about " + th.getOriginalRecipientName());
+	   final SharedConversation th = objects.get(pos);
+	   
 	   info.setText(th.getHashtags());
 	   
-	   String conversant;
+	   final String conversant;
 	   if(type == TextBasedSmsColumns.MESSAGE_TYPE_SENT) 
 		   conversant = ContentUtils.addCountryCode(th.getConfidante());
 	   else {
@@ -57,8 +57,14 @@ public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversat
 		userQuery.whereEqualTo("username", conversant);
 		userQuery.findInBackground(new FindCallback<ParseUser>() {
 		public void done(List<ParseUser> results, ParseException e) {
-			if(e == null && results.size()>0) {
+			if(results.size()>0) {
 				profilePictureView.setProfileId(results.get(0).getString("facebookID"));
+				name.setText("Conversation about " + th.getOriginalRecipientName());
+			}
+			else {
+				//profilePictureView.setVisibility(View.GONE);
+				name.setText("Conversation about " + th.getOriginalRecipientName() + " with " 
+						+ ContentUtils.getContactDisplayNameByNumber(context, conversant));
 			}
 		  }
 		});  	   

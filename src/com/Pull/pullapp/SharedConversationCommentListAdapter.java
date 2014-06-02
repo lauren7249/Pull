@@ -5,15 +5,15 @@ import java.util.List;
 
 import android.content.ClipData;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.telephony.PhoneNumberUtils;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.DragShadowBuilder;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
-import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
@@ -22,7 +22,6 @@ import android.widget.TextView;
 
 import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.util.ContentUtils;
-import com.Pull.pullapp.util.SendMessages;
 import com.facebook.widget.ProfilePictureView;
 import com.parse.FindCallback;
 import com.parse.ParseException;
@@ -33,13 +32,16 @@ public class SharedConversationCommentListAdapter extends BaseAdapter {
 	private Context mContext;
 	private ArrayList<Comment> mComments;
 	private String mConfidante, mOriginalRecipientName;
-	
+	private SharedPreferences mPrefs;
+	private MainApplication mApp;
 	public SharedConversationCommentListAdapter(Context context, ArrayList<Comment> comments, String confidante, String orig_recipient) {
 		super();
 		this.mContext = context;
 		this.mComments = comments;
 		this.mConfidante = confidante;
 		this.mOriginalRecipientName = orig_recipient;
+		mApp = (MainApplication) context.getApplicationContext();
+		//mPrefs = context.getSharedPreferences(MainApplication.class.getSimpleName(), Context.MODE_PRIVATE);
 	}
 
 	@Override
@@ -87,8 +89,10 @@ public class SharedConversationCommentListAdapter extends BaseAdapter {
 		{
 			holder = new SMSViewHolder();
 			Log.v("Display", mConfidante+":"+comment.getSender()+":"+comment.getMessage());
-			if(mConfidante.equals(comment.getSender())){
+			if(!PhoneNumberUtils.compare(mApp.getUserName(),comment.getSender())){
 				convertView = LayoutInflater.from(mContext).inflate(R.layout.shared_comment_incoming_row, parent, false);
+				//Log.i("current user ", mApp.getUserName());
+				//Log.i("comment sender ",comment.getSender());
 			}else{
 				convertView = LayoutInflater.from(mContext).inflate(R.layout.shared_comment_outgoing_row, parent, false);
 				holder.retry = (Button) convertView.findViewById(R.id.retry_button);
