@@ -1,5 +1,4 @@
 package com.Pull.pullapp;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -154,6 +153,8 @@ public class ThreadsListActivity extends ListActivity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		threads_cursor = ContentUtils.getThreadsCursor(mContext);
+		adapter.notifyDataSetChanged();
 		currentUser = ParseUser.getCurrentUser();
 		if (currentUser != null) {
 			radioGroup.check(R.id.my_conversation_tab);
@@ -164,7 +165,7 @@ public class ThreadsListActivity extends ListActivity {
 			// activity showing the login view.
 			startLoginActivity();
 		}		
-			
+		
 	}
 
 	  private void startLoginActivity() {
