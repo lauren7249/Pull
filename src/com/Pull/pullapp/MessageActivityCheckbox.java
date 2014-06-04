@@ -495,6 +495,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 			mListView.invalidateViews();
 			mListView.refreshDrawableState();
 			setListAdapter(adapter);
+			mListView.setSelection(messages.size()-1);
 			return true;		
 		case R.id.menu_autoforward:
 			
