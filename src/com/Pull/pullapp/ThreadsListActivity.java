@@ -163,7 +163,7 @@ public class ThreadsListActivity extends ListActivity {
 		} else {
 			// If the user is not logged in, go to the
 			// activity showing the login view.
-			startLoginActivity();
+			//startLoginActivity();
 		}		
 		
 	}

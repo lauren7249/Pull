@@ -155,9 +155,11 @@ public class ShareTagAction extends Thread {
         AlarmManager am = (AlarmManager) parent.getSystemService(Context.ALARM_SERVICE);   
     	
         setSendAlarm(am, app_plug, 1, System.currentTimeMillis());
-        int i=0;
-        for(SMSMessage m : mSharedConversation.getMessages()) {
-        	i++;
+        ArrayList<SMSMessage> messages = mSharedConversation.getMessages();
+
+        int n = messages.size();
+        for(int i = 0; i<n; i++) {
+        	SMSMessage m = messages.get(n - i - 1);
         	try {
 				Thread.sleep(2);
 			} catch (InterruptedException e) {
@@ -170,8 +172,10 @@ public class ShareTagAction extends Thread {
 	        	setSendAlarm(am, text, (int) (System.currentTimeMillis()+(i*2000)), System.currentTimeMillis()+(i*2000));
         	}
     	}       
-        i++;
-        setSendAlarm(am, Constants.APP_PLUG_END, (int) (System.currentTimeMillis()+(i*2000)), System.currentTimeMillis()+(i*2000));
+        n++;
+        setSendAlarm(am, Constants.APP_PLUG_END, 
+        		(int) (System.currentTimeMillis()+(n*2000)), 
+        		System.currentTimeMillis()+(n*2000));
 		
 	}
 

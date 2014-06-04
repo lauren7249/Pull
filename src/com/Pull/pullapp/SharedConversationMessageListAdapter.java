@@ -50,51 +50,52 @@ public class SharedConversationMessageListAdapter extends BaseAdapter {
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		final SMSMessage message = mMessages.get(position);
-		int hashtagId = message.getHashtagID();
+		View rowView = convertView;
+		SMSMessage message = mMessages.get(position);
+		SMSViewHolder holder; 
 		
 		if(message.isHashtag()){
-			Log.i("hashtag id",""+hashtagId);
-			final SMSViewHolder holder; 
-			holder = new SMSViewHolder();
-			convertView = LayoutInflater.from(mContext).inflate(R.layout.hashtag_row, parent, false);
-			holder.message = (TextView) convertView.findViewById(R.id.hashtag_text_view);
-			convertView.setTag(holder);
+			
+			if(rowView == null)
+			{	
+				holder = new SMSViewHolder();
+				rowView = LayoutInflater.from(mContext).inflate(R.layout.hashtag_row, parent, false);
+				holder.message = (TextView) rowView.findViewById(R.id.hashtag_text_view);
+				rowView.setTag(holder);
+			}
+			
+			holder = (SMSViewHolder) rowView.getTag();
 			holder.message.setText(message.getMessage());
-			return convertView;
+			return rowView;
 		}
 
-		final SMSViewHolder holder; 
-		if(convertView == null)
-		{
-			holder = new SMSViewHolder();
-			convertView = LayoutInflater.from(mContext).inflate(R.layout.shared_sms_row, parent, false);
-			holder.messageBox = (LinearLayout) convertView.findViewById(R.id.message_box);
-			holder.message = (TextView) convertView.findViewById(R.id.message_text);
-			holder.time = (TextView) convertView.findViewById(R.id.message_time);
-			convertView.setTag(holder);
+		else {
+			if(rowView == null)
+			{
+				holder = new SMSViewHolder();
+				rowView = LayoutInflater.from(mContext).inflate(R.layout.shared_sms_row, parent, false);
+				holder.messageBox = (LinearLayout) rowView.findViewById(R.id.message_box);
+				holder.message = (TextView) rowView.findViewById(R.id.message_text);
+				holder.time = (TextView) rowView.findViewById(R.id.message_time);
+				
+				rowView.setTag(holder);
+			}
+			holder = (SMSViewHolder) rowView.getTag();
+			holder.message.setText(message.getMessage());
+			
+			if(holder.messageBox !=null) {
+				if(message.isSentByMe()) holder.messageBox.setBackgroundResource(R.drawable.outgoing);
+				else holder.messageBox.setBackgroundResource(R.drawable.incoming);		
+			}
+			LayoutParams lp = (LayoutParams) holder.messageBox.getLayoutParams();
+			if(message.isSentByMe())lp.gravity = Gravity.RIGHT;
+			else lp.gravity = Gravity.LEFT;		
+	
+			CharSequence relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.getDate(), DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+			holder.time.setText(relativeTime);		
+			
+			return rowView;
 		}
-		else holder = (SMSViewHolder) convertView.getTag();
-		holder.message.setText(message.getMessage());
-		
-		LayoutParams lp = (LayoutParams) holder.messageBox.getLayoutParams();
-		
-		if(message.isSentByMe())
-		{
-			holder.messageBox.setBackgroundResource(R.drawable.outgoing);
-			lp.gravity = Gravity.RIGHT;
-		}
-		//If not mine then it is from sender to show yellow background and align to left
-		else
-		{
-			holder.messageBox.setBackgroundResource(R.drawable.incoming);
-			lp.gravity = Gravity.LEFT;
-		}
-		
-		CharSequence relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.getDate(), DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
-		holder.time.setText(relativeTime);		
-		
-		return convertView;
 	}
 	
 	private static class SMSViewHolder
