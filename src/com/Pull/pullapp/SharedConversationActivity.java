@@ -147,6 +147,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 			@Override
 			public void onClick(View v) {
 				commentText = sharedConversationCommentEditText.getText().toString().trim();
+				sharedConversationCommentSendButton.setClickable(false);
 				if(commentText.length()>0){
 					if(isEmpty) {
 						isEmpty = false;
@@ -380,6 +381,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 					broadcastIntent.putExtra(Constants.EXTRA_COMMENT_NUMBER, commentNum);
 					mContext.sendBroadcast(broadcastIntent);	
 			    }
+        		
 			 }
 		 });
 		
@@ -391,6 +393,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 		sharedConversationCommentListView.invalidateViews();
 		sharedConversationCommentListView.refreshDrawableState();					
 		sharedConversationCommentEditText.setText("");
+		sharedConversationCommentSendButton.setClickable(true);
 		hideKeyboard();
 		sharedConversationCommentEditText.clearFocus();
 		if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);     

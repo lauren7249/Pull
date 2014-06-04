@@ -184,9 +184,11 @@ public class ThreadsListActivity extends ListActivity {
 						if (user != null) {
 							mGraphUser = user;
 							mFacebookID = user.getId();
+							
 							linkAccount();
 							augmentProfile(mGraphUser);
 							saveUserInfo(mPhoneNumber,mFacebookID);
+							finishSavingUser();
 						} else if (response.getError() != null) {
 							if ((response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_RETRY)
 									|| (response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_REOPEN_SESSION)) {
