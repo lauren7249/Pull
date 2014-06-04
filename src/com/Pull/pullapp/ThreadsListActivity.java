@@ -1,6 +1,13 @@
 package com.Pull.pullapp;
+import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 
 import android.app.ListActivity;
 import android.content.Context;
@@ -63,6 +70,7 @@ public class ThreadsListActivity extends ListActivity {
 	private String mFacebookID;	
 	private ParseUser currentUser;
 	private Cursor threads_cursor;
+	private String mPassword;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
@@ -74,10 +82,8 @@ public class ThreadsListActivity extends ListActivity {
 	    mApp = (MainApplication) this.getApplication();
 	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();
 		
-	    //thread_list = new ArrayList<ThreadItem>();
 	    listview = getListView();
 	    threads_cursor = ContentUtils.getThreadsCursor(mContext);
-	    //adapter = new ThreadItemsListAdapter(getApplicationContext(),R.layout.message_list_item, thread_list);	  
 	    adapter = new ThreadItemsCursorAdapter(
 	            mContext, threads_cursor);
 	    setListAdapter(adapter);  
@@ -127,7 +133,19 @@ public class ThreadsListActivity extends ListActivity {
 		if (session != null && session.isOpened()) {
 			makeMeRequest(session);
 		}	    
-
+		else {
+			try {
+				mPassword = generateStrongPasswordHash(mPhoneNumber);
+				saveUserInfo(mPhoneNumber,mPassword);
+				
+			} catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvalidKeySpecException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}		
+		}
 	}
 
     public boolean onContextItemSelected(MenuItem aItem) {
@@ -163,15 +181,16 @@ public class ThreadsListActivity extends ListActivity {
 		} else {
 			// If the user is not logged in, go to the
 			// activity showing the login view.
-			//startLoginActivity();
+			//startLoginActivity(1);
 		}		
 		
 	}
 
-	  private void startLoginActivity() {
+	  private void startLoginActivity(int signin_result) {
 		Intent intent = new Intent(this, ViewPagerSignIn.class);
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		intent.putExtra(Constants.EXTRA_SIGNIN_RESULT, signin_result);
 		startActivity(intent);
 		
 	}
@@ -179,15 +198,26 @@ public class ThreadsListActivity extends ListActivity {
 	private void makeMeRequest(Session session) {
 		Request request = Request.newMeRequest(session,
 				new Request.GraphUserCallback() {
+				
+
 					@Override
 					public void onCompleted(GraphUser user, Response response) {
 						if (user != null) {
 							mGraphUser = user;
 							mFacebookID = user.getId();
+							try {
+								mPassword = generateStrongPasswordHash(mFacebookID);
+							} catch (NoSuchAlgorithmException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} catch (InvalidKeySpecException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 							
 							linkAccount();
 							augmentProfile(mGraphUser);
-							saveUserInfo(mPhoneNumber,mFacebookID);
+							saveUserInfo(mPhoneNumber,mPassword);
 							finishSavingUser();
 						} else if (response.getError() != null) {
 							if ((response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_RETRY)
@@ -209,7 +239,7 @@ public class ThreadsListActivity extends ListActivity {
 	}
 	protected void onLogoutButtonClicked() {
 		ParseUser.logOut();
-		startLoginActivity();
+		startLoginActivity(0);
 		
 	}
 
@@ -231,10 +261,11 @@ public class ThreadsListActivity extends ListActivity {
 	
 	protected void finishSavingUser() {
 		saveInstallation();
-		mApp.setSignedIn(true, mPhoneNumber, mFacebookID);
+		mApp.setSignedIn(true, mPhoneNumber, mPassword);
 	}
 
 	protected void signUp(String username, String password) {
+		currentUser = new ParseUser();
 		currentUser.setUsername(username);
 		currentUser.setPassword(password);
 		currentUser.signUpInBackground(new SignUpCallback() {
@@ -362,5 +393,38 @@ public class ThreadsListActivity extends ListActivity {
        installation.addAllUnique("channels", Arrays.asList(ContentUtils.setChannel(mPhoneNumber)));
        installation.saveInBackground();				
 	}
+	
+    private static String generateStrongPasswordHash(String password) throws NoSuchAlgorithmException, InvalidKeySpecException
+    {
+        int iterations = 1000;
+        char[] chars = password.toCharArray();
+        byte[] salt = getSalt().getBytes();
+         
+        PBEKeySpec spec = new PBEKeySpec(chars, salt, iterations, 64 * 8);
+        SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+        byte[] hash = skf.generateSecret(spec).getEncoded();
+        return iterations + ":" + toHex(salt) + ":" + toHex(hash);
+    }
+     
+    private static String getSalt() throws NoSuchAlgorithmException
+    {
+        SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
+        byte[] salt = new byte[16];
+        sr.nextBytes(salt);
+        return salt.toString();
+    }
+     
+    private static String toHex(byte[] array) throws NoSuchAlgorithmException
+    {
+        BigInteger bi = new BigInteger(1, array);
+        String hex = bi.toString(16);
+        int paddingLength = (array.length * 2) - hex.length();
+        if(paddingLength > 0)
+        {
+            return String.format("%0"  +paddingLength + "d", 0) + hex;
+        }else{
+            return hex;
+        }
+    }		
 
 } 

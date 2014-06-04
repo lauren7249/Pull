@@ -108,7 +108,8 @@ public class Constants {
 	public static final int NOTIFICATION_COMMENT = 2;
 	public static final String PREFERENCE_TIME_DELAY_PROMPT = "PREFERENCE_TIME_DELAY_PROMPT";
 	public static final String FACEBOOK_USER_ID = PACKAGE_NAME + "_FACEBOOK_ID" ;
-	public static final String EXTRA_COMMENT_NUMBER = "EXTRA_COMMENT_NUMBER";
+	public static final String EXTRA_COMMENT_NUMBER = PACKAGE_NAME + "EXTRA_COMMENT_NUMBER";
+	public static final String EXTRA_SIGNIN_RESULT = PACKAGE_NAME + "EXTRA_SIGNIN_RESULT";
 	
 	
 	
