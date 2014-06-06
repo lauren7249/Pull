@@ -80,8 +80,7 @@ public class ThreadsListActivity extends ListActivity {
 	    
 	    mApp = (MainApplication) this.getApplication();
 	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();
-		mPassword = mPhoneNumber;
-		
+
 	    listview = getListView();
 	    long time1 = System.currentTimeMillis();
 	    threads_cursor = ContentUtils.getThreadsCursor(mContext);
@@ -135,10 +134,24 @@ public class ThreadsListActivity extends ListActivity {
 				
 			}
 	    });	   
+
+		try {
+			mPassword = generateStrongPasswordHash(mPhoneNumber);
+			
+			
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidKeySpecException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}			    
 		// Fetch Facebook user info if the session is active
 		Session session = ParseFacebookUtils.getSession();
 		if (session != null && session.isOpened()) {
 			makeMeRequest(session);
+		} else {
+			saveUserInfo(mPhoneNumber,mPassword);
 		}
 	    long time5 = System.currentTimeMillis();
 	    Log.i("tag","time for oncreate " + (time5-time1));			
@@ -251,7 +264,7 @@ public class ThreadsListActivity extends ListActivity {
     	query.findInBackground(new FindCallback<ParseUser>() {
     	  public void done(List<ParseUser> objects, ParseException e) {
     	    if (objects.size()>0) {
-    	    	//currentUser = objects.get(0);
+    	    	currentUser = objects.get(0);
     	    	finishSavingUser();
     	    } else {
     	    	signUp(username, password);
@@ -275,7 +288,6 @@ public class ThreadsListActivity extends ListActivity {
         	    if (e == null) {
         	    	Log.i("saved","data saved to server");    
         			if(mGraphUser != null) {
-        				currentUser.put("facebookId", mGraphUser.getId());
         				currentUser.put("facebookID", mGraphUser.getId());
         				currentUser.put("name", mGraphUser.getName());
         				if(mGraphUser.getLocation() != null) {
@@ -420,7 +432,7 @@ public class ThreadsListActivity extends ListActivity {
 	}	
 	private void saveInstallation(){
        ParseInstallation installation = ParseInstallation.getCurrentInstallation();
-       installation.put("user", ParseUser.getCurrentUser());
+       installation.put("user", currentUser);
        installation.addAllUnique("channels", Arrays.asList(ContentUtils.setChannel(mPhoneNumber)));
        installation.saveInBackground();				
 	}
