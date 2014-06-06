@@ -21,32 +21,31 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Telephony.TextBasedSmsColumns;
-import android.telephony.PhoneNumberUtils;
+import android.support.v4.app.NavUtils;
 import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.TableLayout.LayoutParams;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.RelativeLayout;
-import android.widget.TableLayout;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
+import com.Pull.pullapp.model.Hashtag;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
-import com.Pull.pullapp.model.ThreadItem;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
@@ -487,10 +486,9 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case android.R.id.home:
-			loader.cancel(true);
-	    	Intent mIntent = new Intent(mContext, ThreadsListActivity.class);
-	    	startActivity(mIntent);				
-            //NavUtils.navigateUpFromSameTask(this);
+			loader.cancel(true);	
+			//Log.i("NavUtils.navigateUpFromSameTask(this);", ""+System.currentTimeMillis());
+            NavUtils.navigateUpFromSameTask(this);
             return true;
 		case R.id.menu_share:
 			if(isChecked) {
@@ -639,11 +637,12 @@ public class MessageActivityCheckbox extends SherlockListActivity {
         if (hashtags_string.length()>0) for(String h : hashtags_string.split(",")) {
         	h = h.trim();
         	if(!h.isEmpty()) {
-	        	SMSMessage c = new SMSMessage();
-	        	c.setDate(System.currentTimeMillis());
-	        	c.setMessage(h);
-	        	c.setHashtagID(Constants.ALL_HASHTAGS_LIST.indexOf(h));
-	        	mSharedConversation.addMessage(c);
+        		SMSMessage ht = new SMSMessage();
+	        	ht.setDate(System.currentTimeMillis());
+	        	ht.setMessage(h);
+	        	ht.setHashtag();
+	        	mSharedConversation.addMessage(ht);
+	        	
         	}
         }
     }     

@@ -115,7 +115,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(TextBasedSmsColumns.TYPE, shared.getType());
         // Inserting Row
         long row_id = db.insert(TABLE_SHARED_CONVERSATIONS, null, values);
-        Log.i("insert","returned " + row_id);
+        //Log.i("insert","returned " + row_id);
         int count = this.getSharedCount(shared.getType());     
         return count;
     }
@@ -128,7 +128,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(TextBasedSmsColumns.DATE, msg.getDate());
         values.put(TextBasedSmsColumns.BODY, msg.getMessage());
         values.put(TextBasedSmsColumns.TYPE, type);
-        values.put(KEY_HASHTAG_ID, msg.getHashtagID());
+        values.put(KEY_HASHTAG_ID, Boolean.toString(msg.isHashtag()));
+        //if(msg.isHashtag()) Log.i("dbhandler","inserting a hashtag");
+        //else Log.i("dbhandler","inserting a non-hashtag");
         db.insert(TABLE_SHARED_CONVERSATION_SMS, null, values);
     }
     
@@ -209,7 +211,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             	m.setDate(cursor.getLong(1));
             	m.setMessage(cursor.getString(2));
             	m.setSentByMe(cursor.getInt(3)==TextBasedSmsColumns.MESSAGE_TYPE_SENT);
-            	m.setHashtagID(cursor.getInt(4));
+            	if(cursor.getString(4).equals("true")) {
+            		m.setHashtag();
+            		//Log.i("dbhandler","retrieved a hashtag");
+            	}
             	messages.add(m);
             } while (cursor.moveToPrevious());
         }
@@ -267,7 +272,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         		+ " where "	 + TextBasedSmsColumns.TYPE + "=?";
         String[] where = {Integer.toString(messageType)};
         Cursor cursor = db.rawQuery(selectQuery, where);
-        Log.i("cursor size",selectQuery + messageType + " returned " + cursor.getCount());
+        //Log.i("cursor size",selectQuery + messageType + " returned " + cursor.getCount());
         // looping through all rows and adding to list
         if (cursor.moveToLast()) {
             do {

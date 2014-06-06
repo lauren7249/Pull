@@ -16,8 +16,8 @@ public class SMSMessage extends ParseObject {
     private boolean isHashtag;
 	public long futureSendTime;
 	public long launchedOn;
-	private int hashtagID = -1;
- 
+	private Hashtag ht;
+	
     // Constructors
     public SMSMessage() {
     }
@@ -28,7 +28,6 @@ public class SMSMessage extends ParseObject {
         put("smsMessage",smsMessage);
         put("sentByMe",sentByMe);
         put("isHashtag",isHashtag);
-        put("hashtagID",hashtagID); 
     }
     
     public SMSMessage(String message, String sender, boolean sentByMe) {
@@ -39,7 +38,6 @@ public class SMSMessage extends ParseObject {
         put("smsMessage",smsMessage);
         put("smsSender",smsSender);
         put("isHashtag",isHashtag);
-        put("hashtagID",hashtagID); 
     }    
     public SMSMessage(String message, String sender, int type) {
         this.smsMessage = message;
@@ -51,7 +49,6 @@ public class SMSMessage extends ParseObject {
         put("sentByMe",sentByMe);
         put("isDelayed",isDelayed);
         put("isHashtag",isHashtag);
-        put("hashtagID",hashtagID); 
     }  
     
     public SMSMessage(int id, long date, String sender, String recipient, String message) {
@@ -66,7 +63,6 @@ public class SMSMessage extends ParseObject {
         put("smsDate",smsDate);
         put("smsRecipient",smsRecipient);            
         put("isHashtag",isHashtag);
-        put("hashtagID",hashtagID); 
     }
 
     public SMSMessage(long date, String message, String sender, int type) {
@@ -81,7 +77,6 @@ public class SMSMessage extends ParseObject {
         put("sentByMe",sentByMe);
         put("isDelayed",isDelayed);
         put("isHashtag",isHashtag);
-        put("hashtagID",hashtagID); 
     }
 
     // Id
@@ -137,21 +132,11 @@ public class SMSMessage extends ParseObject {
         put("smsMessage",smsMessage); 
     }
     
-	public int getHashtagID() {
-		//return this.hashtagID;
-		return getInt("hashtagID");
-	}
-
-	public void setHashtagID(int indexOf) {
-		this.hashtagID = indexOf;
-		if(indexOf!=-1) isHashtag=true;
-		put("hashtagID",hashtagID); 
-		put("isHashtag",isHashtag);
-		
+	public void setHashtag() {
+		put("isHashtag",true); 
 	}
 
 	public boolean isHashtag() {
-		//return isHashtag;
 		return getBoolean("isHashtag");
 	}
 	public boolean isSentByMe() {

@@ -65,7 +65,7 @@ public class ShareTagAction extends Thread {
     	savedMessageCount = 0;
     	parseMessageIDs = new ArrayList<String>();
     	for(final SMSMessage message : mSharedConversation.getMessages()) {
-        	//message.put("parent", mSharedConversation);
+        	//Log.i("is hashtag", " " + message.isHashtag());
     		// This will save both message and conversation to Parse
         	message.saveInBackground(new SaveCallback(){
 	        	public void done(ParseException e) {
@@ -117,10 +117,8 @@ public class ShareTagAction extends Thread {
 
 	private void shareViaParse() {
 		JSONObject data = new JSONObject();
-		//JSONArray jsonArray = new JSONArray(parseMessageIDs);
 		try {
 			data.put("action", Constants.ACTION_RECEIVE_SHARE_TAG);
-			//data.put("messageArray", jsonArray);
 			data.put("convoID", convo_id);
 			data.put("person_shared", person_shared);
 			data.put("type", Constants.NOTIFICATION_NEW_SHARE);

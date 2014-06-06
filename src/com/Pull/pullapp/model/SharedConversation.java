@@ -2,9 +2,10 @@ package com.Pull.pullapp.model;
 
 import java.util.ArrayList;
 
+import android.util.Log;
+
 import com.parse.ParseClassName;
 import com.parse.ParseObject;
-import com.parse.ParseUser;
 
 @ParseClassName("SharedConversation")
 public class SharedConversation extends ParseObject {
@@ -84,12 +85,14 @@ public class SharedConversation extends ParseObject {
 	}
 	
 	public void addMessage(SMSMessage sms) {
+		sms.put("parent", this);
 		conversation.add(sms);
-        sms.put("parent", this);		
+        		
 	}
 	public void addComment(Comment comment) {
-		comments.add(comment);
 		comment.put("parent", this);
+		comments.add(comment);
+		
 	}	
 	
 	public ArrayList<SMSMessage> getMessages(){
@@ -104,7 +107,7 @@ public class SharedConversation extends ParseObject {
 	public String getHashtags() {
 		String hashtags = "";
 		for(SMSMessage c : conversation) {
-			if(c.getHashtagID()!=-1) hashtags = hashtags + " " + c.getMessage();
+			if(c.isHashtag()) hashtags = hashtags + " " + c.getMessage();
 		}
 		return hashtags;
 	}
@@ -121,7 +124,9 @@ public class SharedConversation extends ParseObject {
 		this.conversation = messages;
 		for(SMSMessage c : messages) {
 			c.put("parent", this);
+			//if(c.isHashtag()) Log.i("setmessages","adding a hashtag");
 		}		
+		
 	}
 
 	public int getType() {

@@ -1,14 +1,11 @@
 package com.Pull.pullapp;
 
 import android.app.Application;
-import android.content.ContentQueryMap;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.provider.Telephony.ThreadsColumns;
-import android.util.Log;
 
 import com.Pull.pullapp.model.Comment;
+import com.Pull.pullapp.model.Hashtag;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
@@ -33,7 +30,8 @@ public class MainApplication extends Application {
 		ParseObject.registerSubclass(SharedConversation.class);
 		ParseObject.registerSubclass(Comment.class);
 		ParseObject.registerSubclass(SMSMessage.class);
-
+		ParseObject.registerSubclass(Hashtag.class);
+		
 		Parse.initialize(this, getString(R.string.parse_app_id), getString(R.string.parse_key));
 		ParseFacebookUtils.initialize(getString(R.string.facebook_app_id));	
 		
@@ -52,7 +50,7 @@ public class MainApplication extends Application {
 			editor.putString(Constants.USER_PASSWORD, "");
 			editor.putString(Constants.USER_NAME, "");
 		}
-		Log.i("user signed in with mprefs", Name);
+		//Log.i("user signed in with mprefs", Name);
 		editor.commit();
 	}
 	
@@ -91,9 +89,6 @@ public class MainApplication extends Application {
 	public String getPassword() {
 		return prefs.getString(Constants.USER_PASSWORD, null);
 	}		
-	
-	public void saveThreadsCursor(Cursor c) {
-		ContentQueryMap map = new ContentQueryMap(c, ThreadsColumns._ID, true, null);	
-	}
+
 
 }

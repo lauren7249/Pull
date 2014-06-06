@@ -10,9 +10,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.Pull.pullapp.util.ContentUtils;
-
 public class ThreadItemsCursorAdapter extends CursorAdapter {
-
+	
     @SuppressWarnings("deprecation")
 	public ThreadItemsCursorAdapter(Context context, Cursor cursor) {
     	super(context, cursor);
@@ -46,11 +45,11 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 	}
 
 	@Override
-	public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        Cursor threads = getCursor();
-       
+	public View newView(Context context, Cursor threads, ViewGroup parent) {
+		
         final LayoutInflater inflater = LayoutInflater.from(context);
         View v = inflater.inflate(R.layout.message_list_item, parent, false);
+
     	String threadID = threads.getString(threads
 	  		      .getColumnIndex(ThreadsColumns._ID));
     	if(threadID.length()==0) return v;

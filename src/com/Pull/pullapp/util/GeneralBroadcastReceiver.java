@@ -34,7 +34,6 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	private SharedConversation sharedConvo;
 	private Context mContext;
 	protected Comment comment;
-	//private String commentID, convoID;
 	private TelephonyManager tmgr;
     @SuppressWarnings("unused")
 	@Override
@@ -159,7 +158,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
     			  sharedConvo = conversations.get(0);
     			  sharedConvo.setType(TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
     			  sharedConvo.setId(sharedConvo.getObjectId());
-    			  Log.i("got it","found conversation with id " + sharedConvo.getObjectId());
+    			  //Log.i("got it","found conversation with id " + sharedConvo.getObjectId());
     			  getMessagesFromConvo(sharedConvo, isNew);
     		  }
     	  }
@@ -170,8 +169,8 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	    	messages.findInBackground(new FindCallback<SMSMessage>() {
 	    	  public void done(List<SMSMessage> message_list, ParseException exception) {
 	    		  if(exception == null && message_list != null) {
-	    			  Log.i("got it","found messages!");
-	    			  Log.i("messages in comvo",message_list.size() + " messages in convo");
+	    			 // Log.i("got it","found messages!");
+	    			 // Log.i("messages in comvo",message_list.size() + " messages in convo");
 	    			  s.setMessages((ArrayList<SMSMessage>) message_list);
 	    			  if(isNew) saveNewShare(mContext);
 	    		  }

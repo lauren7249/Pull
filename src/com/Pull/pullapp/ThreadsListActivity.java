@@ -73,26 +73,26 @@ public class ThreadsListActivity extends ListActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
-
+	    //Log.i("super.onCreate(savedInstanceState);", ""+System.currentTimeMillis());
+	    //long time1 = System.currentTimeMillis();
 	    setContentView(R.layout.threads_listactivity);
 	    mContext = getApplicationContext();
-	    ParseAnalytics.trackAppOpened(getIntent());	
 	    
 	    mApp = (MainApplication) this.getApplication();
 	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();
 
 	    listview = getListView();
-	    long time1 = System.currentTimeMillis();
+	    
 	    threads_cursor = ContentUtils.getThreadsCursor(mContext);
-	    long time2 = System.currentTimeMillis();
+	    //long time2 = System.currentTimeMillis();
 	    
 	    adapter = new ThreadItemsCursorAdapter(
 	            mContext, threads_cursor);
-	    long time3 = System.currentTimeMillis();
+	    //long time3 = System.currentTimeMillis();
 	    
 	    setListAdapter(adapter);  
-	    long time4 = System.currentTimeMillis();
-	    Log.i("tag","time to set adapter " + (time4-time3));
+	    //long time4 = System.currentTimeMillis();
+	    //Log.i("tag","time to set adapter " + (time4-time3));
 	    if(Constants.LOG_SMS) new AlarmScheduler(mContext, false).start();
 
 	    radioGroup  = (RadioGroup) findViewById(R.id.switch_buttons);   
@@ -135,26 +135,8 @@ public class ThreadsListActivity extends ListActivity {
 			}
 	    });	   
 
-		try {
-			mPassword = generateStrongPasswordHash(mPhoneNumber);
-			
-			
-		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvalidKeySpecException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}			    
-		// Fetch Facebook user info if the session is active
-		Session session = ParseFacebookUtils.getSession();
-		if (session != null && session.isOpened()) {
-			makeMeRequest(session);
-		} else {
-			saveUserInfo(mPhoneNumber,mPassword);
-		}
-	    long time5 = System.currentTimeMillis();
-	    Log.i("tag","time for oncreate " + (time5-time1));			
+	   // long time5 = System.currentTimeMillis();
+	    //Log.i("tag","time for oncreate " + (time5-time1));			
 		
 	}
 
@@ -181,7 +163,7 @@ public class ThreadsListActivity extends ListActivity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		long time1 = System.currentTimeMillis();
+		//long time1 = System.currentTimeMillis();
 		threads_cursor = ContentUtils.getThreadsCursor(mContext);
 		adapter.notifyDataSetChanged();
 		currentUser = ParseUser.getCurrentUser();
@@ -191,10 +173,32 @@ public class ThreadsListActivity extends ListActivity {
 			listview.refreshDrawableState();
 		} else {
 		}		
-	    long time5 = System.currentTimeMillis();
-	    Log.i("tag","time for onresume " + (time5-time1));		
+		ParseAnalytics.trackAppOpened(getIntent());
+	    //long time5 = System.currentTimeMillis();
+	    //Log.i("tag","time for onresume " + (time5-time1));		
 	}
 
+	@Override
+	protected void onStart() {
+		super.onStart();
+		try {
+			mPassword = generateStrongPasswordHash(mPhoneNumber);
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidKeySpecException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}			    
+		// Fetch Facebook user info if the session is active
+		Session session = ParseFacebookUtils.getSession();
+		if (session != null && session.isOpened()) {
+			makeMeRequest(session);
+		} else {
+			saveUserInfo(mPhoneNumber,mPassword);
+		}		
+		
+	}	
 	  private void startLoginActivity(int signin_result) {
 		Intent intent = new Intent(this, ViewPagerSignIn.class);
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -221,14 +225,10 @@ public class ThreadsListActivity extends ListActivity {
 						} else if (response.getError() != null) {
 							if ((response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_RETRY)
 									|| (response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_REOPEN_SESSION)) {
-								Log.d("tag",
-										"The facebook session was invalidated.");
+								//Log.d("tag","The facebook session was invalidated.");
 								otherLoginMethod();
 							} else {
-								Log.d("tag",
-										"Some other error: "
-												+ response.getError()
-														.getErrorMessage());
+								//Log.d("tag","Some other error: "+ response.getError().getErrorMessage());
 							}
 						}
 					}
@@ -239,7 +239,7 @@ public class ThreadsListActivity extends ListActivity {
 	protected void otherLoginMethod() {
 		try {
 			mPassword = generateStrongPasswordHash(mPhoneNumber);
-			Log.i("password",mPassword);
+			//Log.i("password",mPassword);
 			saveUserInfo(mPhoneNumber,mPassword);
 			
 		} catch (NoSuchAlgorithmException e) {
@@ -286,7 +286,7 @@ public class ThreadsListActivity extends ListActivity {
 		currentUser.signUpInBackground(new SignUpCallback() {
         	  public void done(ParseException e) {
         	    if (e == null) {
-        	    	Log.i("saved","data saved to server");    
+        	    	//Log.i("saved","data saved to server");    
         			if(mGraphUser != null) {
         				currentUser.put("facebookID", mGraphUser.getId());
         				currentUser.put("name", mGraphUser.getName());
@@ -313,7 +313,7 @@ public class ThreadsListActivity extends ListActivity {
         			}
         			currentUser.saveInBackground();
         	    } else {
-        	    	Log.i("not saved","not saved " + e.getCode());
+        	    	//Log.i("not saved","not saved " + e.getCode());
         	    }
         	    checkUser();
         	  }
@@ -364,7 +364,7 @@ public class ThreadsListActivity extends ListActivity {
 									.getProperty("relationship_status"));
 		}
 		currentUser.saveInBackground();
-		Log.i("tag","augmented profile");
+		//Log.i("tag","augmented profile");
 	}
 	@Override
 	protected void onPause(){
@@ -413,20 +413,20 @@ public class ThreadsListActivity extends ListActivity {
 			    @Override
 			    public void done(ParseException ex) {
 			    	if(ex != null) {
-			    		Log.i("tried to link account but error code " , " " +ex.getCode());
+			    		//Log.i("tried to link account but error code " , " " +ex.getCode());
 			    	}
 			    	else {
 				       if (ParseFacebookUtils.isLinked(currentUser)) {
-				    	   Log.d("MyApp", "Woohoo, user logged in with Facebook!");
+				    	  // Log.d("MyApp", "Woohoo, user logged in with Facebook!");
 				       } else {
-				    	   Log.i("signin.linkaccount","did not link with facebook");
+				    	   //Log.i("signin.linkaccount","did not link with facebook");
 				       }
 			    	}
 			    
 			    }
 			  });
 		} else {
-			Log.i("signin.linkaccount","user already linked in facebook");
+			//Log.i("signin.linkaccount","user already linked in facebook");
 		}
 		
 	}	
