@@ -47,23 +47,7 @@ public class ThreadItemsListAdapter extends ArrayAdapter<ThreadItem> {
 	   snippet.setText(th.snippet);
 	   if(!th.read) v.setBackgroundResource(R.drawable.unread_row);
 	   else v.setBackgroundResource(R.drawable.read_row);
-	   /*
-	   v.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				//Toast.makeText(context, "clicked", Toast.LENGTH_LONG).show();
-				loader.cancel(true);
-		        Intent intent = new Intent(context, MessageActivityCheckbox.class);
-		        intent.putExtra(Constants.EXTRA_THREAD_ID,th.ID);
-		        intent.putExtra(Constants.EXTRA_NAME,th.displayName);
-		        intent.putExtra(Constants.EXTRA_READ,th.read);
-		        intent.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(th.number));
-		        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		          //Log.i("phone number",PhoneNumberUtils.stripSeparators(item.number));
-		        context.startActivity(intent);
-			}
-		});	   */
+
 	   return v;
     }
     @Override

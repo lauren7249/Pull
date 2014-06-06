@@ -28,16 +28,19 @@ import android.text.TextWatcher;
 import android.text.format.DateUtils;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.TableLayout.LayoutParams;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.RelativeLayout;
+import android.widget.TableLayout;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
@@ -211,7 +214,6 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		send = (Button) this.findViewById(R.id.send_button);
 		share = (Button) this.findViewById(R.id.share_button);
 		pickDelay = (Button) this.findViewById(R.id.time_delay_button);
-		//sendInTimeLabel = (TextView) this.findViewById(R.id.send_in_time_label);
 		viewSwitcher = (ViewSwitcher) this.findViewById(R.id.viewSwitcher);
 		
 		hashtag = (MultiAutoCompleteTextView) this.findViewById(R.id.hashtags);
@@ -349,6 +351,16 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		hideKeyboard();
 		text.clearFocus();	
 		mListView.setSelection(messages.size()-1);
+		
+		mLayout.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
+			
+			@Override
+			public void onGlobalLayout() {
+				if ((mLayout.getRootView().getHeight() - mLayout.getHeight()) > mLayout.getRootView().getHeight() / 3) {
+					mListView.setSelection(messages.size()-1);
+				} 
+			}
+		});			
 	}
 	
 

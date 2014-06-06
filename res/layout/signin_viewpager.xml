@@ -1,0 +1,116 @@
+
+<LinearLayout 
+    android:id="@+id/main_layout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:facebook="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="fill_parent"
+    android:background="@color/android:white"
+    android:orientation="vertical" >
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/pager"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        /> 
+    <com.viewpagerindicator.CirclePageIndicator
+        android:id="@+id/indicator"
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        android:padding="10dip"
+        app:radius="10dp"
+        app:fillColor="@color/messageDefaultBackground"
+        app:pageColor="@color/android:white"
+        app:strokeColor="#FF000000"
+        app:strokeWidth="2dp"        
+        />
+    <View
+        android:id="@+id/separator"
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:background="#000000" />    
+    <RelativeLayout
+        android:id="@+id/signin_area"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:layout_weight="1.5"
+        android:divider="#00000000">
+		<EditText
+		    android:id="@+id/keyhash"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:padding="10dp"
+		    android:layout_centerInParent="true"
+		    android:visibility="gone" />         
+		<Button
+		    android:id="@+id/generic_sign_in"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:layout_marginTop="35dp"
+		    android:padding="10dp"
+		    android:layout_centerHorizontal="true"
+		    android:textColor="#ffffff"
+		    android:visibility="gone"
+		    android:onClick="anonymousLogin"
+		    android:background="@drawable/neutral_signin_button"
+		    android:text="Sign Up Anonymously" />    		    
+		<EditText
+		    android:id="@+id/mobileNumber"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:padding="10dp"
+		    android:layout_below="@id/generic_sign_in"
+		    android:layout_centerInParent="true"
+		    android:visibility="gone" />  
+		<EditText
+		    android:id="@+id/password"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:layout_below="@id/mobileNumber"
+		    android:padding="10dp"
+		    android:hint="Choose password"
+		    android:layout_centerInParent="true"
+		    android:visibility="gone" />  		  
+		<EditText
+		    android:id="@+id/confirmPassword"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:layout_below="@id/password"
+		    android:hint="Confirm password"
+		    android:padding="10dp"
+		    android:layout_centerInParent="true"
+		    android:visibility="gone" />  			      		    	   
+		<Button
+		    android:id="@+id/sign_in"
+		    android:layout_below="@id/confirmPassword"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:padding="10dp"
+		    android:layout_centerInParent="true"
+		    android:textColor="#ffffff"
+		    android:background="@drawable/fb_signin_button"
+		    android:onClick="facebookLogin"
+		    android:text="Sign in with Facebook" />    
+		    
+		<TextView
+		    android:id="@+id/assurance"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:padding="10dp"
+		    android:layout_below="@id/sign_in"
+		    android:layout_centerInParent="true"
+		    android:text="We will never post anything to Facebook." /> 		    
+	    <com.facebook.widget.ProfilePictureView
+	            android:id="@+id/selection_profile_pic"
+	            android:layout_height="wrap_content"
+	            android:layout_width="wrap_content"
+	            android:layout_gravity="center"
+	            android:visibility="gone"
+	            android:gravity="center_horizontal"
+	            facebook:preset_size="small" />   		            
+    </RelativeLayout>
+        
+</LinearLayout>

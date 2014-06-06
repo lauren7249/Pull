@@ -5,6 +5,8 @@
 	<classpathentry exported="true" kind="lib" path="libs/aws-android-sdk-0.2.1-debug.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/android-support-v4.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/Parse-1.4.3.jar"/>
+	<classpathentry kind="lib" path="libs/endless-1.2.3.jar"/>
+	<classpathentry kind="lib" path="libs/adapter-1.0.1.jar"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>

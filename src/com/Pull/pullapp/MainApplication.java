@@ -1,8 +1,11 @@
 package com.Pull.pullapp;
 
 import android.app.Application;
+import android.content.ContentQueryMap;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.provider.Telephony.ThreadsColumns;
 import android.util.Log;
 
 import com.Pull.pullapp.model.Comment;
@@ -88,5 +91,9 @@ public class MainApplication extends Application {
 	public String getPassword() {
 		return prefs.getString(Constants.USER_PASSWORD, null);
 	}		
+	
+	public void saveThreadsCursor(Cursor c) {
+		ContentQueryMap map = new ContentQueryMap(c, ThreadsColumns._ID, true, null);	
+	}
 
 }

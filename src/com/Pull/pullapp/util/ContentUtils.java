@@ -1,5 +1,8 @@
 package com.Pull.pullapp.util;
 
+import com.Pull.pullapp.MainApplication;
+
+import android.content.ContentQueryMap;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -54,9 +57,11 @@ public class ContentUtils {
 		  return address;
 	  }
 	  public static Cursor getThreadsCursor(Context context) {
-		  return context.getContentResolver().query(
+		  Cursor c = context.getContentResolver().query(
 				  Uri.parse("content://mms-sms/conversations?simple=true"), 
-				  null, null,null,ThreadsColumns.DATE+" DESC");
+				  null, null,null,ThreadsColumns.DATE+" DESC");		  
+		 // ContentQueryMap map = new ContentQueryMap(c, ThreadsColumns._ID, true, null);
+		  return c;
 	  }	
 	  
 	  public static void addMessage(String threadID, String number, String body) {
@@ -184,21 +189,6 @@ public class ContentUtils {
 		        }
 		        cursor1.close();
 		    }
-		   /* if (result != null)	{
-		    	valid = isNumberValid(result);
-		    }
-			if (!valid)	{
-				val_num = makeNumberValid(result);
-				if (val_num != null)	{
-					valid = true;
-					result = val_num;
-				}
-			}
-		    if (valid)	{
-		    	return result;
-		    } else	{
-		    	return null;
-		    }*/
 		    return result;
 		}
 		public static String setChannel(TelephonyManager tmgr, String recipient) {

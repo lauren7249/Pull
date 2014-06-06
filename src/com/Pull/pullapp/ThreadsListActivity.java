@@ -14,6 +14,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony.TextBasedSmsColumns;
@@ -53,10 +54,8 @@ import com.parse.SignUpCallback;
 
 public class ThreadsListActivity extends ListActivity {
 	
-	//private ThreadItemsListAdapter adapter;
 	private ThreadItemsCursorAdapter adapter;
 	private ListView listview;
-	//private ArrayList<ThreadItem> thread_list;
 	private Context mContext;
 	private RadioGroup radioGroup;
     protected static final int CONTEXTMENU_DELETEITEM = 0;
@@ -81,13 +80,20 @@ public class ThreadsListActivity extends ListActivity {
 	    
 	    mApp = (MainApplication) this.getApplication();
 	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();
+		mPassword = mPhoneNumber;
 		
 	    listview = getListView();
+	    long time1 = System.currentTimeMillis();
 	    threads_cursor = ContentUtils.getThreadsCursor(mContext);
+	    long time2 = System.currentTimeMillis();
+	    
 	    adapter = new ThreadItemsCursorAdapter(
 	            mContext, threads_cursor);
-	    setListAdapter(adapter);  
+	    long time3 = System.currentTimeMillis();
 	    
+	    setListAdapter(adapter);  
+	    long time4 = System.currentTimeMillis();
+	    Log.i("tag","time to set adapter " + (time4-time3));
 	    if(Constants.LOG_SMS) new AlarmScheduler(mContext, false).start();
 
 	    radioGroup  = (RadioGroup) findViewById(R.id.switch_buttons);   
@@ -111,6 +117,7 @@ public class ThreadsListActivity extends ListActivity {
         Button button = (Button) findViewById(R.id.new_message);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+            	
                 Intent intent =
                         new Intent(mContext, MessageActivityCheckbox.class);
                 startActivity(intent);
@@ -132,20 +139,10 @@ public class ThreadsListActivity extends ListActivity {
 		Session session = ParseFacebookUtils.getSession();
 		if (session != null && session.isOpened()) {
 			makeMeRequest(session);
-		}	    
-		else {
-			try {
-				mPassword = generateStrongPasswordHash(mPhoneNumber);
-				saveUserInfo(mPhoneNumber,mPassword);
-				
-			} catch (NoSuchAlgorithmException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InvalidKeySpecException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}		
 		}
+	    long time5 = System.currentTimeMillis();
+	    Log.i("tag","time for oncreate " + (time5-time1));			
+		
 	}
 
     public boolean onContextItemSelected(MenuItem aItem) {
@@ -171,6 +168,7 @@ public class ThreadsListActivity extends ListActivity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		long time1 = System.currentTimeMillis();
 		threads_cursor = ContentUtils.getThreadsCursor(mContext);
 		adapter.notifyDataSetChanged();
 		currentUser = ParseUser.getCurrentUser();
@@ -179,11 +177,9 @@ public class ThreadsListActivity extends ListActivity {
 			listview.invalidateViews();
 			listview.refreshDrawableState();
 		} else {
-			// If the user is not logged in, go to the
-			// activity showing the login view.
-			//startLoginActivity(1);
 		}		
-		
+	    long time5 = System.currentTimeMillis();
+	    Log.i("tag","time for onresume " + (time5-time1));		
 	}
 
 	  private void startLoginActivity(int signin_result) {
@@ -205,18 +201,8 @@ public class ThreadsListActivity extends ListActivity {
 						if (user != null) {
 							mGraphUser = user;
 							mFacebookID = user.getId();
-							try {
-								mPassword = generateStrongPasswordHash(mFacebookID);
-							} catch (NoSuchAlgorithmException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} catch (InvalidKeySpecException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
 							
 							linkAccount();
-							augmentProfile(mGraphUser);
 							saveUserInfo(mPhoneNumber,mPassword);
 							finishSavingUser();
 						} else if (response.getError() != null) {
@@ -224,7 +210,7 @@ public class ThreadsListActivity extends ListActivity {
 									|| (response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_REOPEN_SESSION)) {
 								Log.d("tag",
 										"The facebook session was invalidated.");
-								onLogoutButtonClicked();
+								otherLoginMethod();
 							} else {
 								Log.d("tag",
 										"Some other error: "
@@ -237,6 +223,22 @@ public class ThreadsListActivity extends ListActivity {
 		request.executeAsync();
 
 	}
+	protected void otherLoginMethod() {
+		try {
+			mPassword = generateStrongPasswordHash(mPhoneNumber);
+			Log.i("password",mPassword);
+			saveUserInfo(mPhoneNumber,mPassword);
+			
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidKeySpecException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}	
+		
+	}
+
 	protected void onLogoutButtonClicked() {
 		ParseUser.logOut();
 		startLoginActivity(0);
@@ -249,7 +251,7 @@ public class ThreadsListActivity extends ListActivity {
     	query.findInBackground(new FindCallback<ParseUser>() {
     	  public void done(List<ParseUser> objects, ParseException e) {
     	    if (objects.size()>0) {
-    	    	currentUser = objects.get(0);
+    	    	//currentUser = objects.get(0);
     	    	finishSavingUser();
     	    } else {
     	    	signUp(username, password);
@@ -271,14 +273,40 @@ public class ThreadsListActivity extends ListActivity {
 		currentUser.signUpInBackground(new SignUpCallback() {
         	  public void done(ParseException e) {
         	    if (e == null) {
-        	    	Log.i("saved","data saved to server");    	       
+        	    	Log.i("saved","data saved to server");    
+        			if(mGraphUser != null) {
+        				currentUser.put("facebookId", mGraphUser.getId());
+        				currentUser.put("facebookID", mGraphUser.getId());
+        				currentUser.put("name", mGraphUser.getName());
+        				if(mGraphUser.getLocation() != null) {
+        					if (mGraphUser.getLocation().getProperty("name") != null) {
+        						currentUser.put("location", (String) mGraphUser
+        								.getLocation().getProperty("name"));
+        					}
+        				}
+        				if (mGraphUser.getProperty("gender") != null) {
+        					currentUser.put("gender",
+        							(String) mGraphUser.getProperty("gender"));
+        				}
+        				if (mGraphUser.getBirthday() != null) {
+        					currentUser.put("birthday",
+        							mGraphUser.getBirthday());
+        				}
+        				if (mGraphUser.getProperty("relationship_status") != null) {
+        					currentUser
+        							.put("relationship_status",
+        									(String) mGraphUser
+        											.getProperty("relationship_status"));
+        				}	
+        			}
+        			currentUser.saveInBackground();
         	    } else {
         	    	Log.i("not saved","not saved " + e.getCode());
         	    }
         	    checkUser();
         	  }
         	});	
-		
+		finishSavingUser();
 	}
 
 	protected void checkUser() {
@@ -290,7 +318,7 @@ public class ThreadsListActivity extends ListActivity {
     	    	currentUser = objects.get(0);
     	    	finishSavingUser();
     	    } else {
-    	    	onLogoutButtonClicked();
+    	    	otherLoginMethod();
     	    }
     	  }
     	});
@@ -300,6 +328,7 @@ public class ThreadsListActivity extends ListActivity {
 	}
 
 	private void augmentProfile(GraphUser user){
+		currentUser = ParseUser.getCurrentUser();
 		currentUser.put("facebookID", user.getId());
 		currentUser.put("name", user.getName());
 		if(user.getLocation() != null) {
@@ -322,6 +351,8 @@ public class ThreadsListActivity extends ListActivity {
 							(String) user
 									.getProperty("relationship_status"));
 		}
+		currentUser.saveInBackground();
+		Log.i("tag","augmented profile");
 	}
 	@Override
 	protected void onPause(){
@@ -389,7 +420,7 @@ public class ThreadsListActivity extends ListActivity {
 	}	
 	private void saveInstallation(){
        ParseInstallation installation = ParseInstallation.getCurrentInstallation();
-       installation.put("user", currentUser);
+       installation.put("user", ParseUser.getCurrentUser());
        installation.addAllUnique("channels", Arrays.asList(ContentUtils.setChannel(mPhoneNumber)));
        installation.saveInBackground();				
 	}
