@@ -10,6 +10,7 @@ import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
 import com.parse.Parse;
+import com.parse.ParseACL;
 import com.parse.ParseFacebookUtils;
 import com.parse.ParseObject;
 import com.parse.PushService;
@@ -35,7 +36,7 @@ public class MainApplication extends Application {
 		Parse.initialize(this, getString(R.string.parse_app_id), getString(R.string.parse_key));
 		ParseFacebookUtils.initialize(getString(R.string.facebook_app_id));	
 		
-		PushService.setDefaultPushCallback(this, ViewPagerSignIn.class);
+		PushService.setDefaultPushCallback(this, ViewPagerSignIn.class); 	
 
 	}
 	

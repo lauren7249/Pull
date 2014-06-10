@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -43,7 +44,6 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
-import com.Pull.pullapp.model.Hashtag;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
@@ -57,7 +57,10 @@ import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 
 public class MessageActivityCheckbox extends SherlockListActivity {
 
@@ -96,6 +99,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	private String thread_id;
 	private TelephonyManager tmgr;
 	private GetMessages loader;
+	protected String convoID;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -620,15 +624,35 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	}	
 
     public void getShareContent() {
-		long date = System.currentTimeMillis();
+		final long date = System.currentTimeMillis();
 		
 		recipients = mConfidantesEditor.constructContactsFromInput(false).getToNumbers();
 		hashtags_string = hashtag.getText().toString().trim(); 
 		
 		mApp = (MainApplication) getApplication(); 
-    	mSharedConversation = new SharedConversation(date, recipients[0], number);
-    	mSharedConversation.setSharer(mApp.getUserName());
-    	mSharedConversation.setOriginalRecipientName(name);
+		ParseQuery<SharedConversation> query = ParseQuery.getQuery("SharedConversation");
+		query.whereEqualTo("original_recipient", ContentUtils.addCountryCode(number));
+		query.whereEqualTo("sharer", ContentUtils.addCountryCode(mApp.getUserName()));
+		query.whereEqualTo("confidante", ContentUtils.addCountryCode(recipients[0]));
+		query.findInBackground(new FindCallback<SharedConversation>() {
+		    public void done(List<SharedConversation> convoList, ParseException e) {
+		        if (convoList.size()>0) {
+		        	mSharedConversation = convoList.get(0);
+		        	addMessages();
+		            Log.d("isContinuation", "Of convo " + mSharedConversation.getObjectId());
+		        } else {
+		        	mSharedConversation = new SharedConversation(date, recipients[0], number);
+		        	mSharedConversation.setSharer(mApp.getUserName());
+		        	mSharedConversation.setOriginalRecipientName(name);		
+		        	addMessages();
+		            Log.d("isContinuation", "Not a continuation");
+		        }
+		    }
+		});	
+		
+    }     
+
+	protected void addMessages() {
         for (SMSMessage p : messages) {
             if (p.box && !p.getMessage().equals("")) {
             	mSharedConversation.addMessage(p);
@@ -645,12 +669,6 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	        	
         	}
         }
-    }     
-
-	public void shareMessages(View v) throws InterruptedException
-	{
-		getShareContent();
-		
 		if(recipients.length>0 && mSharedConversation.getMessages().size()>0)
 		{
             new ShareTagAction(mContext, mSharedConversation).start();					
@@ -661,8 +679,15 @@ public class MessageActivityCheckbox extends SherlockListActivity {
             progress.show();
                        
 	        
-		}
-					
+		}        
+		
+	}
+
+
+	public void shareMessages(View v) throws InterruptedException
+	{
+		getShareContent();
+
 	}	    
 	
 	public void askAboutTimeDelay(){

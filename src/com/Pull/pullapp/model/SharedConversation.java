@@ -1,16 +1,21 @@
 package com.Pull.pullapp.model;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.util.Log;
 
+import com.Pull.pullapp.util.ContentUtils;
+import com.parse.FindCallback;
 import com.parse.ParseClassName;
+import com.parse.ParseException;
 import com.parse.ParseObject;
+import com.parse.ParseQuery;
 
 @ParseClassName("SharedConversation")
 public class SharedConversation extends ParseObject {
 	
-	private String id, confidante, original_recipient, sharer;
+	private String id, confidante, original_recipient, sharer, convoID;
 	private int type;
 	private long date_shared;
 	private ArrayList<SMSMessage> conversation = new ArrayList<SMSMessage>();
@@ -24,20 +29,20 @@ public class SharedConversation extends ParseObject {
 			String original_recipient) {
 		this.id = id;
 		this.date_shared = date;
-		this.confidante = confidante;
-		this.original_recipient = original_recipient;
+		this.confidante = ContentUtils.addCountryCode(confidante);
+		this.original_recipient = ContentUtils.addCountryCode(original_recipient);
 		
 		put("id", id);
 		put("date_shared", date_shared);
 		put("confidante",confidante);
-		put("original_recipient",original_recipient);
+		put("original_recipient",ContentUtils.addCountryCode(original_recipient));
 	}
 
 	public SharedConversation(long date, String shared_with,
 			String shared_from) {
 		this.date_shared = date;
-		this.confidante = shared_with;
-		this.original_recipient = shared_from;
+		this.confidante = ContentUtils.addCountryCode(shared_with);
+		this.original_recipient = ContentUtils.addCountryCode(shared_from);
 		put("date_shared", date_shared);
 		put("confidante",confidante);
 		put("original_recipient",original_recipient);	
@@ -70,12 +75,12 @@ public class SharedConversation extends ParseObject {
 	}
 
 	public void setConfidante(String string) {
-		this.confidante = string;
+		this.confidante = ContentUtils.addCountryCode(string);
 		put("confidante",confidante);
 	}
 
 	public void setOriginalRecipient(String string) {
-		this.original_recipient = string;
+		this.original_recipient = ContentUtils.addCountryCode(string);
 		put("original_recipient",original_recipient);
 	}
 
@@ -139,7 +144,7 @@ public class SharedConversation extends ParseObject {
 		put("type",type);
 	}
 	public void setSharer(String sharer) {
-		this.sharer = sharer;
+		this.sharer = ContentUtils.addCountryCode(sharer);
 		put("sharer",sharer);		
 	}
 
@@ -154,7 +159,8 @@ public class SharedConversation extends ParseObject {
 	public void setOriginalRecipientName(String originalRecipientName) {
 		this.originalRecipientName = originalRecipientName;
 		put("originalRecipientName",originalRecipientName);		
-	}	
+	}
+
 	
 
 }
