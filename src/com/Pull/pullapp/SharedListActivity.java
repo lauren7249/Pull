@@ -111,7 +111,7 @@ public class SharedListActivity extends Activity {
 
 		    	  final SharedConversation item = (SharedConversation) parent.getItemAtPosition(position);
 		          Intent intent = new Intent(mContext, SharedConversationActivity.class);
-		          intent.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, item.getId());
+		          intent.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, item.getObjectId());
 		          startActivity(intent);	
 		     }
 		

@@ -100,6 +100,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	private TelephonyManager tmgr;
 	private GetMessages loader;
 	protected String convoID;
+	private int shareType;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -220,7 +221,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		viewSwitcher = (ViewSwitcher) this.findViewById(R.id.viewSwitcher);
 		
 		hashtag = (MultiAutoCompleteTextView) this.findViewById(R.id.hashtags);
-		hashtag.setText("#");
+		//hashtag.setText("#");
 		ArrayAdapter<String> aaEmo = new ArrayAdapter<String>(
 				this,android.R.layout.simple_spinner_dropdown_item,Constants.ALL_HASHTAGS);
 		hashtag.setAdapter(aaEmo);
@@ -239,7 +240,6 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 				String action = intent.getAction();
 				
 				if(action.equals(Constants.ACTION_SHARE_COMPLETE)) {
-					//Log.i("received broadcast","got broadcoast");
 					int resultCode = intent.getIntExtra(Constants.EXTRA_SHARE_RESULT_CODE, 0);
 					switch(resultCode) {
 					case(0):
@@ -360,7 +360,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 			@Override
 			public void onGlobalLayout() {
 				if ((mLayout.getRootView().getHeight() - mLayout.getHeight()) > mLayout.getRootView().getHeight() / 3) {
-					mListView.setSelection(messages.size()-1);
+					//mListView.setSelection(messages.size()-1);
 				} 
 			}
 		});			
@@ -495,6 +495,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
             NavUtils.navigateUpFromSameTask(this);
             return true;
 		case R.id.menu_share:
+			//int pos = mListView.getSelectedItemPosition();
 			if(isChecked) {
 				adapter.showCheckboxes = false;
 				isChecked = false;
@@ -504,12 +505,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 				adapter.showCheckboxes = true;
 				isChecked = true;
 				viewSwitcher.setDisplayedChild(1);
-				
 			}
-			mListView.invalidateViews();
-			mListView.refreshDrawableState();
-			setListAdapter(adapter);
-			mListView.setSelection(messages.size()-1);
 			return true;		
 		case R.id.menu_autoforward:
 			
@@ -637,10 +633,12 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 		query.findInBackground(new FindCallback<SharedConversation>() {
 		    public void done(List<SharedConversation> convoList, ParseException e) {
 		        if (convoList.size()>0) {
+		        	shareType = Constants.NOTIFICATION_UPDATE_SHARE;
 		        	mSharedConversation = convoList.get(0);
 		        	addMessages();
 		            Log.d("isContinuation", "Of convo " + mSharedConversation.getObjectId());
 		        } else {
+		        	shareType = Constants.NOTIFICATION_NEW_SHARE;
 		        	mSharedConversation = new SharedConversation(date, recipients[0], number);
 		        	mSharedConversation.setSharer(mApp.getUserName());
 		        	mSharedConversation.setOriginalRecipientName(name);		
@@ -669,9 +667,10 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	        	
         	}
         }
+        Log.d("number of messages in convo",""+mSharedConversation.getMessages().size());
 		if(recipients.length>0 && mSharedConversation.getMessages().size()>0)
 		{
-            new ShareTagAction(mContext, mSharedConversation).start();					
+            new ShareTagAction(mContext, mSharedConversation, shareType).start();					
             share.setClickable(false);
             progress = new ProgressDialog(this);
             progress.setTitle("Sharing conversation");

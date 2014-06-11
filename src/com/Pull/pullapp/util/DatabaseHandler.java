@@ -96,14 +96,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
  
     /**returns count in table**/
     public int addSharedConversation(SharedConversation shared) {
-    	String id = shared.getId();
-    	if(getSharedConversation(id)==null) {
-            for(SMSMessage m : shared.getMessages()) {
-            	addSharedMessage(shared.getId(), m);
-            }
-            for(Comment c : shared.getComments()) {
-            	addComment(shared.getId(), c);
-            }       		
+    	String id = shared.getObjectId();
+    	if(!contains(shared)) {
+	        for(SMSMessage m : shared.getMessages()) {
+	        	addSharedMessage(id, m);
+	        }
+	        for(Comment c : shared.getComments()) {
+	        	addComment(shared.getObjectId(), c);
+	        }       
     	}
         ContentValues values = new ContentValues();
         values.put(KEY_ID, id);
@@ -119,6 +119,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         int count = this.getSharedCount(shared.getType());     
         return count;
     }
+    
+	public void updateSharedConversation(SharedConversation shared) {
+    	String id = shared.getObjectId();
+    	//if the conversation exists, we are updating it
+        for(SMSMessage m : shared.getMessages()) {
+        	addSharedMessage(id, m);
+        }
+	}    
     public void addSharedMessage(String convo_id, SMSMessage msg) {
         ContentValues values = new ContentValues();
         int type;
@@ -154,7 +162,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         if (cursor == null || !cursor.moveToFirst()) return null;
         SharedConversation shared = new SharedConversation();
         cursor.moveToFirst();
-    	shared.setId(convo_id);
+    	shared.setObjectId(convo_id);
         shared.setDate(cursor.getLong(1));
     	shared.setConfidante(cursor.getString(2));
     	shared.setOriginalRecipient(cursor.getString(3));
@@ -175,7 +183,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         if (cursor == null || !cursor.moveToFirst()) return null;
         SharedConversation shared = new SharedConversation();
         cursor.moveToFirst();
-    	shared.setId(convo_id);
+    	shared.setObjectId(convo_id);
         shared.setDate(cursor.getLong(1));
     	shared.setConfidante(cursor.getString(2));
     	shared.setOriginalRecipient(cursor.getString(3));
@@ -278,7 +286,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             do {
             	SharedConversation shared = new SharedConversation();
             	String convo_id = cursor.getString(0);
-            	shared.setId(convo_id);
+            	shared.setObjectId(convo_id);
             	shared.setDate(cursor.getLong(1));
             	shared.setConfidante(cursor.getString(2));
             	shared.setOriginalRecipient(cursor.getString(3));
@@ -296,9 +304,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 	public void deleteShared(SharedConversation shared) {
         db.delete(TABLE_SHARED_CONVERSATIONS, KEY_ID + " = ?",
-                new String[] { shared.getId() });
+                new String[] { shared.getObjectId() });
         db.delete(TABLE_SHARED_CONVERSATION_COMMENTS, KEY_ID + " = ?",
-                new String[] { shared.getId() });        
+                new String[] { shared.getObjectId() });        
     }
     
 
@@ -306,6 +314,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void close() {
     	if(db.isOpen()) db.close();
     }
+
+	public boolean contains(SharedConversation shared) {
+		String id = shared.getObjectId();
+		return(getSharedConversation(id)!=null) ;
+	}
+
+
  
 
 }

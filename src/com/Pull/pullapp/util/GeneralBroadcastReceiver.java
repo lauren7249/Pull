@@ -35,11 +35,13 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	private Context mContext;
 	protected Comment comment;
 	private TelephonyManager tmgr;
+	private DatabaseHandler db;
     @SuppressWarnings("unused")
 	@Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
         mContext = context;
+        db = new DatabaseHandler(context);
         tmgr = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         if (action.equals(Constants.ACTION_CHECK_OUT_SMS) && Constants.LOG_SMS) {
             new SmsLogger(context).start();
@@ -75,12 +77,19 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
                 String convoID = json.getString("convoID");
                 int type = json.getInt("type");
                 String person_shared = json.getString("person_shared");
+                
                 switch(type) {
                 case(Constants.NOTIFICATION_NEW_SHARE):
-                	//ArrayList<String> messages = convertJSON(messageArray);
-                	getConvoFromParse(convoID, true);
+                	getNewConvoFromParse(convoID);
                 	notifyNewShare(context, convoID, person_shared);
+                	return;
+                case(Constants.NOTIFICATION_UPDATE_SHARE):
+                	JSONArray sms_ids = json.getJSONArray("message_ids");
+                	getExistingConvoFromParse(sms_ids);
+                	notifyNewShare(context, convoID, person_shared); 
+                	return;
                 default:
+                	return;
                 }
               } catch (JSONException e) {
             	  Log.i("exception",e.getMessage());
@@ -113,7 +122,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         }
         
     }
-    
+   
 
 	private void getCommentFromParse(final String convoID, final String commentID) {
     	ParseQuery<Comment> comments = ParseQuery.getQuery(Comment.class);
@@ -147,8 +156,20 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         return messages;
 	}
     
-    
-	private void getConvoFromParse(String convoID, final boolean isNew) {
+	private void getExistingConvoFromParse(JSONArray sms_ids) {
+		Log.i("","existing conversation ids to search " + sms_ids.toString());
+    	ParseQuery<SMSMessage> messages = ParseQuery.getQuery(SMSMessage.class);
+    	messages.whereContainedIn("objectId", convertJSON(sms_ids));
+    	messages.findInBackground(new FindCallback<SMSMessage>() {
+    	  public void done(List<SMSMessage> message_list, ParseException exception) {
+    		  if(exception == null && message_list.size()>0) {
+    			  Log.i("got it","found messages from existing conversation " + message_list.size());
+    		  }
+    	  }
+    	});
+		
+	}
+	private void getNewConvoFromParse(String convoID) {
     	ParseQuery<SharedConversation> convo = ParseQuery.getQuery(SharedConversation.class);
     	convo.whereEqualTo("objectId", convoID);
     	convo.findInBackground(new FindCallback<SharedConversation>() {
@@ -157,9 +178,9 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
     			  
     			  sharedConvo = conversations.get(0);
     			  sharedConvo.setType(TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
-    			  sharedConvo.setId(sharedConvo.getObjectId());
+    			  //sharedConvo.setObjectId(sharedConvo.getObjectId());
     			  //Log.i("got it","found conversation with id " + sharedConvo.getObjectId());
-    			  getMessagesFromConvo(sharedConvo, isNew);
+    			  getMessagesFromConvo(sharedConvo, true);
     		  }
     	  }
 
@@ -181,12 +202,12 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	}
 
 	private void saveNewShare(Context context) {
-		DatabaseHandler db = new DatabaseHandler(context);
+		db = new DatabaseHandler(context);
 		db.addSharedConversation(sharedConvo);
 		db.close();
 	}
 	private void saveNewComment(Context context, String convoID) {
-		DatabaseHandler db = new DatabaseHandler(context);
+		db = new DatabaseHandler(context);
 		db.addComment(convoID, comment);
 		db.close();
 	}

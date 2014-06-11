@@ -2,8 +2,8 @@ package com.Pull.pullapp;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.provider.Telephony.ThreadsColumns;
 import android.support.v4.widget.CursorAdapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,60 +19,53 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 
 	@Override
 	public void bindView(View v, Context context, Cursor threads) {
-    	String threadID = threads.getString(threads
-	  		      .getColumnIndex(ThreadsColumns._ID));
-    	if(threadID.length()==0) return;
-    	String snippet = threads.getString(threads
-	  		      .getColumnIndex(ThreadsColumns.SNIPPET));			    	
+		String name="", number, snippet,threadID,recipientId;
+		boolean read;
+		
+    	threadID = threads.getString(0);
+    	read = (!threads.getString(1).equals("0"));	
+    	recipientId = threads.getString(2);
+    	snippet = threads.getString(4);		    		    	
+    	 
 
-    	boolean read = (!threads.getString(threads
-	  		      .getColumnIndex(ThreadsColumns.READ)).equals("0"));	    	
-		String[] recipientIDs = threads.getString(threads
-	      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS)).split(" ");
-		if(recipientIDs.length == 0) return;
-		String recipientId = recipientIDs[0];
-		String number = ContentUtils.getAddressFromID(context, recipientId);
-		String name = ContentUtils
-				.getContactDisplayNameByNumber(context, number);
+		number = ContentUtils.getAddressFromID(context, recipientId);
+		Log.i("recipientId",recipientId);
+		name = ContentUtils.getContactDisplayNameByNumber(context, number);
 
- 	   TextView name_view = (TextView) v.findViewById(R.id.txt_title);
- 	   TextView snippet_view = (TextView) v.findViewById(R.id.txt_message_info);
+		TextView name_view = (TextView) v.findViewById(R.id.txt_title);
+ 	   	TextView snippet_view = (TextView) v.findViewById(R.id.txt_message_info);
 
- 	   if(name!=null) name_view.setText(name);
- 	   if(snippet!=null) snippet_view.setText(snippet);
- 	   if(!read) v.setBackgroundResource(R.drawable.unread_row);
- 	   else v.setBackgroundResource(R.drawable.read_row);		
+ 	   	if(name!=null) name_view.setText(name);
+ 	   	if(snippet!=null) snippet_view.setText(snippet);
+ 	   	if(!read) v.setBackgroundResource(R.drawable.unread_row);
+	
 	}
 
 	@Override
 	public View newView(Context context, Cursor threads, ViewGroup parent) {
+		String name="", number, snippet,threadID,recipientId;
+		boolean read;
 		
         final LayoutInflater inflater = LayoutInflater.from(context);
         View v = inflater.inflate(R.layout.message_list_item, parent, false);
 
-    	String threadID = threads.getString(threads
-	  		      .getColumnIndex(ThreadsColumns._ID));
-    	if(threadID.length()==0) return v;
-  		String snippet = threads.getString(threads
-	  		      .getColumnIndex(ThreadsColumns.SNIPPET));			    	
+    	threadID = threads.getString(0);
+    	read = (!threads.getString(1).equals("0"));	 
+    	recipientId = threads.getString(2);
+    	snippet = threads.getString(4);		    		    	
+    	    	
+		
+		number = ContentUtils.getAddressFromID(context, recipientId);
+		Log.i("recipientId",recipientId);
+    	name = ContentUtils.getContactDisplayNameByNumber(context, number);
+		TextView name_view = (TextView) v.findViewById(R.id.txt_title);
+		TextView snippet_view = (TextView) v.findViewById(R.id.txt_message_info);
 
-  		boolean read = (!threads.getString(threads
-	  		      .getColumnIndex(ThreadsColumns.READ)).equals("0"));	    	
-		String[] recipientIDs = threads.getString(threads
-	      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS)).split(" ");
-		if(recipientIDs.length == 0) return v;
-		String recipientId = recipientIDs[0];
-		String number = ContentUtils.getAddressFromID(context, recipientId);
-		String name = ContentUtils
-				.getContactDisplayNameByNumber(context, number);
+		if(name!=null) name_view.setText(name);
+		if(snippet!=null) snippet_view.setText(snippet);
+		if(!read) v.setBackgroundResource(R.drawable.unread_row);  
+		return v;
+	}
 
-	   TextView name_view = (TextView) v.findViewById(R.id.txt_title);
-	   TextView snippet_view = (TextView) v.findViewById(R.id.txt_message_info);
 
-	   if(name!=null) name_view.setText(name);
-	   if(snippet!=null) snippet_view.setText(snippet);
-	   if(!read) v.setBackgroundResource(R.drawable.unread_row);
-	   else v.setBackgroundResource(R.drawable.read_row);	        
-	   return v;
-	}    
 }

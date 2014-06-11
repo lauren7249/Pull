@@ -1,24 +1,21 @@
 package com.Pull.pullapp.model;
 
 import java.util.ArrayList;
-import java.util.List;
 
-import android.util.Log;
+import org.json.JSONArray;
 
 import com.Pull.pullapp.util.ContentUtils;
-import com.parse.FindCallback;
 import com.parse.ParseClassName;
-import com.parse.ParseException;
 import com.parse.ParseObject;
-import com.parse.ParseQuery;
 
 @ParseClassName("SharedConversation")
 public class SharedConversation extends ParseObject {
 	
-	private String id, confidante, original_recipient, sharer, convoID;
+	private String confidante, original_recipient, sharer;
 	private int type;
 	private long date_shared;
 	private ArrayList<SMSMessage> conversation = new ArrayList<SMSMessage>();
+	private ArrayList<String> sms_ids = new ArrayList<String>();
 	private ArrayList<Comment> comments = new ArrayList<Comment>();
 	private String originalRecipientName;
 	
@@ -27,12 +24,10 @@ public class SharedConversation extends ParseObject {
 	
 	public SharedConversation(String id, long date, String confidante,
 			String original_recipient) {
-		this.id = id;
 		this.date_shared = date;
 		this.confidante = ContentUtils.addCountryCode(confidante);
 		this.original_recipient = ContentUtils.addCountryCode(original_recipient);
-		
-		put("id", id);
+
 		put("date_shared", date_shared);
 		put("confidante",confidante);
 		put("original_recipient",ContentUtils.addCountryCode(original_recipient));
@@ -63,12 +58,6 @@ public class SharedConversation extends ParseObject {
 		return getString("original_recipient");
 	}
 
-
-	public void setId(String convo_id) {
-		this.id = convo_id;
-		put("id",id);
-	}
-
 	public void setDate(long date) {
 		this.date_shared= date;
 		put("date_shared",date_shared);
@@ -84,10 +73,6 @@ public class SharedConversation extends ParseObject {
 		put("original_recipient",original_recipient);
 	}
 
-	public String getId() {
-		//return this.id;
-		return getString("id");
-	}
 	
 	public void addMessage(SMSMessage sms) {
 		sms.put("parent", this);
@@ -100,6 +85,12 @@ public class SharedConversation extends ParseObject {
 		
 	}	
 	
+	public ArrayList<String> getMessageIDs(){
+		for(SMSMessage m : conversation) {
+			sms_ids.add(m.getObjectId());
+		}
+		return sms_ids;
+	}	
 	public ArrayList<SMSMessage> getMessages(){
 		return conversation;
 	}
@@ -129,7 +120,6 @@ public class SharedConversation extends ParseObject {
 		this.conversation = messages;
 		for(SMSMessage c : messages) {
 			c.put("parent", this);
-			//if(c.isHashtag()) Log.i("setmessages","adding a hashtag");
 		}		
 		
 	}

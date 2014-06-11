@@ -3,6 +3,7 @@ import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,14 +15,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuItem;
@@ -55,6 +54,7 @@ import com.parse.SignUpCallback;
 public class ThreadsListActivity extends ListActivity {
 	
 	private ThreadItemsCursorAdapter adapter;
+	//private ThreadItemsListAdapter adapter;
 	private ListView listview;
 	private Context mContext;
 	private RadioGroup radioGroup;
@@ -86,8 +86,8 @@ public class ThreadsListActivity extends ListActivity {
 	    threads_cursor = ContentUtils.getThreadsCursor(mContext);
 	    //long time2 = System.currentTimeMillis();
 	    
-	    adapter = new ThreadItemsCursorAdapter(
-	            mContext, threads_cursor);
+	    adapter = new ThreadItemsCursorAdapter(mContext, threads_cursor);
+	  //  adapter = new ThreadItemsListAdapter(mContext, R.layout.message_list_item,new ArrayList<ThreadItem>());	    
 	    //long time3 = System.currentTimeMillis();
 	    
 	    setListAdapter(adapter);  
@@ -181,7 +181,7 @@ public class ThreadsListActivity extends ListActivity {
 	@Override
 	protected void onStart() {
 		super.onStart();
-		try {
+/*		try {
 			mPassword = generateStrongPasswordHash(mPhoneNumber);
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
@@ -196,7 +196,7 @@ public class ThreadsListActivity extends ListActivity {
 			makeMeRequest(session);
 		} else {
 			saveUserInfo(mPhoneNumber,mPassword);
-		}		
+		}		*/
 		
 	}	
 	  private void startLoginActivity(int signin_result) {

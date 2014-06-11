@@ -3,6 +3,7 @@ package com.Pull.pullapp.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -36,9 +37,12 @@ public class ShareTagAction extends Thread {
 	private String convo_id;
 	private boolean isPullUser;
     private TelephonyManager tmgr;
+    private int shareType;
+    private String app_plug;
     
     public ShareTagAction(Context mContext,
-			SharedConversation mSharedConversation) {
+			SharedConversation mSharedConversation, int shareType) {
+    	this.shareType = shareType;
     	this.parent = mContext;
     	this.mSharedConversation = mSharedConversation;
     	this.person_shared = ContentUtils.getContactDisplayNameByNumber(parent, 
@@ -85,10 +89,22 @@ public class ShareTagAction extends Thread {
 
 	protected void addToPhoneStorage() {
         //add to phone storage
+		//Log.d("number of messages in convo",""+mSharedConversation.getMessages().size());
 		DatabaseHandler db = new DatabaseHandler(parent);
-		int id = db.addSharedConversation(mSharedConversation); 
+		if(!db.contains(mSharedConversation)) {
+			db.addSharedConversation(mSharedConversation); 
+			
+			app_plug = "Hey, check out my conversation with " + person_shared + ". " 
+					+ hashtags;
+		}
+		else {
+			db.updateSharedConversation(mSharedConversation); 
+
+			app_plug = "My conversation with " + person_shared + " continued.... " 
+					+ hashtags;
+		}
 		db.close();
-		Log.i("shared messages in db", id  + " ");
+		//Log.i("shared messages in db", id  + " ");
 		
 	}
 
@@ -104,8 +120,7 @@ public class ShareTagAction extends Thread {
 
 	private void finishSharing() {
 		convo_id = mSharedConversation.getObjectId();
-		Log.i("finished sharing","convo id " + convo_id);
-		mSharedConversation.setId(convo_id);
+		//Log.i("finished sharing","convo id " + convo_id);
 		Intent broadcastIntent = new Intent();
 		broadcastIntent.setAction(Constants.ACTION_SHARE_COMPLETE);
 		broadcastIntent.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convo_id);
@@ -121,7 +136,9 @@ public class ShareTagAction extends Thread {
 			data.put("action", Constants.ACTION_RECEIVE_SHARE_TAG);
 			data.put("convoID", convo_id);
 			data.put("person_shared", person_shared);
-			data.put("type", Constants.NOTIFICATION_NEW_SHARE);
+			data.put("type", shareType);
+			data.put("message_ids", new JSONArray(mSharedConversation.getMessageIDs()));
+			Log.i("","sending message ids " + mSharedConversation.getMessageIDs().toString());
 			ParsePush push = new ParsePush();
 			push.setChannel(ContentUtils.setChannel(tmgr,recipient));
 			push.setData(data);
@@ -148,8 +165,7 @@ public class ShareTagAction extends Thread {
 	}
 
 	protected void shareViaSMS() {
-		String app_plug = "Hey, check out my conversation with " + person_shared + ". " 
-				+ hashtags;
+
         AlarmManager am = (AlarmManager) parent.getSystemService(Context.ALARM_SERVICE);   
     	
         setSendAlarm(am, app_plug, 1, System.currentTimeMillis());

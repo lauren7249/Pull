@@ -50,16 +50,22 @@ public class ContentUtils {
 		  Cursor c = context.getContentResolver().query(Uri
 				  .parse("content://mms-sms/canonical-addresses"), null, BaseColumns._ID 
 				  + " = " + recipientId, null, null);	  
-		  if (c!=null) while (c.moveToNext()) {
+		  if  (c.moveToNext()) {
 			  address = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.ADDRESS)).toString();	  
 		  }
 		  c.close();
 		  return address;
 	  }
 	  public static Cursor getThreadsCursor(Context context) {
+		  
 		  Cursor c = context.getContentResolver().query(
 				  Uri.parse("content://mms-sms/conversations?simple=true"), 
-				  null, null,null,ThreadsColumns.DATE+" DESC");		  
+				  new String[]{ThreadsColumns._ID, ThreadsColumns.READ, 
+					  ThreadsColumns.RECIPIENT_IDS, ThreadsColumns.DATE,
+					  ThreadsColumns.SNIPPET},
+					  ThreadsColumns._ID+" is not null and replace("+ 
+					  ThreadsColumns.RECIPIENT_IDS + ",' ','')=" + ThreadsColumns.RECIPIENT_IDS,
+					  null,ThreadsColumns.DATE+" DESC");		  
 		 // ContentQueryMap map = new ContentQueryMap(c, ThreadsColumns._ID, true, null);
 		  return c;
 	  }	
@@ -97,12 +103,12 @@ public class ContentUtils {
 	      				TextBasedSmsColumns.THREAD_ID,
 	      				TextBasedSmsColumns.ADDRESS},
 	      		TextBasedSmsColumns.ADDRESS+"='"+number+"'",null,null);
-	      Log.i("number",number);
-	      Log.i("size",c.getCount()+" ");
+	     // Log.i("number",number);
+	     // Log.i("size",c.getCount()+" ");
 	      if (c!=null && c.getCount()>0) {
 	    	  while(c.moveToNext()) {	
 	    		  if (c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.THREAD_ID))==null) {
-	    			  Log.i("column","nothing");
+	    			 // Log.i("column","nothing");
 	    			  return null;
 	    		  }
 	    		  String id = c.getString(c.getColumnIndexOrThrow(
