@@ -35,12 +35,17 @@ import android.widget.TextView;
 
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
+import com.facebook.FacebookRequestError;
+import com.facebook.Request;
+import com.facebook.Response;
+import com.facebook.Session;
 import com.facebook.model.GraphUser;
 import com.facebook.widget.ProfilePictureView;
 import com.parse.LogInCallback;
 import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 import com.viewpagerindicator.CirclePageIndicator;
 
 public class ViewPagerSignIn extends BaseSampleActivity {
@@ -125,9 +130,13 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	    	mKeyHashBox.setText(keyhashes);
 	    	mKeyHashBox.setVisibility(View.VISIBLE);
 	    }
-	    
-		ParseUser mParseUser = ParseUser.getCurrentUser();
+		mParseUser = ParseUser.getCurrentUser();
 		if ((mParseUser != null) && ParseFacebookUtils.isLinked(mParseUser)) {
+		    // Fetch Facebook user info if the session is active
+			Session session = ParseFacebookUtils.getSession();
+			if (session != null && session.isOpened()) {
+				makeMeRequest(session); 
+			} 							
 	    	Intent mIntent = new Intent(mContext, ThreadsListActivity.class);
 	    	startActivity(mIntent);	    	
 	    }
@@ -167,8 +176,6 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 			       if(err != null) {
 				       Log.i("errorcode from login","code "+ err.getCode());
 				       if(err.getCode() == ParseException.OTHER_CAUSE) {
-				    	   //askToBeAlpha();
-				    	   //ViewPagerSignIn.this.progressDialog.cancel();
 				   	    	Intent mIntent = new Intent(mContext, ThreadsListActivity.class);
 				   	    	startActivity(mIntent);  						    	   
 				       }
@@ -182,10 +189,14 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 					} else {
 						isNewUser = false;
 						Log.d("MyApp", "User logged in through Facebook!");
-					}				    
+					}			
+				    // Fetch Facebook user info if the session is active
+					Session session = ParseFacebookUtils.getSession();
+					if (session != null && session.isOpened()) {
+						makeMeRequest(session); 
+					} 						    
 				    Intent mIntent = new Intent(mContext, ThreadsListActivity.class);
-			    	startActivity(mIntent);  
-			    			    	
+			    	startActivity(mIntent);  		    			    	
 			    }
 			  }
 			});				
@@ -262,7 +273,38 @@ public class ViewPagerSignIn extends BaseSampleActivity {
             ParseFacebookUtils.finishAuthentication(requestCode, resultCode, data);		
 		super.onActivityResult(requestCode, resultCode, data);
 	}	
-	
+	private void makeMeRequest(Session session) {
+		Request request = Request.newMeRequest(session,
+				new Request.GraphUserCallback() {
+					@Override
+					public void onCompleted(GraphUser user, Response response) {
+						if (user != null) {
+							Log.d("tag","Found graph user");
+							augmentProfile(user);
+							
+						} else if (response.getError() != null) {
+							if ((response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_RETRY)
+									|| (response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_REOPEN_SESSION)) {
+								Log.d("tag","The facebook session was invalidated.");
+							} else {
+								Log.d("tag","Some other error: "+ response.getError().getErrorMessage());
+							}
+						}
+					}
+				});
+		request.executeAsync();
+
+	}	
+	private void augmentProfile(GraphUser user){
+		FacebookUser fb = new FacebookUser(user,mPhoneNumber);  
+    	fb.saveInBackground(new SaveCallback(){
+        	public void done(ParseException e) {
+        		if(e==null) Log.i("saved fb user succcess","saved success");
+        		else Log.i("saved fb user NOT ","saved failure " + e.getMessage());
+			 }
+		 });	
+	}	
+		
 
 		
 }

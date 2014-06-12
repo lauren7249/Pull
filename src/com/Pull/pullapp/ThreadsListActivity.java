@@ -1,15 +1,4 @@
 package com.Pull.pullapp;
-import java.math.BigInteger;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
@@ -21,6 +10,7 @@ import android.provider.Telephony.TextBasedSmsColumns;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuItem;
@@ -41,15 +31,11 @@ import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.model.GraphUser;
-import com.parse.FindCallback;
 import com.parse.ParseAnalytics;
 import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
-import com.parse.ParseInstallation;
-import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
-import com.parse.SignUpCallback;
 
 public class ThreadsListActivity extends ListActivity {
 	
@@ -77,6 +63,7 @@ public class ThreadsListActivity extends ListActivity {
 	    //long time1 = System.currentTimeMillis();
 	    setContentView(R.layout.threads_listactivity);
 	    mContext = getApplicationContext();
+	    ParseAnalytics.trackAppOpened(getIntent());
 	    
 	    mApp = (MainApplication) this.getApplication();
 	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();
@@ -173,31 +160,14 @@ public class ThreadsListActivity extends ListActivity {
 			listview.refreshDrawableState();
 		} else {
 		}		
-		ParseAnalytics.trackAppOpened(getIntent());
+		
 	    //long time5 = System.currentTimeMillis();
 	    //Log.i("tag","time for onresume " + (time5-time1));		
 	}
 
 	@Override
 	protected void onStart() {
-		super.onStart();
-/*		try {
-			mPassword = generateStrongPasswordHash(mPhoneNumber);
-		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvalidKeySpecException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}			    
-		// Fetch Facebook user info if the session is active
-		Session session = ParseFacebookUtils.getSession();
-		if (session != null && session.isOpened()) {
-			makeMeRequest(session);
-		} else {
-			saveUserInfo(mPhoneNumber,mPassword);
-		}		*/
-		
+		super.onStart();	
 	}	
 	  private void startLoginActivity(int signin_result) {
 		Intent intent = new Intent(this, ViewPagerSignIn.class);
@@ -208,34 +178,6 @@ public class ThreadsListActivity extends ListActivity {
 		
 	}
 
-	private void makeMeRequest(Session session) {
-		Request request = Request.newMeRequest(session,
-				new Request.GraphUserCallback() {
-				
-
-					@Override
-					public void onCompleted(GraphUser user, Response response) {
-						if (user != null) {
-							mGraphUser = user;
-							mFacebookID = user.getId();
-							
-							linkAccount();
-							//saveUserInfo(mPhoneNumber,mPassword);
-							//finishSavingUser();
-						} else if (response.getError() != null) {
-							if ((response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_RETRY)
-									|| (response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_REOPEN_SESSION)) {
-								//Log.d("tag","The facebook session was invalidated.");
-								//otherLoginMethod();
-							} else {
-								//Log.d("tag","Some other error: "+ response.getError().getErrorMessage());
-							}
-						}
-					}
-				});
-		request.executeAsync();
-
-	}
 	
 	/**
 	protected void otherLoginMethod() {
@@ -304,38 +246,38 @@ public class ThreadsListActivity extends ListActivity {
 	}
 **/
 
+	/**
+	 * Links a parse user to a facebook account if the user is not already linked
+	 * @param user
+	 */
+	private void linkAccount() {
+		if (!ParseFacebookUtils.isLinked(currentUser)) {
+			  ParseFacebookUtils.link(currentUser, this, new SaveCallback() {
+			    @Override
+			    public void done(ParseException ex) {
+			    	if(ex != null) {
+			    		//Log.i("tried to link account but error code " , " " +ex.getCode());
+			    	}
+			    	else {
+				       if (ParseFacebookUtils.isLinked(currentUser)) {
+				    	   Log.d("MyApp", "Woohoo, user logged in with Facebook!");
+				       } else {
+				    	   //Log.i("signin.linkaccount","did not link with facebook");
+				       }
+			    	}
+			    
+			    }
+			  });
+		} else {
+			//Log.i("signin.linkaccount","user already linked in facebook");
+		}
+		
+	}	
 
-	private void augmentProfile(GraphUser user){
-		currentUser = ParseUser.getCurrentUser();
-		currentUser.put("facebookID", user.getId());
-		currentUser.put("name", user.getName());
-		if(user.getLocation() != null) {
-			if (user.getLocation().getProperty("name") != null) {
-				currentUser.put("location", (String) user
-						.getLocation().getProperty("name"));
-			}
-		}
-		if (user.getProperty("gender") != null) {
-			currentUser.put("gender",
-					(String) user.getProperty("gender"));
-		}
-		if (user.getBirthday() != null) {
-			currentUser.put("birthday",
-					user.getBirthday());
-		}
-		if (user.getProperty("relationship_status") != null) {
-			currentUser
-					.put("relationship_status",
-							(String) user
-									.getProperty("relationship_status"));
-		}
-		currentUser.saveInBackground();
-		//Log.i("tag","augmented profile");
-	}
 	@Override
 	protected void onPause(){
 		super.onPause();
-		threads_cursor.close();
+		//threads_cursor.close();
 	}
 	
 	
@@ -369,33 +311,6 @@ public class ThreadsListActivity extends ListActivity {
         startActivity(intent);        
 
     }    	
-	/**
-	 * Links a parse user to a facebook account if the user is not already linked
-	 * @param user
-	 */
-	private void linkAccount() {
-		if (!ParseFacebookUtils.isLinked(currentUser)) {
-			  ParseFacebookUtils.link(currentUser, this, new SaveCallback() {
-			    @Override
-			    public void done(ParseException ex) {
-			    	if(ex != null) {
-			    		//Log.i("tried to link account but error code " , " " +ex.getCode());
-			    	}
-			    	else {
-				       if (ParseFacebookUtils.isLinked(currentUser)) {
-				    	  // Log.d("MyApp", "Woohoo, user logged in with Facebook!");
-				       } else {
-				    	   //Log.i("signin.linkaccount","did not link with facebook");
-				       }
-			    	}
-			    
-			    }
-			  });
-		} else {
-			//Log.i("signin.linkaccount","user already linked in facebook");
-		}
-		
-	}	
 	
 
 } 

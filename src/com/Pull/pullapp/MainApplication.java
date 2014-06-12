@@ -14,6 +14,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.Hashtag;
@@ -21,7 +22,13 @@ import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
+import com.facebook.FacebookRequestError;
+import com.facebook.Request;
+import com.facebook.Response;
+import com.facebook.Session;
+import com.facebook.model.GraphUser;
 import com.parse.FindCallback;
+import com.parse.LogInCallback;
 import com.parse.Parse;
 import com.parse.ParseACL;
 import com.parse.ParseException;
@@ -31,6 +38,7 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.PushService;
+import com.parse.SaveCallback;
 import com.parse.SignUpCallback;
 
 public class MainApplication extends Application {
@@ -38,9 +46,9 @@ public class MainApplication extends Application {
 	private SharedPreferences prefs;
 	private ViewPagerSignIn mSignIn;
 	private SharedPreferences.Editor editor ;
-	private String mPhoneNumber, mPassword;
+	private String mPhoneNumber, mPassword, mFacebookID;
 	private ParseUser currentUser;
-	
+	private GraphUser mGraphUser;
 	@Override
 	public void onCreate() {
 		super.onCreate();
@@ -52,13 +60,15 @@ public class MainApplication extends Application {
 		ParseObject.registerSubclass(Comment.class);
 		ParseObject.registerSubclass(SMSMessage.class);
 		ParseObject.registerSubclass(Hashtag.class);
+		ParseObject.registerSubclass(FacebookUser.class);
 		
 		Parse.initialize(this, getString(R.string.parse_app_id), getString(R.string.parse_key));
 		ParseFacebookUtils.initialize(getString(R.string.facebook_app_id));	
 		
 		PushService.setDefaultPushCallback(this, ViewPagerSignIn.class); 	
 	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();
-
+		
+		
 		try {
 			mPassword = generateStrongPasswordHash(mPhoneNumber);
 			saveUserInfo(mPhoneNumber,mPassword);
@@ -172,7 +182,8 @@ public class MainApplication extends Application {
 	}	
 	protected void finishSavingUser() {
 		saveInstallation();
-		setSignedIn(true, mPhoneNumber, mPassword);
+		setSignedIn(true, mPhoneNumber, mPassword);			
+		
 	}	
 	protected void signUp(String username, String password) {
 		currentUser = new ParseUser();
@@ -199,6 +210,7 @@ public class MainApplication extends Application {
     	});	
 	}	
 	
+
 	private void saveInstallation(){
 	       ParseInstallation installation = ParseInstallation.getCurrentInstallation();
 	       installation.put("user", currentUser);
