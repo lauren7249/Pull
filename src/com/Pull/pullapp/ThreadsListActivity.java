@@ -220,13 +220,13 @@ public class ThreadsListActivity extends ListActivity {
 							mFacebookID = user.getId();
 							
 							linkAccount();
-							saveUserInfo(mPhoneNumber,mPassword);
-							finishSavingUser();
+							//saveUserInfo(mPhoneNumber,mPassword);
+							//finishSavingUser();
 						} else if (response.getError() != null) {
 							if ((response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_RETRY)
 									|| (response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_REOPEN_SESSION)) {
 								//Log.d("tag","The facebook session was invalidated.");
-								otherLoginMethod();
+								//otherLoginMethod();
 							} else {
 								//Log.d("tag","Some other error: "+ response.getError().getErrorMessage());
 							}
@@ -236,6 +236,8 @@ public class ThreadsListActivity extends ListActivity {
 		request.executeAsync();
 
 	}
+	
+	/**
 	protected void otherLoginMethod() {
 		try {
 			mPassword = generateStrongPasswordHash(mPhoneNumber);
@@ -250,7 +252,7 @@ public class ThreadsListActivity extends ListActivity {
 			e.printStackTrace();
 		}	
 		
-	}
+	}**/
 
 	protected void onLogoutButtonClicked() {
 		ParseUser.logOut();
@@ -258,27 +260,7 @@ public class ThreadsListActivity extends ListActivity {
 		
 	}
 
-	private void saveUserInfo(final String username, final String password) {
-    	ParseQuery<ParseUser> query = ParseUser.getQuery();
-    	query.whereEqualTo("username", ContentUtils.addCountryCode(mPhoneNumber));
-    	query.findInBackground(new FindCallback<ParseUser>() {
-    	  public void done(List<ParseUser> objects, ParseException e) {
-    	    if (objects.size()>0) {
-    	    	currentUser = objects.get(0);
-    	    	finishSavingUser();
-    	    } else {
-    	    	signUp(username, password);
-    	    }
-    	  }
-    	});		
-		
-	}	
-	
-	protected void finishSavingUser() {
-		saveInstallation();
-		mApp.setSignedIn(true, mPhoneNumber, mPassword);
-	}
-
+/**
 	protected void signUp(String username, String password) {
 		currentUser = new ParseUser();
 		currentUser.setUsername(username);
@@ -320,24 +302,8 @@ public class ThreadsListActivity extends ListActivity {
         	});	
 		finishSavingUser();
 	}
+**/
 
-	protected void checkUser() {
-    	ParseQuery<ParseUser> query = ParseUser.getQuery();
-    	query.whereEqualTo("username", ContentUtils.addCountryCode(mPhoneNumber));
-    	query.findInBackground(new FindCallback<ParseUser>() {
-    	  public void done(List<ParseUser> objects, ParseException e) {
-    	    if (e == null && objects.size()>0) {
-    	    	currentUser = objects.get(0);
-    	    	finishSavingUser();
-    	    } else {
-    	    	otherLoginMethod();
-    	    }
-    	  }
-    	});
-		
-  
-		
-	}
 
 	private void augmentProfile(GraphUser user){
 		currentUser = ParseUser.getCurrentUser();
@@ -430,44 +396,6 @@ public class ThreadsListActivity extends ListActivity {
 		}
 		
 	}	
-	private void saveInstallation(){
-       ParseInstallation installation = ParseInstallation.getCurrentInstallation();
-       installation.put("user", currentUser);
-       installation.addAllUnique("channels", Arrays.asList(ContentUtils.setChannel(mPhoneNumber)));
-       installation.saveInBackground();				
-	}
 	
-    private static String generateStrongPasswordHash(String password) throws NoSuchAlgorithmException, InvalidKeySpecException
-    {
-        int iterations = 1000;
-        char[] chars = password.toCharArray();
-        byte[] salt = getSalt().getBytes();
-         
-        PBEKeySpec spec = new PBEKeySpec(chars, salt, iterations, 64 * 8);
-        SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-        byte[] hash = skf.generateSecret(spec).getEncoded();
-        return iterations + ":" + toHex(salt) + ":" + toHex(hash);
-    }
-     
-    private static String getSalt() throws NoSuchAlgorithmException
-    {
-        SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
-        byte[] salt = new byte[16];
-        sr.nextBytes(salt);
-        return salt.toString();
-    }
-     
-    private static String toHex(byte[] array) throws NoSuchAlgorithmException
-    {
-        BigInteger bi = new BigInteger(1, array);
-        String hex = bi.toString(16);
-        int paddingLength = (array.length * 2) - hex.length();
-        if(paddingLength > 0)
-        {
-            return String.format("%0"  +paddingLength + "d", 0) + hex;
-        }else{
-            return hex;
-        }
-    }		
 
 } 
