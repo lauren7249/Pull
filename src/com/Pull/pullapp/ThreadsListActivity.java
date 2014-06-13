@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.MatrixCursor;
+import android.database.MergeCursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony.TextBasedSmsColumns;
@@ -26,10 +28,6 @@ import com.Pull.pullapp.model.ThreadItem;
 import com.Pull.pullapp.util.AlarmScheduler;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
-import com.facebook.FacebookRequestError;
-import com.facebook.Request;
-import com.facebook.Response;
-import com.facebook.Session;
 import com.facebook.model.GraphUser;
 import com.parse.ParseAnalytics;
 import com.parse.ParseException;
@@ -103,10 +101,11 @@ public class ThreadsListActivity extends ListActivity {
         Button button = (Button) findViewById(R.id.new_message);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-            	
+
                 Intent intent =
-                        new Intent(mContext, MessageActivityCheckbox.class);
+                        new Intent(mContext, MessageActivityCheckboxCursor.class);
                 startActivity(intent);
+            	
             }
         });	    
         
@@ -295,15 +294,13 @@ public class ThreadsListActivity extends ListActivity {
 	  		      .getColumnIndex(ThreadsColumns._ID));   
   		boolean read = (!threads.getString(threads
 	  		      .getColumnIndex(ThreadsColumns.READ)).equals("0"));    	
-		String[] recipientIDs = threads.getString(threads
-			      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS)).split(" ");
-		if(recipientIDs.length == 0) return;
+		String recipientId = threads.getString(threads
+			      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS));
 		threads.close();
-		String recipientId = recipientIDs[0];
 		String number = ContentUtils.getAddressFromID(mContext, recipientId);
 		String name = ContentUtils
 				.getContactDisplayNameByNumber(mContext, number);  		
-        Intent intent = new Intent(mContext, MessageActivityCheckbox.class);
+        Intent intent = new Intent(mContext, MessageActivityCheckboxCursor.class);
         intent.putExtra(Constants.EXTRA_THREAD_ID,threadID);
         intent.putExtra(Constants.EXTRA_NAME,name);
         intent.putExtra(Constants.EXTRA_READ,read);

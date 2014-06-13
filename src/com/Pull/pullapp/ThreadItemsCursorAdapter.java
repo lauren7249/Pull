@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.support.v4.widget.CursorAdapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,7 +31,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	read = (!threads.getString(1).equals("0"));	
     	recipientId = threads.getString(2);
     	snippet = threads.getString(4);		    		    	
-    	
+    	//Log.i("recipient id",recipientId);
     	name = mPrefs.getString(recipientId, null);
     	if(name==null) {
 			number = ContentUtils.getAddressFromID(context, recipientId);

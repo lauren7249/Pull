@@ -1,4 +1,4 @@
-package com.Pull.pullapp;
+package com.Pull.pullapp.model;
 
 import android.content.Intent;
 import android.util.Log;

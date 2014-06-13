@@ -64,11 +64,11 @@ import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
 
-public class MessageActivityCheckbox extends SherlockListActivity {
+public class MessageActivityCheckboxCursor extends SherlockListActivity {
 
 	private ArrayList<SMSMessage> messages;
 	private HashMap<Long,Integer> delayedMessages = new HashMap<Long,Integer>();
-	private MessageAdapter adapter;
+	private MessageCursorAdapter adapter;
 	private EditText text;
 	private String name, number, newMessage;
 	private Context mContext;
@@ -100,11 +100,12 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	private MainApplication mApp;
 	private String thread_id;
 	private TelephonyManager tmgr;
-	private GetMessages loader;
+	//private GetMessages loader;
 	protected String convoID;
 	private int shareType, scrollState;
 	protected int itemInView;
 	protected boolean startedScrolling;
+	private Cursor messages_cursor;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -119,7 +120,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 
 		isChecked = false;
 		delayPressed = false;
-		loader = new GetMessages();
+		//loader = new GetMessages();
 		
 		mRecipientsAdapter = new RecipientsAdapter(this);
 		mConfidantesEditor = (RecipientsEditor)findViewById(R.id.confidantes_editor);
@@ -216,7 +217,8 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	    text.clearFocus();
 	    
 		messages = new ArrayList<SMSMessage>();
-		adapter = new MessageAdapter(this, messages);
+		messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
+		adapter = new MessageCursorAdapter(mContext, messages_cursor);
 		send = (Button) this.findViewById(R.id.send_button);
 		share = (Button) this.findViewById(R.id.share_button);
 		pickDelay = (Button) this.findViewById(R.id.time_delay_button);
@@ -417,10 +419,10 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	
 	
 	private void populateMessages(){
-		loader.execute(); 
+		//loader.execute(); 
 		isPopulated = true;
 	}
-	
+	/**
 	private class GetMessages extends AsyncTask<Void,SMSMessage,Void> {
 		DatabaseHandler dh;
 	  	Cursor messages_cursor;
@@ -486,13 +488,11 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 			super.onPostExecute(result);
 			messages_cursor.close();
 			dh.close();
-		/*	mListView.setTranscriptMode(ListView.TRANSCRIPT_MODE_DISABLED);
-			adapter.notifyDataSetChanged();
-			mListView.refreshDrawableState();*/
+
 	    }			
 
   }	
-	
+**/
 	private void updateTime(){
 		//Log.i("time", "Updated Time");
 		updateDelayButton();
@@ -527,7 +527,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case android.R.id.home:
-			loader.cancel(true);	
+			//loader.cancel(true);	
             NavUtils.navigateUpFromSameTask(this);
             return true;
 		case R.id.menu_share:
@@ -653,7 +653,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	}
 	
 	public void removeEditOption(int id) {
-		adapter.getItem(id).isDelayed = false;
+		//adapter.getItem(id).isDelayed = false;
 		adapter.notifyDataSetChanged();	
 	}
 	

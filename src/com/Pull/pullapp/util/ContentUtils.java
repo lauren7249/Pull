@@ -202,6 +202,34 @@ public class ContentUtils {
 		}
 		public static String setChannel(String recipient) {
 			return "phoneNumber"+addCountryCode(recipient);
+		}
+		public static Cursor getMessagesCursor(Context mContext,
+				String thread_id, String number) {
+			String querystring;
+			if(thread_id == null) {
+				querystring = 
+				"REPLACE(REPLACE(REPLACE(REPLACE(" + TextBasedSmsColumns.ADDRESS + 
+						",'(',''),')',''),' ',''),'-','') " 
+						+ " in ('"+ 
+		   				ContentUtils.subtractCountryCode(number) + "', '" +
+		   				ContentUtils.addCountryCode(number) + "', '+" +
+		   				ContentUtils.addCountryCode(number) + "', '" +
+		   				number + "')" 
+		   				+  " and " + TextBasedSmsColumns.TYPE + "!=" + 
+		   				TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX 					
+   				+  " and " + TextBasedSmsColumns.TYPE + "!=" + 
+		   				TextBasedSmsColumns.MESSAGE_TYPE_DRAFT ;					
+
+			}
+			else querystring = TextBasedSmsColumns.THREAD_ID + "=" + thread_id 
+					+ " and " + TextBasedSmsColumns.TYPE + "!=" + 
+					TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX
+				+  " and " + TextBasedSmsColumns.TYPE + "!=" + 
+					TextBasedSmsColumns.MESSAGE_TYPE_DRAFT ;					
+	        DatabaseHandler dh = new DatabaseHandler(mContext);
+			Cursor messages_cursor = mContext.getContentResolver().query(Uri.parse("content://sms"),
+					null,querystring ,null,TextBasedSmsColumns.DATE + " desc");	        
+			return messages_cursor;
 		}		
  
 }

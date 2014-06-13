@@ -17,6 +17,7 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.Pull.pullapp.model.Comment;
+import com.Pull.pullapp.model.FacebookUser;
 import com.Pull.pullapp.model.Hashtag;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
@@ -170,7 +171,7 @@ public class MainApplication extends Application {
     	query.whereEqualTo("username", ContentUtils.addCountryCode(mPhoneNumber));
     	query.findInBackground(new FindCallback<ParseUser>() {
     	  public void done(List<ParseUser> objects, ParseException e) {
-    	    if (objects.size()>0) {
+    	    if (e==null && objects.size()>0) {
     	    	currentUser = objects.get(0);
     	    	finishSavingUser();
     	    } else {

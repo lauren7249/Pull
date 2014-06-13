@@ -33,6 +33,7 @@ import android.widget.TableLayout;
 import android.widget.TableLayout.LayoutParams;
 import android.widget.TextView;
 
+import com.Pull.pullapp.model.FacebookUser;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.facebook.FacebookRequestError;
