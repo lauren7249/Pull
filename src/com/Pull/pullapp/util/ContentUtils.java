@@ -1,12 +1,10 @@
 package com.Pull.pullapp.util;
 
-import com.Pull.pullapp.MainApplication;
-
-import android.content.ContentQueryMap;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.MergeCursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import android.provider.ContactsContract;
@@ -221,15 +219,27 @@ public class ContentUtils {
 		   				TextBasedSmsColumns.MESSAGE_TYPE_DRAFT ;					
 
 			}
-			else querystring = TextBasedSmsColumns.THREAD_ID + "=" + thread_id 
+			else {
+				querystring = TextBasedSmsColumns.THREAD_ID + "=" + thread_id 
+			
 					+ " and " + TextBasedSmsColumns.TYPE + "!=" + 
 					TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX
 				+  " and " + TextBasedSmsColumns.TYPE + "!=" + 
-					TextBasedSmsColumns.MESSAGE_TYPE_DRAFT ;					
-	        DatabaseHandler dh = new DatabaseHandler(mContext);
+					TextBasedSmsColumns.MESSAGE_TYPE_DRAFT ;	
+				Log.i("thread id",thread_id);
+			}
+
+	        String[] variables = new String[]{"'sent' as category",
+	        		TextBasedSmsColumns.TYPE,TextBasedSmsColumns.BODY,
+	        		BaseColumns._ID, TextBasedSmsColumns.ADDRESS, TextBasedSmsColumns.READ,
+	        		TextBasedSmsColumns.DATE};
+	        
 			Cursor messages_cursor = mContext.getContentResolver().query(Uri.parse("content://sms"),
-					null,querystring ,null,TextBasedSmsColumns.DATE + " desc");	        
-			return messages_cursor;
+					variables,querystring ,null,TextBasedSmsColumns.DATE);	      
+	        //DatabaseHandler dh = new DatabaseHandler(mContext);
+	        //MergeCursor mc = new MergeCursor(new Cursor[]{messages_cursor,dh.getPendingMessagesCursor(number)});
+			//dh.close();
+	        return messages_cursor;
 		}		
  
 }

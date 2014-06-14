@@ -4,21 +4,21 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Telephony.TextBasedSmsColumns;
@@ -30,10 +30,8 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
-import android.view.ViewTreeObserver.OnPreDrawListener;
 import android.view.WindowManager;
-import android.widget.AbsListView;
-import android.widget.AbsListView.OnScrollListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -60,6 +58,7 @@ import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+import com.commonsware.cwac.merge.MergeAdapter;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
@@ -74,6 +73,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	private Context mContext;
 	private final Calendar calendar = Calendar.getInstance();
 	private Button pickDelay, send, share;
+	private GetMessages loader;
 	private boolean isChecked, isPopulated;
 	private CustomDateTimePicker customDateTimePicker;
 	private Date sendDate;
@@ -81,7 +81,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	private RecipientsEditor mRecipientEditor, mConfidantesEditor;
 	private RecipientsAdapter mRecipientsAdapter;
 	private String[] recipients;
-	private ListView mListView;
+	private ListView mListView, pListView;
 	private RelativeLayout mLayout;
 	private BroadcastReceiver mBroadcastReceiver;
 	private MultiAutoCompleteTextView hashtag;
@@ -100,12 +100,13 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	private MainApplication mApp;
 	private String thread_id;
 	private TelephonyManager tmgr;
-	//private GetMessages loader;
 	protected String convoID;
 	private int shareType, scrollState;
 	protected int itemInView;
 	protected boolean startedScrolling;
 	private Cursor messages_cursor;
+	private MessageAdapter queue_adapter;
+	private MergeAdapter merge_adapter;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -117,15 +118,20 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		
 		mListView = getListView();
 		mLayout = (RelativeLayout) findViewById(R.id.main_layout);
-
+		//pListView = (ListView) findViewById(R.id.queue);
+		
 		isChecked = false;
 		delayPressed = false;
-		//loader = new GetMessages();
+		loader = new GetMessages();
 		
 		mRecipientsAdapter = new RecipientsAdapter(this);
 		mConfidantesEditor = (RecipientsEditor)findViewById(R.id.confidantes_editor);
 		mConfidantesEditor.setAdapter(mRecipientsAdapter);
-				
+			
+		messages = new ArrayList<SMSMessage>();
+		queue_adapter = new MessageAdapter(this,messages);
+		merge_adapter = new MergeAdapter();		
+
 		if(getIntent() != null && !isPopulated) {
 			
 			number =  getIntent().getStringExtra(Constants.EXTRA_NUMBER); 
@@ -216,9 +222,13 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	    hideKeyboard();
 	    text.clearFocus();
 	    
-		messages = new ArrayList<SMSMessage>();
 		messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
 		adapter = new MessageCursorAdapter(mContext, messages_cursor);
+		merge_adapter.addAdapter(adapter);
+		merge_adapter.addAdapter(queue_adapter);
+		setListAdapter(merge_adapter);	
+		mListView.setSelection(merge_adapter.getCount()-1);		
+		
 		send = (Button) this.findViewById(R.id.send_button);
 		share = (Button) this.findViewById(R.id.share_button);
 		pickDelay = (Button) this.findViewById(R.id.time_delay_button);
@@ -230,8 +240,6 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 				this,android.R.layout.simple_spinner_dropdown_item,Constants.ALL_HASHTAGS);
 		hashtag.setAdapter(aaEmo);
 		hashtag.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer() );	
-		
-		setListAdapter(adapter);
 		
 		sendDate = null;
 		
@@ -284,7 +292,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 							}
 							SMSMessage message = new SMSMessage(intent_message, true);
 							message.setDate(System.currentTimeMillis());
-							addNewMessage(message, false);
+							//addNewMessage(message, false);
 							break;
 						}
 						default: {
@@ -357,45 +365,15 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		};
 		hideKeyboard();
 		text.clearFocus();	
-
-		mListView.setTranscriptMode(ListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
-		mListView.setStackFromBottom(true);
-		mListView.setOnScrollListener(new OnScrollListener() {
-
-		    @Override
-		    public void onScrollStateChanged(AbsListView view, int s) {
-		        scrollState = s;	   
-		        if(scrollState != SCROLL_STATE_IDLE) startedScrolling=true;
-		        else if (mListView.getLastVisiblePosition() == adapter.getCount() -1 /**&&
-		    			mListView.getChildAt(mListView.getChildCount() - 1).getBottom() <= mListView.getHeight()*/)
-		    		{
-		    		startedScrolling=false;
-		    		Log.i("at bottom","at bottom");
-
-		    		}		  
-		    }
-
-		    @Override
-		    public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-		    	if (mListView.getLastVisiblePosition() == adapter.getCount() -1 /**&&
-		    			mListView.getChildAt(mListView.getChildCount() - 1).getBottom() <= mListView.getHeight()*/)
-		    		{
-		    		startedScrolling=false;
-		    		Log.i("at bottom","at bottom");
-
-		    		}				    
-		    }
-		});
-		
 		mLayout.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
-			
 			@Override
 			public void onGlobalLayout() {
 				if ((mLayout.getRootView().getHeight() - mLayout.getHeight()) > mLayout.getRootView().getHeight() / 3) {
-
+					mListView.setSelection(merge_adapter.getCount()-1);
 				} 
 			}
-		});			
+		});				
+
 	}
 	
 
@@ -419,90 +397,20 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	
 	
 	private void populateMessages(){
-		//loader.execute(); 
+		loader.execute(); 
 		isPopulated = true;
 	}
-	/**
-	private class GetMessages extends AsyncTask<Void,SMSMessage,Void> {
-		DatabaseHandler dh;
-	  	Cursor messages_cursor;
-	  	SMSMessage m;
-	  	@Override
-		protected Void doInBackground(Void... params) {
-			String querystring;
-			if(thread_id == null) {
-				querystring = 
-				"REPLACE(REPLACE(REPLACE(REPLACE(" + TextBasedSmsColumns.ADDRESS + 
-						",'(',''),')',''),' ',''),'-','') " 
-						+ " in ('"+ 
-		   				ContentUtils.subtractCountryCode(number) + "', '" +
-		   				ContentUtils.addCountryCode(number) + "', '+" +
-		   				ContentUtils.addCountryCode(number) + "', '" +
-		   				number + "')" 
-		   				+  " and " + TextBasedSmsColumns.TYPE + "!=" + 
-		   				TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX 					
-   				+  " and " + TextBasedSmsColumns.TYPE + "!=" + 
-		   				TextBasedSmsColumns.MESSAGE_TYPE_DRAFT ;					
 
-			}
-			else querystring = TextBasedSmsColumns.THREAD_ID + "=" + thread_id 
-					+ " and " + TextBasedSmsColumns.TYPE + "!=" + 
-					TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX
-				+  " and " + TextBasedSmsColumns.TYPE + "!=" + 
-					TextBasedSmsColumns.MESSAGE_TYPE_DRAFT ;					
-	        dh = new DatabaseHandler(mContext);
-	        messages_cursor = dh.getPendingMessagesCursor(number);
-	        
-	        if(messages_cursor.moveToFirst()) {
-	        	m = getNextOutboxMessage(messages_cursor);
-	        	publishProgress(m);	
-	        	while(messages_cursor.moveToNext()) {
-	        		m = getNextOutboxMessage(messages_cursor);
-	        		publishProgress(m);	
-	        		if (isCancelled()) break;
-	        	}	     
-	        }	  
-	        
-			messages_cursor = mContext.getContentResolver().query(Uri.parse("content://sms"),
-					null,querystring ,null,TextBasedSmsColumns.DATE + " desc");
-			
-	        if(messages_cursor.moveToFirst()) {
-	        	m = getNextMessage(messages_cursor);
-	        	publishProgress(m);		
-	        	while(messages_cursor.moveToNext()) {
-	        		m = getNextMessage(messages_cursor);
-	        		publishProgress(m);		
-	        		if (isCancelled()) break;
-	        	}	     
-	        }
-	        
-			return null;
-		}
-		@Override
-	    protected void onProgressUpdate(SMSMessage... t) {
-			addNewMessage(t[0],true);
-	    }				
-		
-		@Override
-	    protected void onPostExecute(Void result) {
-			super.onPostExecute(result);
-			messages_cursor.close();
-			dh.close();
-
-	    }			
-
-  }	
-**/
 	private void updateTime(){
 		//Log.i("time", "Updated Time");
 		updateDelayButton();
-		adapter.notifyDataSetChanged();
+		merge_adapter.notifyDataSetChanged();
 	}
 	
 	@Override
 	protected void onPause() {
 		super.onPause();
-		unregisterReceiver(mBroadcastReceiver);
+		unregisterReceiver(mBroadcastReceiver);	
 		unregisterReceiver(tickReceiver);
 	}
 	
@@ -527,7 +435,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case android.R.id.home:
-			//loader.cancel(true);	
+			loader.cancel(true);	
             NavUtils.navigateUpFromSameTask(this);
             return true;
 		case R.id.menu_share:
@@ -563,24 +471,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		m.setRecipient(number);
 		return m;	
 	}	
-	
-	private SMSMessage getNextMessage(Cursor c) {
-		String body="", SmsMessageId="", address="", read="";
-		long date;
-		int type = Integer.parseInt(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.TYPE)).toString());
-		if(type==TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return null;
-		body = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.BODY)).toString();
-    	SmsMessageId = c.getString(c.getColumnIndexOrThrow("_id")).toString();
-    	address = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.ADDRESS)).toString();
-    	read = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.READ)).toString();
-    	date = c.getLong(c.getColumnIndexOrThrow(TextBasedSmsColumns.DATE));
-    	if(!SmsMessageId.equals("")) {
-        	ContentValues values = new ContentValues();
-    		values.put("read",true);
-    		getContentResolver().update(Uri.parse("content://sms/"),values, "_id="+SmsMessageId, null);	
-    	}	
-    	return new SMSMessage(date, body, address, type);
-	}	
+
 
 	public void sendMessage(View v)
 	{
@@ -640,26 +531,23 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	{
 		if(onTop) {
 			messages.add(m);
-			if(!startedScrolling) {
-				adapter.notifyDataSetChanged();	
-				mListView.refreshDrawableState();
-			}
-			
 		}
 		else  {
 			messages.add(0, m);
-			adapter.notifyDataSetChanged();			
 		}
+		queue_adapter.notifyDataSetChanged();
+		merge_adapter.notifyDataSetChanged();
+		mListView.setSelection(merge_adapter.getCount()-1);
 	}
 	
 	public void removeEditOption(int id) {
 		//adapter.getItem(id).isDelayed = false;
-		adapter.notifyDataSetChanged();	
+		merge_adapter.notifyDataSetChanged();	
 	}
 	
 	public void removeMessage(int id) {
 		messages.remove(id);
-		adapter.notifyDataSetChanged();	
+		merge_adapter.notifyDataSetChanged();	
 	}	
 
     public void getShareContent() {
@@ -675,7 +563,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		query.whereEqualTo("confidante", ContentUtils.addCountryCode(recipients[0]));
 		query.findInBackground(new FindCallback<SharedConversation>() {
 		    public void done(List<SharedConversation> convoList, ParseException e) {
-		        if (convoList.size()>0) {
+		        if (e==null && convoList.size()>0) {
 		        	shareType = Constants.NOTIFICATION_UPDATE_SHARE;
 		        	mSharedConversation = convoList.get(0);
 		        	addMessages();
@@ -694,11 +582,11 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
     }     
 
 	protected void addMessages() {
-        for (SMSMessage p : messages) {
-            if (p.box && !p.getMessage().equals("")) {
-            	mSharedConversation.addMessage(p);
-            }
-        }
+		Iterator it = adapter.check_hash.entrySet().iterator();
+		while(it.hasNext()){
+			Map.Entry pairs = (Map.Entry)it.next();
+			mSharedConversation.addMessage((SMSMessage) pairs.getValue());
+		}
         if (hashtags_string.length()>0) for(String h : hashtags_string.split(",")) {
         	h = h.trim();
         	if(!h.isEmpty()) {
@@ -769,9 +657,45 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		           }).show();		
 
 	}
+	private class GetMessages extends AsyncTask<Void,SMSMessage,Void> {
+		DatabaseHandler dh;
+	  	Cursor messages_cursor;
+	  	SMSMessage m;
+	  	@Override
+		protected Void doInBackground(Void... params) {
+				
+	        dh = new DatabaseHandler(mContext);
+	        messages_cursor = dh.getPendingMessagesCursor(number);
+	        
+	        if(messages_cursor.moveToFirst()) {
+	        	m = getNextOutboxMessage(messages_cursor);
+	        	publishProgress(m);	
+	        	while(messages_cursor.moveToNext()) {
+	        		m = getNextOutboxMessage(messages_cursor);
+	        		publishProgress(m);	
+	        		if (isCancelled()) break;
+	        	}	     
+	        }	  
+			return null;
+		}
+		@Override
+	    protected void onProgressUpdate(SMSMessage... t) {
+			addNewMessage(t[0],true);
+	    }				
+		
+		@Override
+	    protected void onPostExecute(Void result) {
+			super.onPostExecute(result);
+			messages_cursor.close();
+			dh.close();
+	    }			
+
+  }		
 	private void hideKeyboard(){
 		getWindow().setSoftInputMode(
-			      WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);	
+			      WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+		imm.hideSoftInputFromWindow(text.getWindowToken(), 0);		
 		
 	}	
 		

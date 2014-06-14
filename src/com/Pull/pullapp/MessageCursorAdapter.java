@@ -1,7 +1,11 @@
 package com.Pull.pullapp;
 
+import java.util.HashMap;
+
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.net.Uri;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.widget.CursorAdapter;
 import android.text.format.DateUtils;
@@ -17,33 +21,33 @@ import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 
 import com.Pull.pullapp.model.SMSMessage;
-import com.Pull.pullapp.util.SendMessages;
 public class MessageCursorAdapter extends CursorAdapter {
 	public boolean showCheckboxes;
+	public HashMap<Integer,SMSMessage> check_hash;
+	
     @SuppressWarnings("deprecation")
 	public MessageCursorAdapter(Context context, Cursor cursor) {
     	super(context, cursor);
+    	check_hash = new HashMap<Integer,SMSMessage>();
     }
 
 	@Override
 	public void bindView(View v, Context context, Cursor c) {
 		String body="", SmsMessageId="", address="", read="";
 		long date;
-		int type = Integer.parseInt(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.TYPE)).toString());
+		final SMSMessage message;
+		
+		final int position= c.getPosition();
+
+		int type = Integer.parseInt(c.getString(1).toString());
 		if(type==TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return;
-		body = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.BODY)).toString();
-    	SmsMessageId = c.getString(c.getColumnIndexOrThrow("_id")).toString();
-    	address = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.ADDRESS)).toString();
-    	read = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.READ)).toString();
-    	date = c.getLong(c.getColumnIndexOrThrow(TextBasedSmsColumns.DATE));
-    	//TODO: ADD BACK IN
-    	/*if(!SmsMessageId.equals("")) {
-        	ContentValues values = new ContentValues();
-    		values.put("read",true);
-    		getContentResolver().update(Uri.parse("content://sms/"),values, "_id="+SmsMessageId, null);	
-    	}	*/
-    	final SMSMessage message = new SMSMessage(date, body, address, type);
-    	
+		body = c.getString(2).toString();
+    	SmsMessageId = c.getString(3).toString();
+    	address = c.getString(4).toString();
+    	read = c.getString(5).toString();
+    	date = c.getLong(6);
+    	message = new SMSMessage(date, body, address, type);
+		
 		final ViewHolder holder; 
 		holder = (ViewHolder) v.getTag();
 		holder.messageBox = (LinearLayout) v.findViewById(R.id.message_box);
@@ -51,34 +55,8 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.time = (TextView) v.findViewById(R.id.message_time);
 		holder.box = (CheckBox) v.findViewById(R.id.cbBox);
 		holder.edit = (Button) v.findViewById(R.id.edit_message_button);	
-		
-		v.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				if(showCheckboxes){
-					holder.box.toggle();
-					message.box = ! message.box;
-				}
-			}
-		});
-		
-		holder.box.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				message.box = !message.box;
-			};
-        });
-        
-        holder.edit.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				
-				SendMessages.removeFromOutbox(mContext, message.getMessage(),
-						message.getRecipient(), message.launchedOn, true);
-			};
-        });        
-        if (message.box) holder.box.setChecked(true);
+
+        if (check_hash.containsKey(position)) holder.box.setChecked(true);
         else holder.box.setChecked(false);
 		if(showCheckboxes) holder.box.setVisibility(View.VISIBLE);
 		else holder.box.setVisibility(View.GONE);
@@ -86,6 +64,27 @@ public class MessageCursorAdapter extends CursorAdapter {
 		
 		v.setTag(holder);		
 		holder.message.setText(message.getMessage());
+		v.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				if(showCheckboxes){
+					holder.box.toggle();
+					//message.box = ! message.box;
+					if(check_hash.containsKey(position)) check_hash.remove(position);
+					else check_hash.put(position,message);
+					
+				}
+			}
+		});
+		
+		holder.box.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if(check_hash.containsKey(position)) check_hash.remove(position);
+				else check_hash.put(position,message);
+			};
+        });		
 		
 		LayoutParams lp = (LayoutParams) holder.messageBox.getLayoutParams();
 
@@ -133,21 +132,25 @@ public class MessageCursorAdapter extends CursorAdapter {
 		View v = inflater.inflate(R.layout.sms_row, parent, false);
 		String body="", SmsMessageId="", address="", read="";
 		long date;
-		int type = Integer.parseInt(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.TYPE)).toString());
+		final SMSMessage message;
+		final int position = c.getPosition();
+
+		int type = Integer.parseInt(c.getString(1).toString());
 		if(type==TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return v;
-		body = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.BODY)).toString();
-    	SmsMessageId = c.getString(c.getColumnIndexOrThrow("_id")).toString();
-    	address = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.ADDRESS)).toString();
-    	read = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.READ)).toString();
-    	date = c.getLong(c.getColumnIndexOrThrow(TextBasedSmsColumns.DATE));
+		body = c.getString(2).toString();
+    	SmsMessageId = c.getString(3).toString();
+    	address = c.getString(4).toString();
+    	read = c.getString(5).toString();
+    	date = c.getLong(6);
+    	message = new SMSMessage(date, body, address, type);
+		
     	//TODO: ADD BACK IN
-    	/*if(!SmsMessageId.equals("")) {
+    	if(!SmsMessageId.equals("")) {
         	ContentValues values = new ContentValues();
     		values.put("read",true);
-    		getContentResolver().update(Uri.parse("content://sms/"),values, "_id="+SmsMessageId, null);	
-    	}	*/
-    	final SMSMessage message = new SMSMessage(date, body, address, type);
-    	
+    		context.getContentResolver().update(Uri.parse("content://sms/"),values, "_id="+SmsMessageId, null);	
+    	}	
+
 		final ViewHolder holder; 
 		holder = new ViewHolder();
 		holder.messageBox = (LinearLayout) v.findViewById(R.id.message_box);
@@ -155,34 +158,8 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.time = (TextView) v.findViewById(R.id.message_time);
 		holder.box = (CheckBox) v.findViewById(R.id.cbBox);
 		holder.edit = (Button) v.findViewById(R.id.edit_message_button);	
-		
-		v.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				if(showCheckboxes){
-					holder.box.toggle();
-					message.box = ! message.box;
-				}
-			}
-		});
-		
-		holder.box.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				message.box = !message.box;
-			};
-        });
-        
-        holder.edit.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				
-				SendMessages.removeFromOutbox(mContext, message.getMessage(),
-						message.getRecipient(), message.launchedOn, true);
-			};
-        });        
-        if (message.box) holder.box.setChecked(true);
+
+        if (check_hash.containsKey(position)) holder.box.setChecked(true);
         else holder.box.setChecked(false);
 		if(showCheckboxes) holder.box.setVisibility(View.VISIBLE);
 		else holder.box.setVisibility(View.GONE);

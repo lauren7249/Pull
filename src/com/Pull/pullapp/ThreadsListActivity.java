@@ -150,15 +150,7 @@ public class ThreadsListActivity extends ListActivity {
 	protected void onResume() {
 		super.onResume();
 		//long time1 = System.currentTimeMillis();
-		threads_cursor = ContentUtils.getThreadsCursor(mContext);
-		adapter.notifyDataSetChanged();
-		currentUser = ParseUser.getCurrentUser();
-		if (currentUser != null) {
-			radioGroup.check(R.id.my_conversation_tab);
-			listview.invalidateViews();
-			listview.refreshDrawableState();
-		} else {
-		}		
+	
 		
 	    //long time5 = System.currentTimeMillis();
 	    //Log.i("tag","time for onresume " + (time5-time1));		
@@ -167,6 +159,15 @@ public class ThreadsListActivity extends ListActivity {
 	@Override
 	protected void onStart() {
 		super.onStart();	
+		threads_cursor = ContentUtils.getThreadsCursor(mContext);
+		adapter.notifyDataSetChanged();
+		currentUser = ParseUser.getCurrentUser();
+		if (currentUser != null) {
+			radioGroup.check(R.id.my_conversation_tab);
+			listview.invalidateViews();
+			listview.refreshDrawableState();
+		} else {
+		}			
 	}	
 	  private void startLoginActivity(int signin_result) {
 		Intent intent = new Intent(this, ViewPagerSignIn.class);

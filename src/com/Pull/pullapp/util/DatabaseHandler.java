@@ -252,7 +252,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	}
 
 	public Cursor getPendingMessagesCursor(String number){
-        return db.query(TABLE_OUTBOX, null, TextBasedSmsColumns.ADDRESS+"=?", new String[] { number }, null, null, TextBasedSmsColumns.DATE);
+        return db.query(TABLE_OUTBOX, null, 
+        		TextBasedSmsColumns.ADDRESS+"=?", 
+        		new String[] { number }, 
+        		null, null, TextBasedSmsColumns.DATE);
     }
     
     // Getting single shared conversation by id
