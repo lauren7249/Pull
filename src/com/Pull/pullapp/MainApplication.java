@@ -71,7 +71,7 @@ public class MainApplication extends Application {
 		
 		
 		try {
-			mPassword = generateStrongPasswordHash(mPhoneNumber + "5 ");
+			mPassword = generateStrongPasswordHash(mPhoneNumber);
 			saveUserInfo(mPhoneNumber,mPassword);
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
