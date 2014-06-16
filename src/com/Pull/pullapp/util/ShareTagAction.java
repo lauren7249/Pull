@@ -19,6 +19,7 @@ import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParseInstallation;
 import com.parse.ParsePush;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
@@ -163,7 +164,20 @@ public class ShareTagAction extends Thread {
     	  }
     	});
 	}
-
+	private void checkParseInstallation(String confidante) {
+    	ParseQuery<ParseInstallation> query = ParseInstallation.getQuery();
+    	query.whereEqualTo("channels", ContentUtils.setChannel(confidante));
+    	query.findInBackground(new FindCallback<ParseInstallation>() {
+    	  public void done(List<ParseInstallation> objects, ParseException e) {
+    	    if (e == null && objects.size()>0) {
+    	    	isPullUser = true;
+    	    } else {
+    	    	isPullUser = false;
+    	        shareViaSMS();
+    	    }
+    	  }
+    	});
+	}
 	protected void shareViaSMS() {
 
         AlarmManager am = (AlarmManager) parent.getSystemService(Context.ALARM_SERVICE);   

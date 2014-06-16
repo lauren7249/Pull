@@ -111,6 +111,7 @@ public class Constants {
 	public static final String FACEBOOK_USER_ID = PACKAGE_NAME + "_FACEBOOK_ID" ;
 	public static final String EXTRA_COMMENT_NUMBER = PACKAGE_NAME + "EXTRA_COMMENT_NUMBER";
 	public static final String EXTRA_SIGNIN_RESULT = PACKAGE_NAME + "EXTRA_SIGNIN_RESULT";
+	public static final String ACTION_COMPLETE_SIGNUP = PACKAGE_NAME + "util.ACTION_COMPLETE_SIGNUP";
 	
 	
 	

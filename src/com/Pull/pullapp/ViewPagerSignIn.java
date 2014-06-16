@@ -2,16 +2,22 @@ package com.Pull.pullapp;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.List;
 
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningAppProcessInfo;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -20,6 +26,7 @@ import android.content.pm.Signature;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.util.Base64;
 import android.util.Log;
@@ -32,8 +39,10 @@ import android.widget.RelativeLayout;
 import android.widget.TableLayout;
 import android.widget.TableLayout.LayoutParams;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.Pull.pullapp.model.FacebookUser;
+import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.facebook.FacebookRequestError;
@@ -71,6 +80,9 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	private Button mGenericSignInButton;
 	private LinearLayout mLayout;
 	private RelativeLayout mBottomHalf;
+	private String mPasswordString;
+	private BroadcastReceiver mBroadcastReceiver;
+	private ProgressDialog progress;
 	
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,7 +110,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	    prefs = getSharedPreferences(MainApplication.class.getSimpleName(), Context.MODE_PRIVATE);
 	    tMgr =(TelephonyManager)this.getSystemService(Context.TELEPHONY_SERVICE);
 	    mPhoneNumber = ContentUtils.addCountryCode(tMgr,tMgr.getLine1Number());
-
+	    
 	    mSerialNumber = tMgr.getSimSerialNumber();
 	    mApp = (MainApplication) this.getApplication();   
 	    
@@ -107,32 +119,31 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	    profilePictureView = (ProfilePictureView) findViewById(R.id.selection_profile_pic);
 	    profilePictureView.setCropped(true);
 	    
-	    displayFacebookLoginOption();
 		//if (mFacebookID!=null) profilePictureView.setProfileId(mFacebookID);	 
-	    
-	    String keyhashes = "";
-	    // Add code to print out the key hash
-	    try {
-	        PackageInfo info = getPackageManager().getPackageInfo(
-	                "com.Pull.pullapp", 
-	                PackageManager.GET_SIGNATURES);
-	        for (Signature signature : info.signatures) {
-	            MessageDigest md = MessageDigest.getInstance("SHA");
-	            md.update(signature.toByteArray());
-	            Log.d("KeyHash:", Base64.encodeToString(md.digest(), Base64.DEFAULT));
-	            keyhashes = keyhashes + " " + Base64.encodeToString(md.digest(), Base64.DEFAULT);
-	            }
-	    } catch (NameNotFoundException e) {
-
-	    } catch (NoSuchAlgorithmException e) {
-
-	    }	 			    
 	    if(Constants.DEBUG) {
+		    String keyhashes = "";
+		    // Add code to print out the key hash
+		    try {
+		        PackageInfo info = getPackageManager().getPackageInfo(
+		                "com.Pull.pullapp", 
+		                PackageManager.GET_SIGNATURES);
+		        for (Signature signature : info.signatures) {
+		            MessageDigest md = MessageDigest.getInstance("SHA");
+		            md.update(signature.toByteArray());
+		            Log.d("KeyHash:", Base64.encodeToString(md.digest(), Base64.DEFAULT));
+		            keyhashes = keyhashes + " " + Base64.encodeToString(md.digest(), Base64.DEFAULT);
+		            }
+		    } catch (NameNotFoundException e) {
+	
+		    } catch (NoSuchAlgorithmException e) {
+	
+		    }	 			    
+	    
 	    	mKeyHashBox.setText(keyhashes);
 	    	mKeyHashBox.setVisibility(View.VISIBLE);
 	    }
 		mParseUser = ParseUser.getCurrentUser();
-		if ((mParseUser != null) && ParseFacebookUtils.isLinked(mParseUser)) {
+		if (mApp.isSignedIn() && mParseUser.isAuthenticated()) {
 		    // Fetch Facebook user info if the session is active
 			Session session = ParseFacebookUtils.getSession();
 			if (session != null && session.isOpened()) {
@@ -141,12 +152,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	    	Intent mIntent = new Intent(mContext, ThreadsListActivity.class);
 	    	startActivity(mIntent);	    	
 	    }
-		/**
-		int resultcode =  getIntent().getIntExtra(Constants.EXTRA_SIGNIN_RESULT, 0); 
-		//facebook login failed
-		if(resultcode == 1) {
-			
-		}*/
+
 	    // Dirty Hack to detect keyboard
 		mLayout.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
 			
@@ -159,12 +165,49 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 				}
 			}
 		});		
+		
+	    if(appRunning("com.facebook.katana")) {
+	    	displayFacebookLoginOption();
+	    }
+	    else {
+	    	displayAlternateLoginOption();
+	    }		
+	    
+		mBroadcastReceiver = 
+		new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				String action = intent.getAction();
+				
+				if(action.equals(Constants.ACTION_COMPLETE_SIGNUP)) {
+					if(mApp.getUserName() != null && ParseUser.getCurrentUser()!=null
+							&& ParseUser.getCurrentUser().isAuthenticated()) {
+					    Intent mIntent = new Intent(mContext, ThreadsListActivity.class);
+				    	startActivity(mIntent);  		
+					} else {
+						if(mApp.getUserName() != null && ParseUser.getCurrentUser()!=null) 
+							Toast.makeText(mContext, "Error signing in, user is null", Toast.LENGTH_LONG).show();
+						else 
+							Toast.makeText(mContext, "Error signing in, not authenticated", Toast.LENGTH_LONG).show();
+
+					}					
+					progress.dismiss(); 
+					//share.setClickable(true);
+					return;
+				}				
+				
+
+			}
+		};				
+		IntentFilter intentFilter = new IntentFilter();	
+		intentFilter.addAction(Constants.ACTION_COMPLETE_SIGNUP);		
+		registerReceiver(mBroadcastReceiver, intentFilter);			
     }
 	
 	/**
 	 * pulls up the facebook login screen
 	 */
-	public void facebookLogin(View v){
+	public void facebookLogin(final View v){
 	    ViewPagerSignIn.this.progressDialog = ProgressDialog.show(
 	    		ViewPagerSignIn.this, "", "Logging in...", true);	
 		List<String> permissions = Arrays.asList("basic_info", "user_about_me",
@@ -177,8 +220,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 			       if(err != null) {
 				       Log.i("errorcode from login","code "+ err.getCode());
 				       if(err.getCode() == ParseException.OTHER_CAUSE) {
-				   	    	Intent mIntent = new Intent(mContext, ThreadsListActivity.class);
-				   	    	startActivity(mIntent);  						    	   
+				    	   anonymousLogin(v);					    	   
 				       }
 			       }
 			    } else {
@@ -204,28 +246,50 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	}
 	
 	public void anonymousLogin(View v){
-	    Intent mIntent = new Intent(mContext, ThreadsListActivity.class);
-    	startActivity(mIntent);  			
+        progress = new ProgressDialog(this);
+        progress.setTitle("Signing Up");
+        progress.setMessage("Signing up...");
+        progress.show();		
+		if(mUserID.getText().toString() != null) {
+			mPhoneNumber = mUserID.getText().toString();
+			if(!PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber)) {
+				Toast.makeText(mContext, "Not a valid number", Toast.LENGTH_LONG).show();
+				return;
+			}
+		}
+		try {
+			mPasswordString = MainApplication.generateStrongPasswordHash(mPhoneNumber,mSerialNumber);
+			mApp.saveUserInfo(mPhoneNumber,mPasswordString);
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidKeySpecException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}			
 	}	
-	@Deprecated
+
 	protected void displayAlternateLoginOption() {
 		// TODO Auto-generated method stub
 		mSignInButton.setVisibility(View.GONE);
-		mGenericSignInButton.setText("Facebook Sign Up Method");
-		mAssurance.setText("Oops! Looks like you need to create a login");
-		mUserID.setVisibility(View.VISIBLE);
+		mGenericSignInButton.setVisibility(View.VISIBLE);
+		mGenericSignInButton.setText("Sign Up");
 		mUserID.setText(mPhoneNumber);
-		mPassword.setVisibility(View.VISIBLE);
-		mConfirmPassword.setVisibility(View.VISIBLE);
+		if(!PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber)) {
+			mAssurance.setText("Confirm Phone Number");
+			mUserID.setVisibility(View.VISIBLE);
+		}
+		else mAssurance.setText("");
 	}
 	
 	public void toggleGenericLogin(View v) {
 		if(mSignInButton.getVisibility()==View.VISIBLE) displayAlternateLoginOption();
 		else displayFacebookLoginOption();
 	}
+	
 	private void displayFacebookLoginOption() {
 		mSignInButton.setVisibility(View.VISIBLE);
-		mGenericSignInButton.setText("Sign Up Anonymously");
+		mGenericSignInButton.setVisibility(View.GONE);
 		mUserID.setVisibility(View.GONE);
 		mPassword.setVisibility(View.GONE);
 		mConfirmPassword.setVisibility(View.GONE);
@@ -306,6 +370,33 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 		 });	
 	}	
 		
-
+    private boolean appInstalled(String uri)
+    {
+        PackageManager pm = getPackageManager();
+        boolean app_installed = false;
+        try
+        {
+               pm.getPackageInfo(uri, PackageManager.GET_ACTIVITIES);
+               app_installed = true;
+        }
+        catch (PackageManager.NameNotFoundException e)
+        {
+               app_installed = false;
+        }
+        return app_installed ;
+    }
+    
+    private boolean appRunning(String uri) {
+        ActivityManager activityManager = (ActivityManager) this.getSystemService( ACTIVITY_SERVICE );
+        List<RunningAppProcessInfo> procInfos = activityManager.getRunningAppProcesses();
+        for(int i = 0; i < procInfos.size(); i++)
+        {
+            if(procInfos.get(i).processName.equals(uri)) 
+            {
+                return true;
+            }
+        }    
+        return false;
+    }
 		
 }
