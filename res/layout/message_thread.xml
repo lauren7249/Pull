@@ -89,7 +89,7 @@
                         android:freezesText="true"
                         android:minHeight="40dp"
                         android:onClick="pickTime"
-                        android:text="@string/compose_select_time"
+                        android:text="Schedule Text"
                         android:textColor="@android:color/white"
                         android:textSize="20sp"
                         android:color="@android:color/white" />
@@ -130,7 +130,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:completionThreshold="1"
-                    android:hint="Enter Friend"
+                    android:hint="Share with"
                     android:isScrollContainer="true"
                     android:textSize="20sp" />
 

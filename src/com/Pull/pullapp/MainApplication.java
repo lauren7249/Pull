@@ -22,10 +22,10 @@ import com.Pull.pullapp.model.FacebookUser;
 import com.Pull.pullapp.model.Hashtag;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
+import com.Pull.pullapp.util.AlarmScheduler;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.facebook.model.GraphUser;
-import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.FindCallback;
 import com.parse.LogInCallback;
 import com.parse.Parse;
@@ -46,6 +46,8 @@ public class MainApplication extends Application {
 	private String mPhoneNumber, mFacebookID;
 	private ParseUser currentUser;
 	private GraphUser mGraphUser;
+	
+	
 	@Override
 	public void onCreate() {
 		super.onCreate();
@@ -64,7 +66,8 @@ public class MainApplication extends Application {
 		
 		PushService.setDefaultPushCallback(this, ViewPagerSignIn.class); 	
 	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();		    
-	    MixpanelAPI mixpanel = MixpanelAPI.getInstance(getBaseContext(), Constants.MIXEDPANEL_TOKEN);
+	    
+	    new AlarmScheduler(getBaseContext(), false).start();
 	}
 	
 	public void setSignedIn(boolean signedIn, String Name, String Password) {
@@ -229,4 +232,5 @@ public class MainApplication extends Application {
 	       Log.i("saved installation","installation saved");
 	       
 		}	
+
 }

@@ -1,6 +1,7 @@
 package com.Pull.pullapp;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import android.content.Context;
 import android.text.format.DateUtils;
@@ -26,6 +27,12 @@ public class SharedConversationMessageListAdapter extends BaseAdapter {
 		this.mMessages = messages;
 	}
 
+	public SharedConversationMessageListAdapter(Context context,
+			HashSet<SMSMessage> messages) {
+		this.mContext = context;
+		this.mMessages = new ArrayList<SMSMessage>(messages);
+	}
+
 	@Override
 	public int getCount() {
 		return mMessages.size();
@@ -41,6 +48,10 @@ public class SharedConversationMessageListAdapter extends BaseAdapter {
 		this.mMessages = messages;
 		notifyDataSetChanged();
 	}
+	public void setItemList(HashSet<SMSMessage> messages) {
+		this.mMessages = new ArrayList<SMSMessage>(messages);
+		notifyDataSetChanged();
+	}	
 
 	@Override
 	public long getItemId(int position) {
@@ -104,5 +115,7 @@ public class SharedConversationMessageListAdapter extends BaseAdapter {
 		TextView message;
 		LinearLayout messageBox;
 	}
+
+
 	
 }

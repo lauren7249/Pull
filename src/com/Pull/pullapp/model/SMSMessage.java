@@ -146,4 +146,29 @@ public class SMSMessage extends ParseObject {
 		this.sentByMe = s;
 		put("sentByMe",sentByMe);
 	}
+	
+    @Override
+    public int hashCode() {
+        return (smsSender+smsRecipient+smsMessage+Long.toString(smsDate)).hashCode();
+    }	
+    
+    @Override
+    public boolean equals(Object obj) {
+    	SMSMessage m=(SMSMessage)obj;
+    	if(m == null) return false;
+    	if((m.smsSender == null) != (this.smsSender == null)) return false;
+    	if((m.smsRecipient == null) != (this.smsRecipient == null)) return false;
+    	if((m.smsMessage == null) != (this.smsMessage == null)) return false;
+    	if(m.smsSender!=null && this.smsSender!=null) {
+    		if(!m.smsSender.equals(this.smsSender)) return false;
+    	}
+    	if(m.smsRecipient!=null && this.smsRecipient!=null) {
+    		if(!m.smsRecipient.equals(this.smsRecipient)) return false;
+    	}
+    	if(m.smsMessage!=null && this.smsMessage!=null) {
+    		if(!m.smsMessage.equals(this.smsMessage)) return false;
+    	}
+    	if(m.smsDate != this.smsDate) return false;
+		return true;
+    }    
 }

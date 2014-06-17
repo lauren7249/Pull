@@ -44,7 +44,7 @@ import com.Pull.pullapp.util.RecipientList.Recipient;
 public class RecipientsEditor extends MultiAutoCompleteTextView {
     private int mLongPressedPosition = -1;
     private final RecipientsEditorTokenizer mTokenizer;
-
+   
     public RecipientsEditor(Context context, AttributeSet attrs) {
         super(context, attrs, android.R.attr.autoCompleteTextViewStyle);
         mTokenizer = new RecipientsEditorTokenizer(context, this);

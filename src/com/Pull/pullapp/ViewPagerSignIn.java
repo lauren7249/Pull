@@ -49,6 +49,7 @@ import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.model.GraphUser;
 import com.facebook.widget.ProfilePictureView;
+import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.LogInCallback;
 import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
@@ -81,6 +82,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	private String mPasswordString;
 	private BroadcastReceiver mBroadcastReceiver;
 	private ProgressDialog progress;
+	private MixpanelAPI mixpanel;
 	
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -209,7 +211,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 		ParseFacebookUtils.logIn(permissions,this, new LogInCallback() {
 			  @Override
 			  public void done(ParseUser user, ParseException err) {
-			    if (user == null) {
+			    if (user == null) {  
 			       Log.d("MyApp", "Uh oh. The user cancelled the Facebook login.");
 			       if(err != null) {
 				       Log.i("errorcode from login","code "+ err.getCode());
@@ -233,13 +235,11 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 					Session session = ParseFacebookUtils.getSession();
 					if (session != null && session.isOpened()) {
 						makeMeRequest(session, v); 
-					} 						
-					/**
-				    Intent mIntent = new Intent(mContext, ThreadsListActivity.class);
-			    	startActivity(mIntent);  		**/    			    	
+					} 						  			    	
 			    }
 			  }
-			});				
+			});			
+		mixpanel = MixpanelAPI.getInstance(mContext, Constants.MIXEDPANEL_TOKEN);
 	}
 	
 	public void anonymousLogin(View v, boolean showdialog){
@@ -396,5 +396,9 @@ public class ViewPagerSignIn extends BaseSampleActivity {
         }    
         return false;
     }
-		
+	@Override
+	protected void onDestroy() {
+	    mixpanel.flush();
+	    super.onDestroy();
+	}	  		
 }

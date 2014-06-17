@@ -1,6 +1,7 @@
 package com.Pull.pullapp.util;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -67,6 +68,12 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
             String recipient = intent.getStringExtra(Constants.EXTRA_RECIPIENT);
             String message = intent.getStringExtra(Constants.EXTRA_MESSAGE_BODY);
             SendMessages.sendsms(context, recipient, message, 0, false);
+            return;
+        }          
+        
+        if (action.equals(Constants.ACTION_DAILY_SHARE_SUGGESTION)) {
+        	Log.i(Constants.ACTION_DAILY_SHARE_SUGGESTION,"Daily share suggestion triggered");
+        	new DailyShareSuggestion(context).start();
             return;
         }          
         
@@ -197,7 +204,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	    		  if(exception == null && message_list.size()>0) {
 	    			 // Log.i("got it","found messages!");
 	    			 // Log.i("messages in comvo",message_list.size() + " messages in convo");
-	    			  s.setMessages((ArrayList<SMSMessage>) message_list);
+	    			  s.setMessages((HashSet<SMSMessage>) message_list);
 	    			  getCommentsFromConvo(s, true);
 	    		  }
 	    	  }

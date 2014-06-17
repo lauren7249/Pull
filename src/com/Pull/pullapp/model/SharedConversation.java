@@ -1,8 +1,7 @@
 package com.Pull.pullapp.model;
 
 import java.util.ArrayList;
-
-import org.json.JSONArray;
+import java.util.HashSet;
 
 import com.Pull.pullapp.util.ContentUtils;
 import com.parse.ParseClassName;
@@ -14,11 +13,11 @@ public class SharedConversation extends ParseObject {
 	private String confidante, original_recipient, sharer;
 	private int type;
 	private long date_shared;
-	private ArrayList<SMSMessage> conversation = new ArrayList<SMSMessage>();
+	private HashSet<SMSMessage> conversation = new HashSet<SMSMessage>();
 	private ArrayList<String> sms_ids = new ArrayList<String>();
 	private ArrayList<Comment> comments = new ArrayList<Comment>();
 	private String originalRecipientName;
-	
+
 	public SharedConversation() {
 	}
 	
@@ -75,6 +74,7 @@ public class SharedConversation extends ParseObject {
 
 	
 	public void addMessage(SMSMessage sms) {
+		if(conversation.contains(sms)) return;
 		sms.put("parent", this);
 		conversation.add(sms);
         		
@@ -91,7 +91,7 @@ public class SharedConversation extends ParseObject {
 		}
 		return sms_ids;
 	}	
-	public ArrayList<SMSMessage> getMessages(){
+	public HashSet<SMSMessage> getMessages(){
 		return conversation;
 	}
 
@@ -116,7 +116,7 @@ public class SharedConversation extends ParseObject {
 		
 	}
 
-	public void setMessages(ArrayList<SMSMessage> messages) {
+	public void setMessages(HashSet<SMSMessage> messages) {
 		this.conversation = messages;
 		for(SMSMessage c : messages) {
 			c.put("parent", this);

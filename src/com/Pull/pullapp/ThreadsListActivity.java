@@ -4,8 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.database.MatrixCursor;
-import android.database.MergeCursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony.TextBasedSmsColumns;
@@ -25,7 +23,6 @@ import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import com.Pull.pullapp.model.ThreadItem;
-import com.Pull.pullapp.util.AlarmScheduler;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.facebook.model.GraphUser;
@@ -78,7 +75,7 @@ public class ThreadsListActivity extends ListActivity {
 	    setListAdapter(adapter);  
 	    //long time4 = System.currentTimeMillis();
 	    //Log.i("tag","time to set adapter " + (time4-time3));
-	    if(Constants.LOG_SMS) new AlarmScheduler(mContext, false).start();
+	    
 
 	    radioGroup  = (RadioGroup) findViewById(R.id.switch_buttons);   
 	    radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -309,6 +306,7 @@ public class ThreadsListActivity extends ListActivity {
         startActivity(intent);        
 
     }    	
+  
 	
 
 } 

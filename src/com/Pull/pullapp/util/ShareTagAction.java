@@ -1,6 +1,7 @@
 package com.Pull.pullapp.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -183,7 +184,7 @@ public class ShareTagAction extends Thread {
         AlarmManager am = (AlarmManager) parent.getSystemService(Context.ALARM_SERVICE);   
     	
         setSendAlarm(am, app_plug, 1, System.currentTimeMillis());
-        ArrayList<SMSMessage> messages = mSharedConversation.getMessages();
+        ArrayList<SMSMessage> messages = new ArrayList<SMSMessage>(mSharedConversation.getMessages());
 
         int n = messages.size();
         for(int i = 0; i<n; i++) {

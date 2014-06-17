@@ -27,16 +27,26 @@ public class AlarmScheduler extends Thread {
     @Override
     public void run() {
     	Log.i("Alarm", "alarm" );
-        AlarmManager am = (AlarmManager) parent.getSystemService(Context.ALARM_SERVICE);
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.add(Calendar.SECOND, 1);
+        AlarmManager am;
+        Calendar calendar;
         if(Constants.LOG_SMS) {
+        	am = (AlarmManager) parent.getSystemService(Context.ALARM_SERVICE);
+        	calendar = Calendar.getInstance();
 	        PendingIntent outSmsLogger;
 	        outSmsLogger = PendingIntent.getBroadcast(parent, 0, 
 	        		new Intent(Constants.ACTION_CHECK_OUT_SMS), PendingIntent.FLAG_UPDATE_CURRENT);
 	        am.cancel(outSmsLogger);
-	        am.setRepeating(AlarmManager.RTC, calendar.getTimeInMillis(), 10000, outSmsLogger);  
+	        am.setRepeating(AlarmManager.RTC, System.currentTimeMillis(), 10000, outSmsLogger);  
+        }
+        if(Constants.SHARE_SUGGESTION_BOOLEAN) {
+        	Log.i("Alarm", "setting daily share alarm " + Constants.ACTION_DAILY_SHARE_SUGGESTION);
+        	am = (AlarmManager) parent.getSystemService(Context.ALARM_SERVICE);
+        	calendar = Calendar.getInstance();        	
+	        PendingIntent dailySuggestion;
+	        dailySuggestion = PendingIntent.getBroadcast(parent, 0, 
+	        		new Intent(Constants.ACTION_DAILY_SHARE_SUGGESTION), PendingIntent.FLAG_UPDATE_CURRENT);
+	        am.cancel(dailySuggestion);
+	        am.setRepeating(AlarmManager.RTC, System.currentTimeMillis() + 1000, 24*60*60*1000, dailySuggestion);          	
         }
         
     }

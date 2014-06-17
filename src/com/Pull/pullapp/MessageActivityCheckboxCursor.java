@@ -51,6 +51,8 @@ import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
 import com.Pull.pullapp.util.DelayedSend;
+import com.Pull.pullapp.util.RecipientList;
+import com.Pull.pullapp.util.RecipientList.Recipient;
 import com.Pull.pullapp.util.RecipientsAdapter;
 import com.Pull.pullapp.util.RecipientsEditor;
 import com.Pull.pullapp.util.ShareTagAction;
@@ -107,6 +109,8 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	private Cursor messages_cursor;
 	private MessageAdapter queue_adapter;
 	private MergeAdapter merge_adapter;
+	private String share_with;
+	private String share_with_name;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -138,6 +142,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			name =  getIntent().getStringExtra(Constants.EXTRA_NAME); 
 			thread_id = getIntent().getStringExtra(Constants.EXTRA_THREAD_ID); 
 			
+			
 			if(number!=null && name!=null) {
 				populateMessages();
 				
@@ -152,6 +157,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 				mRecipientEditor = (RecipientsEditor) getSupportActionBar().getCustomView().findViewById(R.id.recipients_editor);
 				mRecipientEditor.setAdapter(mRecipientsAdapter);
 			}
+			
 		}		
 		mTextIndicatorButton = (ImageButton) findViewById(R.id.textIndicatorButton);
 		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
@@ -159,7 +165,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			public void onClick(View v) {
 				popup = new SimplePopupWindow(v);
 				popup.showLikePopDownMenu();
-				popup.setMessage("Write more! You haven't said enough");
+				popup.setMessage("You haven't said anything yet");
 			}
 		});
 		
@@ -373,6 +379,17 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 				} 
 			}
 		});				
+		
+		share_with = getIntent().getStringExtra(Constants.EXTRA_SHARE_TO_NUMBER);
+		share_with_name = ContentUtils.getContactDisplayNameByNumber(mContext, share_with);
+		if(share_with != null) {
+			adapter.showCheckboxes = true;
+			isChecked = true;
+			viewSwitcher.setDisplayedChild(1);	
+			mConfidantesEditor.setText(share_with);
+			recipients = mConfidantesEditor.constructContactsFromInput(false).getNumbers();
+			mConfidantesEditor.setText(Recipient.buildNameAndNumber(share_with_name, share_with));
+		}		
 
 	}
 	
@@ -512,9 +529,10 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
             
         	text.setText("");
         	newMessage = "";
-        	if(sendDate!=null&&calendar.getTime().before(sendDate)) {
+        	if(sendDate!=null && calendar.getTime().before(sendDate)) {
         		pickDelay.setText(R.string.compose_select_time);
         		sendDate = null; 
+        		//TODO: MAKE IT SO THAT YOU CANT DO THE PAST
         	}
             
             
@@ -553,7 +571,12 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
     public void getShareContent() {
 		final long date = System.currentTimeMillis();
 		
-		recipients = mConfidantesEditor.constructContactsFromInput(false).getToNumbers();
+		if(mConfidantesEditor.constructContactsFromInput(false).getNumbers().length==0 && recipients.length==0) {
+			Toast.makeText(mContext, "No valid recipients selected", Toast.LENGTH_LONG).show();
+			return;
+		}
+		if(mConfidantesEditor.constructContactsFromInput(false).getNumbers().length>0) 
+			recipients = mConfidantesEditor.constructContactsFromInput(false).getToNumbers();
 		hashtags_string = hashtag.getText().toString().trim(); 
 		
 		mApp = (MainApplication) getApplication(); 
@@ -692,8 +715,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 
   }		
 	private void hideKeyboard(){
-		getWindow().setSoftInputMode(
-			      WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 		imm.hideSoftInputFromWindow(text.getWindowToken(), 0);		
 		
