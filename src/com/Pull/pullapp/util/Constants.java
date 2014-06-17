@@ -114,7 +114,7 @@ public class Constants {
 	public static final String ACTION_COMPLETE_SIGNUP = PACKAGE_NAME + "util.ACTION_COMPLETE_SIGNUP";
 	
 	
-	
+	public static final String MIXEDPANEL_TOKEN = "921bc5e3a1bac45c27da39e992f09da7";
 	
 	
 	

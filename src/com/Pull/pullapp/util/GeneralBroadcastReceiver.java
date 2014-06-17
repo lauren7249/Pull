@@ -77,7 +77,8 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
                 String convoID = json.getString("convoID");
                 int type = json.getInt("type");
                 String person_shared = json.getString("person_shared");
-                
+                db = new DatabaseHandler(context);
+                if(!db.contains(convoID)) type = Constants.NOTIFICATION_NEW_SHARE;
                 switch(type) {
                 case(Constants.NOTIFICATION_NEW_SHARE):
                 	getNewConvoFromParse(convoID);
@@ -85,7 +86,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
                 	return;
                 case(Constants.NOTIFICATION_UPDATE_SHARE):
                 	JSONArray sms_ids = json.getJSONArray("message_ids");
-                	getExistingConvoFromParse(sms_ids);
+                	getExistingConvoFromParse(sms_ids, convoID);
                 	notifyNewShare(context, convoID, person_shared); 
                 	return;
                 default:
@@ -156,7 +157,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         return messages;
 	}
     
-	private void getExistingConvoFromParse(JSONArray sms_ids) {
+	private void getExistingConvoFromParse(JSONArray sms_ids, final String convoID) {
 		Log.i("","existing conversation ids to search " + sms_ids.toString());
     	ParseQuery<SMSMessage> messages = ParseQuery.getQuery(SMSMessage.class);
     	messages.whereContainedIn("objectId", convertJSON(sms_ids));
@@ -164,6 +165,9 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
     	  public void done(List<SMSMessage> message_list, ParseException exception) {
     		  if(exception == null && message_list.size()>0) {
     			  Log.i("got it","found messages from existing conversation " + message_list.size());
+    			  db = new DatabaseHandler(mContext);
+    			  db.addSharedMessages(convoID, message_list);
+    			  db.close();
     		  }
     	  }
     	});
@@ -181,6 +185,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
     			  //sharedConvo.setObjectId(sharedConvo.getObjectId());
     			  //Log.i("got it","found conversation with id " + sharedConvo.getObjectId());
     			  getMessagesFromConvo(sharedConvo, true);
+    			  
     		  }
     	  }
 
@@ -189,11 +194,11 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	    	messages.whereEqualTo("parent", s);
 	    	messages.findInBackground(new FindCallback<SMSMessage>() {
 	    	  public void done(List<SMSMessage> message_list, ParseException exception) {
-	    		  if(exception == null && message_list != null) {
+	    		  if(exception == null && message_list.size()>0) {
 	    			 // Log.i("got it","found messages!");
 	    			 // Log.i("messages in comvo",message_list.size() + " messages in convo");
 	    			  s.setMessages((ArrayList<SMSMessage>) message_list);
-	    			  if(isNew) saveNewShare(mContext);
+	    			  getCommentsFromConvo(s, true);
 	    		  }
 	    	  }
 	    	});
@@ -201,9 +206,26 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
     	});
 	}
 
-	private void saveNewShare(Context context) {
+	protected void getCommentsFromConvo(final SharedConversation s,
+			boolean isNew) {
+    	ParseQuery<Comment> messages = ParseQuery.getQuery(Comment.class);
+    	messages.whereEqualTo("parent", s);
+    	messages.findInBackground(new FindCallback<Comment>() {
+    	  public void done(List<Comment> comment_list, ParseException exception) {
+    		  if(exception == null && comment_list.size()>0) {
+    			 // Log.i("got it","found messages!");
+    			 // Log.i("messages in comvo",message_list.size() + " messages in convo");
+    			  s.setComments((ArrayList<Comment>) comment_list);
+    			  saveNewShare(mContext,s);
+    		  }
+    	  }
+    	});
+	}
+
+
+	private void saveNewShare(Context context, SharedConversation s) {
 		db = new DatabaseHandler(context);
-		db.addSharedConversation(sharedConvo);
+		db.addSharedConversation(s);
 		db.close();
 	}
 	private void saveNewComment(Context context, String convoID) {

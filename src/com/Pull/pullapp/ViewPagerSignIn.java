@@ -8,7 +8,6 @@ import java.util.List;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -42,7 +41,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.Pull.pullapp.model.FacebookUser;
-import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.facebook.FacebookRequestError;
@@ -114,6 +112,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	    mSerialNumber = tMgr.getSimSerialNumber();
 	    mApp = (MainApplication) this.getApplication();   
 	    
+	    mUserID.setText(mPhoneNumber);
 
 	 // Find the user's profile picture custom view
 	    profilePictureView = (ProfilePictureView) findViewById(R.id.selection_profile_pic);
@@ -144,13 +143,8 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	    }
 		mParseUser = ParseUser.getCurrentUser();
 		if (mApp.isSignedIn() && mParseUser.isAuthenticated()) {
-		    // Fetch Facebook user info if the session is active
-			Session session = ParseFacebookUtils.getSession();
-			if (session != null && session.isOpened()) {
-				makeMeRequest(session); 
-			} 							
-	    	Intent mIntent = new Intent(mContext, ThreadsListActivity.class);
-	    	startActivity(mIntent);	    	
+		    Intent mIntent = new Intent(mContext, ThreadsListActivity.class);
+	    	startActivity(mIntent); 						 	
 	    }
 
 	    // Dirty Hack to detect keyboard
@@ -220,10 +214,12 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 			       if(err != null) {
 				       Log.i("errorcode from login","code "+ err.getCode());
 				       if(err.getCode() == ParseException.OTHER_CAUSE) {
-				    	   anonymousLogin(v);					    	   
+				    	   				    	   
 				       }
 			       }
+			       anonymousLogin(v,true);	
 			    } else {
+			    	
 			    	Log.i("signin.facebooklogin","able to login through fb");
 			    	mParseUser = user;
 				    if (user.isNew()) {
@@ -236,20 +232,21 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 				    // Fetch Facebook user info if the session is active
 					Session session = ParseFacebookUtils.getSession();
 					if (session != null && session.isOpened()) {
-						makeMeRequest(session); 
-					} 						    
+						makeMeRequest(session, v); 
+					} 						
+					/**
 				    Intent mIntent = new Intent(mContext, ThreadsListActivity.class);
-			    	startActivity(mIntent);  		    			    	
+			    	startActivity(mIntent);  		**/    			    	
 			    }
 			  }
 			});				
 	}
 	
-	public void anonymousLogin(View v){
+	public void anonymousLogin(View v, boolean showdialog){
         progress = new ProgressDialog(this);
         progress.setTitle("Signing Up");
         progress.setMessage("Signing up...");
-        progress.show();		
+        if(showdialog) progress.show();		
 		if(mUserID.getText().toString() != null) {
 			mPhoneNumber = mUserID.getText().toString();
 			if(!PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber)) {
@@ -274,7 +271,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 		mSignInButton.setVisibility(View.GONE);
 		mGenericSignInButton.setVisibility(View.VISIBLE);
 		mGenericSignInButton.setText("Sign Up");
-		mUserID.setText(mPhoneNumber);
+		
 		if(!PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber)) {
 			mAssurance.setText("Confirm Phone Number");
 			mUserID.setVisibility(View.VISIBLE);
@@ -338,11 +335,12 @@ public class ViewPagerSignIn extends BaseSampleActivity {
             ParseFacebookUtils.finishAuthentication(requestCode, resultCode, data);		
 		super.onActivityResult(requestCode, resultCode, data);
 	}	
-	private void makeMeRequest(Session session) {
+	private void makeMeRequest(Session session, final View v) {
 		Request request = Request.newMeRequest(session,
 				new Request.GraphUserCallback() {
 					@Override
 					public void onCompleted(GraphUser user, Response response) {
+						anonymousLogin(v, false);	
 						if (user != null) {
 							Log.d("tag","Found graph user");
 							augmentProfile(user);

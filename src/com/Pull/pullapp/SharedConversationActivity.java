@@ -266,6 +266,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 		super.onResume();
 		
 		sharedConversation = dbHandler.getSharedConversation(sharedConversationId);
+		if(sharedConversation == null) Log.i("shared convo is null", sharedConversationId);
 		mOriginalRecipientName = sharedConversation.getOriginalRecipientName();
 		commentList = dbHandler.getComments(sharedConversationId);
 		if(commentList.size()>0) {

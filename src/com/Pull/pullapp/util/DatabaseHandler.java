@@ -323,6 +323,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		return(getSharedConversation(id)!=null) ;
 	}
 
+	public void addSharedMessages(String convoID, List<SMSMessage> message_list) {
+		if(contains(convoID)) for(SMSMessage m : message_list) {
+			addSharedMessage(convoID, m);
+		}
+	}
+
+	public boolean contains(String convoID) {
+		return(getSharedConversation(convoID)!=null) ;
+	}
+
 
  
 

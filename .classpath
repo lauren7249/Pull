@@ -9,8 +9,10 @@
 	<classpathentry kind="lib" path="libs/adapter-1.0.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/merge-1.0.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/sacklist-1.0.0.jar"/>
-	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/FacebookSDK"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/mixpanel-android"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

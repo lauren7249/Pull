@@ -25,6 +25,7 @@ import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.facebook.model.GraphUser;
+import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.FindCallback;
 import com.parse.LogInCallback;
 import com.parse.Parse;
@@ -63,7 +64,7 @@ public class MainApplication extends Application {
 		
 		PushService.setDefaultPushCallback(this, ViewPagerSignIn.class); 	
 	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();		    
-
+	    MixpanelAPI mixpanel = MixpanelAPI.getInstance(getBaseContext(), Constants.MIXEDPANEL_TOKEN);
 	}
 	
 	public void setSignedIn(boolean signedIn, String Name, String Password) {
