@@ -46,6 +46,7 @@ import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
 import com.Pull.pullapp.model.SMSMessage;
+import com.Pull.pullapp.model.ShareSuggestion;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
@@ -110,6 +111,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	private MergeAdapter merge_adapter;
 	private String share_with;
 	private String share_with_name;
+	protected ShareSuggestion suggestion;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -381,6 +383,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		
 		share_with = getIntent().getStringExtra(Constants.EXTRA_SHARE_TO_NUMBER);
 		share_with_name = ContentUtils.getContactDisplayNameByNumber(mContext, share_with);
+		String shID = getIntent().getStringExtra(Constants.EXTRA_SHARE_SUGGESTION_ID);
 		if(share_with != null) {
 			adapter.showCheckboxes = true;
 			isChecked = true;
@@ -391,6 +394,22 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			for(int i = adapter.getCount()-1; i>adapter.getCount()-4; i--) adapter.setChecked(i);
 			adapter.notifyDataSetChanged();
 			merge_adapter.notifyDataSetChanged();
+			if(shID != null) {
+				ParseQuery<ShareSuggestion> query = ParseQuery.getQuery("ShareSuggestion");
+				query.whereEqualTo("objectId", shID);
+		    	query.findInBackground(new FindCallback<ShareSuggestion>() {
+		    	    public void done(List<ShareSuggestion> list, ParseException e) {
+		    	        if (e == null && list.size()>0) {
+		    	        	suggestion = list.get(0);
+		    	        	suggestion.setClicked(System.currentTimeMillis());
+		    	        	suggestion.saveInBackground();
+		    	        } else {
+		    	        	return;
+		    	        }
+		    	    }
+		    	});    	
+			}
+
 		}		
 
 	}
@@ -641,6 +660,10 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
         progress.setTitle("Sharing conversation");
         progress.setMessage("Sending...");
         progress.show();    
+        if(suggestion != null) {
+        	suggestion.setSharedConvo(mSharedConversation);  
+        	suggestion.saveInBackground();
+        }
 		
 	}
 

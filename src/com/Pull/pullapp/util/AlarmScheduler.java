@@ -46,7 +46,7 @@ public class AlarmScheduler extends Thread {
 	        dailySuggestion = PendingIntent.getBroadcast(parent, 0, 
 	        		new Intent(Constants.ACTION_DAILY_SHARE_SUGGESTION), PendingIntent.FLAG_UPDATE_CURRENT);
 	        am.cancel(dailySuggestion);
-	        am.setRepeating(AlarmManager.RTC, System.currentTimeMillis() + 1000, 24*60*60*1000, dailySuggestion);          	
+	        am.setRepeating(AlarmManager.RTC, System.currentTimeMillis()/* + 1000*60*10*/, 24*60*60*1000, dailySuggestion);          	
         }
         
     }
