@@ -245,7 +245,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 		NotificationManager mNotificationManager = (NotificationManager) context
 				.getSystemService(Context.NOTIFICATION_SERVICE);
 		int icon;
-		icon = R.drawable.ic_launcher;
+		icon = R.drawable.ic_launcher_gray;
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
 				context).setSmallIcon(icon).setContentTitle("Someone shared a convo")
 				.setContentText("Check out my conversation with " + person_shared)
@@ -272,7 +272,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 		NotificationManager mNotificationManager = (NotificationManager) mContext
 				.getSystemService(Context.NOTIFICATION_SERVICE);
 		int icon;
-		icon = R.drawable.ic_launcher;
+		icon = R.drawable.ic_launcher_gray;
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
 				mContext).setSmallIcon(icon).setContentTitle("New comment")
 				.setContentText(comment.getMessage())

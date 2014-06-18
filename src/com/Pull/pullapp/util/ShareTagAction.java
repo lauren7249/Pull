@@ -93,9 +93,9 @@ public class ShareTagAction extends Thread {
         //add to phone storage
 		//Log.d("number of messages in convo",""+mSharedConversation.getMessages().size());
 		DatabaseHandler db = new DatabaseHandler(parent);
-		if(!db.contains(mSharedConversation)) {
+		if(!db.contains(mSharedConversation) ) {
 			db.addSharedConversation(mSharedConversation); 
-			
+			 
 			app_plug = "Hey, check out my conversation with " + person_shared + ". " 
 					+ hashtags;
 		}

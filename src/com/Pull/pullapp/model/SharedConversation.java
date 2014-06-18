@@ -74,7 +74,7 @@ public class SharedConversation extends ParseObject {
 
 	
 	public void addMessage(SMSMessage sms) {
-		if(conversation.contains(sms)) return;
+		if(conversation.contains(sms) || sms == null) return;
 		sms.put("parent", this);
 		conversation.add(sms);
         		

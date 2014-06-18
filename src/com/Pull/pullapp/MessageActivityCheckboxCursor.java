@@ -51,7 +51,6 @@ import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
 import com.Pull.pullapp.util.DelayedSend;
-import com.Pull.pullapp.util.RecipientList;
 import com.Pull.pullapp.util.RecipientList.Recipient;
 import com.Pull.pullapp.util.RecipientsAdapter;
 import com.Pull.pullapp.util.RecipientsEditor;
@@ -389,6 +388,9 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			mConfidantesEditor.setText(share_with);
 			recipients = mConfidantesEditor.constructContactsFromInput(false).getNumbers();
 			mConfidantesEditor.setText(Recipient.buildNameAndNumber(share_with_name, share_with));
+			for(int i = adapter.getCount()-1; i>adapter.getCount()-4; i--) adapter.setChecked(i);
+			adapter.notifyDataSetChanged();
+			merge_adapter.notifyDataSetChanged();
 		}		
 
 	}
@@ -608,9 +610,12 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		Iterator it = adapter.check_hash.entrySet().iterator();
 		while(it.hasNext()){
 			Map.Entry pairs = (Map.Entry)it.next();
-			mSharedConversation.addMessage((SMSMessage) pairs.getValue());
+			SMSMessage m = (SMSMessage) pairs.getValue();
+			if(m != null) {
+				if(m.getMessage()!=null) mSharedConversation.addMessage(m);
+			}
 		}
-        if (hashtags_string.length()>0) for(String h : hashtags_string.split(",")) {
+       /** if (hashtags_string.length()>0) for(String h : hashtags_string.split(",")) {
         	h = h.trim();
         	if(!h.isEmpty()) {
         		SMSMessage ht = new SMSMessage();
@@ -621,18 +626,21 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	        	
         	}
         }
-        Log.d("number of messages in convo",""+mSharedConversation.getMessages().size());
-		if(recipients.length>0 && mSharedConversation.getMessages().size()>0)
-		{
-            new ShareTagAction(mContext, mSharedConversation, shareType).start();					
-            share.setClickable(false);
-            progress = new ProgressDialog(this);
-            progress.setTitle("Sharing conversation");
-            progress.setMessage("Sending...");
-            progress.show();
-                       
-	        
-		}        
+        Log.d("number of messages in convo",""+mSharedConversation.getMessages().size());**/
+		if(recipients.length == 0) {
+			Toast.makeText(mContext, "No recipients", Toast.LENGTH_LONG).show();
+			return;
+		}
+		if(mSharedConversation.getMessages().size() == 0) {
+			Toast.makeText(mContext, "No messages selected", Toast.LENGTH_LONG).show();
+			return;
+		}
+        new ShareTagAction(mContext, mSharedConversation, shareType).start();					
+        share.setClickable(false);
+        progress = new ProgressDialog(this);
+        progress.setTitle("Sharing conversation");
+        progress.setMessage("Sending...");
+        progress.show();    
 		
 	}
 

@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.widget.CursorAdapter;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -48,6 +49,8 @@ public class MessageCursorAdapter extends CursorAdapter {
     	date = c.getLong(6);
     	message = new SMSMessage(date, body, address, type);
 		
+    	if(check_hash.containsKey(position)) check_hash.put(position, message);
+    	
 		final ViewHolder holder; 
 		holder = (ViewHolder) v.getTag();
 		holder.messageBox = (LinearLayout) v.findViewById(R.id.message_box);
@@ -144,6 +147,8 @@ public class MessageCursorAdapter extends CursorAdapter {
     	date = c.getLong(6);
     	message = new SMSMessage(date, body, address, type);
 		
+    	if(check_hash.containsKey(position)) check_hash.put(position, message);
+    	
     	//TODO: ADD BACK IN
     	if(!SmsMessageId.equals("")) {
         	ContentValues values = new ContentValues();
@@ -214,6 +219,9 @@ public class MessageCursorAdapter extends CursorAdapter {
 		LinearLayout messageBox;
 		CheckBox box;
 		Button edit;
+	}
+	public void setChecked(int i) {
+		check_hash.put(i, null);
 	}
 
 }

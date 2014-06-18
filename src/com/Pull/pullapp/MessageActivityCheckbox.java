@@ -63,6 +63,7 @@ import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
 
+@Deprecated
 public class MessageActivityCheckbox extends SherlockListActivity {
 
 	private ArrayList<SMSMessage> messages;

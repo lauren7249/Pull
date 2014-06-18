@@ -129,6 +129,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
 	}    
     public void addSharedMessage(String convo_id, SMSMessage msg) {
+    	if(msg == null) return;
+    	if(msg.getMessage() == null) return;
         ContentValues values = new ContentValues();
         int type;
         if(msg.isSentByMe()) type = TextBasedSmsColumns.MESSAGE_TYPE_SENT;
@@ -153,6 +155,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.insert(TABLE_SHARED_CONVERSATION_COMMENTS, null, values);
     }    
     
+    public boolean exists(String convo_id) {
+        Cursor cursor = db.query(TABLE_SHARED_CONVERSATIONS, new String[] {KEY_ID}, 
+                KEY_ID + "=?",
+                new String[] { convo_id }, null, null, null, null);
+        if(cursor.moveToFirst()) {
+        	cursor.close();
+        	return true;
+        }
+        cursor.close();
+        return false;
+    }    
  
     public SharedConversation getSharedConversation(String convo_id) {
         Cursor cursor = db.query(TABLE_SHARED_CONVERSATIONS, new String[] { KEY_ID, KEY_DATE,
@@ -321,7 +334,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 	public boolean contains(SharedConversation shared) {
 		String id = shared.getObjectId();
-		return(getSharedConversation(id)!=null) ;
+		return(exists(id)) ;
 	}
 
 	public void addSharedMessages(String convoID, List<SMSMessage> message_list) {
@@ -331,7 +344,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	}
 
 	public boolean contains(String convoID) {
-		return(getSharedConversation(convoID)!=null) ;
+		return(exists(convoID)) ;
 	}
 
 
