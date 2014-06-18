@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -260,7 +261,11 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 				ni, PendingIntent.FLAG_CANCEL_CURRENT);
 		mBuilder.setContentIntent(pi);
 		mBuilder.setAutoCancel(true);
-		mNotificationManager.notify(777, mBuilder.build());
+		Notification notification = mBuilder.build();
+		notification.defaults|= Notification.DEFAULT_SOUND;
+		notification.defaults|= Notification.DEFAULT_LIGHTS;
+		notification.defaults|= Notification.DEFAULT_VIBRATE;		
+		mNotificationManager.notify(777, notification);
 		
 	}
 	private void notifyNewComment(String convoID) {
@@ -283,7 +288,11 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 				ni, PendingIntent.FLAG_CANCEL_CURRENT);
 		mBuilder.setContentIntent(pi);
 		mBuilder.setAutoCancel(true);
-		mNotificationManager.notify(777, mBuilder.build());
+		Notification notification = mBuilder.build();
+		notification.defaults|= Notification.DEFAULT_SOUND;
+		notification.defaults|= Notification.DEFAULT_LIGHTS;
+		notification.defaults|= Notification.DEFAULT_VIBRATE;		
+		mNotificationManager.notify(777, notification);
 		
 	}
 	private boolean messagedAfterLaunch(Context context, String address, long launchTime) {

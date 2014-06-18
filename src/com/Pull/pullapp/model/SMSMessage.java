@@ -152,6 +152,7 @@ public class SMSMessage extends ParseObject {
         return (smsSender+smsRecipient+smsMessage+Long.toString(smsDate)).hashCode();
     }	
     
+    
     @Override
     public boolean equals(Object obj) {
     	SMSMessage m=(SMSMessage)obj;

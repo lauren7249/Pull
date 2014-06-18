@@ -1,16 +1,15 @@
 package com.Pull.pullapp.util;
 
-import com.Pull.pullapp.MessageActivityCheckboxCursor;
-import com.Pull.pullapp.R;
-import com.Pull.pullapp.SharedConversationActivity;
-
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import android.telephony.PhoneNumberUtils;
-import android.util.Log;
+
+import com.Pull.pullapp.MessageActivityCheckboxCursor;
+import com.Pull.pullapp.R;
 
 public class DailyShareSuggestion extends Thread {
     private Context mContext;
@@ -41,11 +40,11 @@ public class DailyShareSuggestion extends Thread {
 		int icon;
 		icon = R.drawable.ic_launcher;
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
-				mContext).setSmallIcon(icon).setContentTitle("Share This!")
-				.setContentText("Consider sharing your latest text from " + shared_from_name + " with " 
-				+ best_friend_name)
+				mContext).setSmallIcon(icon).setContentTitle("Share this with " + best_friend_name + "!")
+				.setContentText("Show " + best_friend_name + " your conversation with " + shared_from_name)
 				.setPriority(NotificationCompat.PRIORITY_DEFAULT)
 				.setOnlyAlertOnce(true);
+		
 		// TODO: Optional light notification.
 		Intent ni = new Intent(mContext, MessageActivityCheckboxCursor.class);
 		ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -59,7 +58,11 @@ public class DailyShareSuggestion extends Thread {
 				ni, PendingIntent.FLAG_CANCEL_CURRENT);
 		mBuilder.setContentIntent(pi);
 		mBuilder.setAutoCancel(true);
-		mNotificationManager.notify(777, mBuilder.build());
+		Notification notification = mBuilder.build();
+		notification.defaults|= Notification.DEFAULT_SOUND;
+		notification.defaults|= Notification.DEFAULT_LIGHTS;
+		notification.defaults|= Notification.DEFAULT_VIBRATE;		
+		mNotificationManager.notify(777, notification);
 
 		
 	}

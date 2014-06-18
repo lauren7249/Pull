@@ -3,6 +3,7 @@ package com.Pull.pullapp.util;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import android.content.ContentValues;
@@ -11,7 +12,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.Telephony.TextBasedSmsColumns;
-import android.util.Log;
 
 import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.SMSMessage;
@@ -210,11 +210,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }    
     
     private HashSet<SMSMessage> getMessages(String convo_id) {
-    	HashSet<SMSMessage> messages = new HashSet<SMSMessage>();
+    	LinkedHashSet<SMSMessage> messages = new LinkedHashSet<SMSMessage>();
         Cursor cursor = db.query(TABLE_SHARED_CONVERSATION_SMS, null, KEY_ID + "=?",
-                new String[] { convo_id }, null, null, KEY_DATE + " DESC", null);
+                new String[] { convo_id }, null, null, KEY_DATE , null);
         // looping through all rows and adding to list
-        if (cursor.moveToLast()) {
+        if (cursor.moveToFirst()) {
             do {
             	SMSMessage m = new SMSMessage();
             	m.setDate(cursor.getLong(1));
@@ -225,7 +225,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             		//Log.i("dbhandler","retrieved a hashtag");
             	}
             	messages.add(m);
-            } while (cursor.moveToPrevious());
+            } while (cursor.moveToNext());
         }
 
         return messages;
