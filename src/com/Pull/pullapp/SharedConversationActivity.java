@@ -107,7 +107,9 @@ public class SharedConversationActivity extends SherlockActivity implements
 	    hint = (TextView) findViewById(R.id.hint);
 	    
 	    sharedConversation = dbHandler.getSharedConversation(sharedConversationId);
-	    if(sharedConversation == null) Log.i("shared convo is null", sharedConversationId);
+	    if(sharedConversation == null) {
+	    	Log.i("shared convo is null", sharedConversationId);
+	    }
 	    //if (sharedConversation.getType()==TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
 	    if(ContentUtils.addCountryCode(sharedConversation.getSharer()) 
 	    		.equals(ContentUtils.addCountryCode(mApp.getUserName()))) { 
@@ -292,7 +294,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 		registerReceiver(tickReceiver,intentFilter);	
 		
 		if(isEmpty) {
-			hint.setText("Write a comment to " + confidanteName);
+			hint.setText("Write a comment to " + recipientName);
 			hint.setVisibility(View.VISIBLE);
 			sharedConversationCommentListView.setVisibility(View.GONE);
 		}

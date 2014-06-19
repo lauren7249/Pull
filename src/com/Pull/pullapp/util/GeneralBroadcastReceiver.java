@@ -186,12 +186,11 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
     	convo.whereEqualTo("objectId", convoID);
     	convo.findInBackground(new FindCallback<SharedConversation>() {
     	  public void done(List<SharedConversation> conversations, ParseException exception) {
-    		  if(exception == null && conversations.size()==1) {
-    			  
+    		  if(exception == null && conversations.size()>0) {
     			  sharedConvo = conversations.get(0);
     			  sharedConvo.setType(TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
-    			  //sharedConvo.setObjectId(sharedConvo.getObjectId());
-    			  //Log.i("got it","found conversation with id " + sharedConvo.getObjectId());
+    			  sharedConvo.setObjectId(sharedConvo.getObjectId());
+    			  Log.i("got it","found conversation with id " + sharedConvo.getObjectId());
     			  getMessagesFromConvo(sharedConvo, true);
     			  
     		  }
@@ -203,8 +202,8 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	    	messages.findInBackground(new FindCallback<SMSMessage>() {
 	    	  public void done(List<SMSMessage> message_list, ParseException exception) {
 	    		  if(exception == null && message_list.size()>0) {
-	    			 // Log.i("got it","found messages!");
-	    			 // Log.i("messages in comvo",message_list.size() + " messages in convo");
+	    			  Log.i("got it","found messages!");
+	    			  Log.i("messages in comvo",message_list.size() + " messages in convo");
 	    			  s.setMessages(new HashSet<SMSMessage>(message_list));
 	    			  getCommentsFromConvo(s, true);
 	    		  }
@@ -221,9 +220,12 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
     	messages.findInBackground(new FindCallback<Comment>() {
     	  public void done(List<Comment> comment_list, ParseException exception) {
     		  if(exception == null && comment_list.size()>0) {
-    			 // Log.i("got it","found messages!");
-    			 // Log.i("messages in comvo",message_list.size() + " messages in convo");
+    			  Log.i("got it","found comments!");
+    			  Log.i("comments in comvo",comment_list.size() + " comments in convo");
     			  s.setComments((ArrayList<Comment>) comment_list);
+    			  saveNewShare(mContext,s);
+    		  }
+    		  else {
     			  saveNewShare(mContext,s);
     		  }
     	  }
