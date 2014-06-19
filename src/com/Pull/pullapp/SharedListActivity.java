@@ -92,14 +92,14 @@ public class SharedListActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		
+		type = getIntent().getIntExtra(Constants.EXTRA_SHARE_TYPE,TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
+		
 	    thread_list = dbHandler.getAllSharedConversation(type);
 	    
 	    adapter = new SharedConversationsListAdapter(mContext,
 	    		R.layout.shared_conversation_list_item, thread_list, type);	  
 	    listview.setAdapter(adapter);
 	    
-	    type = getIntent().getIntExtra(Constants.EXTRA_SHARE_TYPE,TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
-		
 	    if(type==TextBasedSmsColumns.MESSAGE_TYPE_SENT) radioGroup.check(R.id.shared_tab);
 		else radioGroup.check(R.id.shared_with_me_tab);	   		     
 	
@@ -127,8 +127,8 @@ public class SharedListActivity extends Activity {
 				
 			}
 	    });	  	    
-	    adapter.setItemList(thread_list);
-	    adapter.notifyDataSetChanged();
+	   // adapter.setItemList(thread_list);
+	    //adapter.notifyDataSetChanged();
 	}
 	
 	@Override

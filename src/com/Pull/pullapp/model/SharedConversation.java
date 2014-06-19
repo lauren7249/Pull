@@ -151,6 +151,14 @@ public class SharedConversation extends ParseObject {
 		put("originalRecipientName",originalRecipientName);		
 	}
 
+	public void addMessages(ArrayList<SMSMessage> messages) {
+		this.conversation.addAll(messages);
+		for(SMSMessage c : messages) {
+			c.put("parent", this);
+		}	
+		
+	}
+
 	
 
 }

@@ -1,5 +1,4 @@
 package com.Pull.pullapp;
-import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -8,23 +7,27 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.provider.Telephony.ThreadsColumns;
+import android.support.v4.app.NavUtils;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnCreateContextMenuListener;
 import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-import com.Pull.pullapp.model.ThreadItem;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
+import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 import com.facebook.model.GraphUser;
 import com.parse.ParseAnalytics;
 import com.parse.ParseException;
@@ -32,7 +35,7 @@ import com.parse.ParseFacebookUtils;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 
-public class ThreadsListActivity extends ListActivity {
+public class ThreadsListActivity extends SherlockListActivity {
 	
 	private ThreadItemsCursorAdapter adapter;
 	//private ThreadItemsListAdapter adapter;
@@ -94,18 +97,6 @@ public class ThreadsListActivity extends ListActivity {
 				}
 			}
 		});
-	    
-        Button button = (Button) findViewById(R.id.new_message);
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-
-                Intent intent =
-                        new Intent(mContext, MessageActivityCheckboxCursor.class);
-                startActivity(intent);
-            	
-            }
-        });	    
-        
 		
 	    listview.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
 	    	 
@@ -122,12 +113,20 @@ public class ThreadsListActivity extends ListActivity {
 	    //Log.i("tag","time for oncreate " + (time5-time1));			
 		
 	}
+	// make the menu work
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		super.onCreateOptionsMenu(menu);
+		//actionbar menu
+		getSupportMenuInflater().inflate(R.menu.threads_list_menu, menu);
+		return true;
+	}		
 
     public boolean onContextItemSelected(MenuItem aItem) {
         AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
         int position = menuInfo.position;
-        final ThreadItem item = (ThreadItem) listview.getAdapter().getItem(position);
-        String number = item.number;
+        String recipientID = adapter.number_hash.get(position);
+        String number = ContentUtils.getAddressFromID(mContext, recipientID);
         switch (aItem.getItemId()) {
             case CONTEXTMENU_DELETEITEM:
                 Toast.makeText(mContext, "not yet implemented", Toast.LENGTH_LONG).show();
@@ -137,7 +136,6 @@ public class ThreadsListActivity extends ListActivity {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
                 intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
-                
                 mContext.startActivity(intent);            	
                 return true;
         }
@@ -176,100 +174,13 @@ public class ThreadsListActivity extends ListActivity {
 	}
 
 	
-	/**
-	protected void otherLoginMethod() {
-		try {
-			mPassword = generateStrongPasswordHash(mPhoneNumber);
-			//Log.i("password",mPassword);
-			saveUserInfo(mPhoneNumber,mPassword);
-			
-		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvalidKeySpecException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}	
-		
-	}**/
-
 	protected void onLogoutButtonClicked() {
 		ParseUser.logOut();
 		startLoginActivity(0);
 		
 	}
 
-/**
-	protected void signUp(String username, String password) {
-		currentUser = new ParseUser();
-		currentUser.setUsername(username);
-		currentUser.setPassword(password);
-		currentUser.signUpInBackground(new SignUpCallback() {
-        	  public void done(ParseException e) {
-        	    if (e == null) {
-        	    	//Log.i("saved","data saved to server");    
-        			if(mGraphUser != null) {
-        				currentUser.put("facebookID", mGraphUser.getId());
-        				currentUser.put("name", mGraphUser.getName());
-        				if(mGraphUser.getLocation() != null) {
-        					if (mGraphUser.getLocation().getProperty("name") != null) {
-        						currentUser.put("location", (String) mGraphUser
-        								.getLocation().getProperty("name"));
-        					}
-        				}
-        				if (mGraphUser.getProperty("gender") != null) {
-        					currentUser.put("gender",
-        							(String) mGraphUser.getProperty("gender"));
-        				}
-        				if (mGraphUser.getBirthday() != null) {
-        					currentUser.put("birthday",
-        							mGraphUser.getBirthday());
-        				}
-        				if (mGraphUser.getProperty("relationship_status") != null) {
-        					currentUser
-        							.put("relationship_status",
-        									(String) mGraphUser
-        											.getProperty("relationship_status"));
-        				}	
-        			}
-        			currentUser.saveInBackground();
-        	    } else {
-        	    	//Log.i("not saved","not saved " + e.getCode());
-        	    }
-        	    checkUser();
-        	  }
-        	});	
-		finishSavingUser();
-	}
-**/
 
-	/**
-	 * Links a parse user to a facebook account if the user is not already linked
-	 * @param user
-	 */
-	private void linkAccount() {
-		if (!ParseFacebookUtils.isLinked(currentUser)) {
-			  ParseFacebookUtils.link(currentUser, this, new SaveCallback() {
-			    @Override
-			    public void done(ParseException ex) {
-			    	if(ex != null) {
-			    		//Log.i("tried to link account but error code " , " " +ex.getCode());
-			    	}
-			    	else {
-				       if (ParseFacebookUtils.isLinked(currentUser)) {
-				    	   Log.d("MyApp", "Woohoo, user logged in with Facebook!");
-				       } else {
-				    	   //Log.i("signin.linkaccount","did not link with facebook");
-				       }
-			    	}
-			    
-			    }
-			  });
-		} else {
-			//Log.i("signin.linkaccount","user already linked in facebook");
-		}
-		
-	}	
 
 	@Override
 	protected void onPause(){
@@ -277,6 +188,18 @@ public class ThreadsListActivity extends ListActivity {
 		//threads_cursor.close();
 	}
 	
+	// when a user selects a menu item
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.new_message:
+            Intent intent = new Intent(mContext, MessageActivityCheckboxCursor.class);
+            startActivity(intent);
+			return true;	
+		default:
+			return false;
+		}
+	}	
 	
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {

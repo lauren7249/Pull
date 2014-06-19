@@ -16,6 +16,7 @@ import android.provider.Telephony.TextBasedSmsColumns;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import com.Pull.pullapp.model.Channels;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.parse.FindCallback;
@@ -59,7 +60,7 @@ public class ShareTagAction extends Thread {
     	
     	mSharedConversation.setType(TextBasedSmsColumns.MESSAGE_TYPE_SENT);
     	//in the background, check if recipient is a parse user. if not, we will send via SMS
-    	checkParseUser(mSharedConversation.getConfidante());
+    	checkParseInstallation(mSharedConversation.getConfidante());
         
     	saveToParse();
       
@@ -165,20 +166,20 @@ public class ShareTagAction extends Thread {
     	  }
     	});
 	}
-	private void checkParseInstallation(String confidante) {
-    	ParseQuery<ParseInstallation> query = ParseInstallation.getQuery();
-    	query.whereEqualTo("channels", ContentUtils.setChannel(confidante));
-    	query.findInBackground(new FindCallback<ParseInstallation>() {
-    	  public void done(List<ParseInstallation> objects, ParseException e) {
-    	    if (e == null && objects.size()>0) {
-    	    	isPullUser = true;
-    	    } else {
-    	    	isPullUser = false;
-    	        shareViaSMS();
-    	    }
-    	  }
-    	});
-	}
+	public void checkParseInstallation(String confidante) {
+		ParseQuery<Channels> query = ParseQuery.getQuery("Channels");
+		query.whereEqualTo("channel", ContentUtils.setChannel(confidante));
+		query.findInBackground(new FindCallback<Channels>() {
+		    public void done(List<Channels> list, ParseException e) {
+		        if (e==null && list.size()>0) {
+		        	isPullUser = true;
+		        } else {
+	    	    	isPullUser = false;
+	    	        shareViaSMS();		        	
+		        }
+		    }
+		});	
+			}
 	protected void shareViaSMS() {
 
         AlarmManager am = (AlarmManager) parent.getSystemService(Context.ALARM_SERVICE);   

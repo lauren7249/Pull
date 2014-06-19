@@ -1,14 +1,12 @@
-package com.Pull.pullapp;
+package Deprecated;
 
-import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
-import android.widget.ArrayAdapter;
 
-import com.Pull.pullapp.model.ThreadItem;
+import com.Pull.pullapp.R;
 import com.commonsware.cwac.endless.EndlessAdapter;
 
 public class MyEndlessAdapter extends EndlessAdapter {

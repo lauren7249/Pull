@@ -1,4 +1,4 @@
-package com.Pull.pullapp;
+package Deprecated;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -46,6 +46,12 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
+import com.Pull.pullapp.CustomDateTimePicker;
+import com.Pull.pullapp.MainApplication;
+import com.Pull.pullapp.QueuedMessageAdapter;
+import com.Pull.pullapp.R;
+import com.Pull.pullapp.SharedConversationActivity;
+import com.Pull.pullapp.SimplePopupWindow;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
@@ -68,7 +74,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 
 	private ArrayList<SMSMessage> messages;
 	private HashMap<Long,Integer> delayedMessages = new HashMap<Long,Integer>();
-	private MessageAdapter adapter;
+	private QueuedMessageAdapter adapter;
 	private EditText text;
 	private String name, number, newMessage;
 	private Context mContext;
@@ -216,7 +222,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 	    text.clearFocus();
 	    
 		messages = new ArrayList<SMSMessage>();
-		adapter = new MessageAdapter(this, messages);
+		adapter = new QueuedMessageAdapter(this, messages);
 		send = (Button) this.findViewById(R.id.send_button);
 		share = (Button) this.findViewById(R.id.share_button);
 		pickDelay = (Button) this.findViewById(R.id.time_delay_button);

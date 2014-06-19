@@ -50,7 +50,14 @@ public class MessageCursorAdapter extends CursorAdapter {
     	message = new SMSMessage(date, body, address, type);
 		
     	if(check_hash.containsKey(position)) check_hash.put(position, message);
-    	
+    	/**
+    	//TODO: ADD BACK IN
+    	if(!SmsMessageId.equals("")) {
+        	ContentValues values = new ContentValues();
+    		values.put("read",true);
+    		context.getContentResolver().update(Uri.parse("content://sms/"),values, "_id="+SmsMessageId, null);	
+    	}	
+    	**/
 		final ViewHolder holder; 
 		holder = (ViewHolder) v.getTag();
 		holder.messageBox = (LinearLayout) v.findViewById(R.id.message_box);

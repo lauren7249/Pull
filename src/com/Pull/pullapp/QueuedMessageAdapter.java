@@ -1,14 +1,10 @@
 package com.Pull.pullapp;
-import java.text.Format;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,7 +12,6 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
-
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
@@ -24,17 +19,15 @@ import android.widget.TextView;
 
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.util.SendMessages;
-import com.Pull.pullapp.R;
 /**
- * MessageAdapter is a Custom class to implement custom row in ListView
+ * QueuedMessageAdapter is a Custom class to implement custom row in ListView
  * 
  */
-
-public class MessageAdapter extends BaseAdapter{
+public class QueuedMessageAdapter extends BaseAdapter{
 	private Context mContext;
 	private ArrayList<SMSMessage> mMessages;
 	public boolean showCheckboxes;
-	public MessageAdapter(Context context, ArrayList<SMSMessage> messages) {
+	public QueuedMessageAdapter(Context context, ArrayList<SMSMessage> messages) {
 		super();
 		this.mContext = context;
 		this.mMessages = messages;

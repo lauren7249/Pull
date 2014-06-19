@@ -150,15 +150,13 @@ public class ContentUtils {
 	    
 	    public static String addCountryCode(String number) {
 	    	if(number == null) return number;
+	    	if(number.length() == 0) return number;
 	    	if(number.substring(0,1).equals("+")) return number.substring(1);
 	    	if(number.trim().length()==10) return "1"+number;
 	    	return number;
 	    }		    
 	    public static String addCountryCode(TelephonyManager tmgr, String number) {
-	    	if(number == null) return number;
-	    	if(number.substring(0,1).equals("+")) return number.substring(1);
-	    	if(number.trim().length()==10) return "1"+number;
-	    	return number;
+	    	return addCountryCode(number);
 	    }	
 		// This function searches for an mobile phone entry for the contact
 		public String getNumberfromContact(Context context, String contact, Boolean debugging)	{

@@ -7,6 +7,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -39,6 +40,7 @@ import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.MenuItem;
 import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParseObject;
 import com.parse.ParsePush;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
@@ -74,6 +76,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 	private String mOriginalRecipientName;
 	private GestureDetector mGestureDetector;
 	private String recipientName;
+	protected ProgressDialog progress;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -115,15 +118,8 @@ public class SharedConversationActivity extends SherlockActivity implements
 	    	recipient = sharedConversation.getSharer();             
 	    	
 	    }
-	   
-       /* Toast.makeText(mContext, "sharer:" + ContentUtils.addCountryCode(sharedConversation.getSharer()), 
-        		Toast.LENGTH_LONG).show();
-        Toast.makeText(mContext, "username:" + ContentUtils.addCountryCode(mApp.getUserName()), 
-        		Toast.LENGTH_LONG).show();	   
-        Toast.makeText(mContext, "recipient:" + recipient, 
-        		Toast.LENGTH_LONG).show();	*/ 	    
+	   	    
 	    mOriginalRecipientName = sharedConversation.getOriginalRecipientName();
-	    
 	    sharedConversationListView.setOnDragListener(new MyDragListener(this, sharedConversation));
 	    
 	    Log.i("sharedconversation recipient", recipient);
@@ -142,13 +138,18 @@ public class SharedConversationActivity extends SherlockActivity implements
 			}
 		});
 		
+		progress = new ProgressDialog(this);
 		sharedConversationCommentSendButton.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
+				
 				commentText = sharedConversationCommentEditText.getText().toString().trim();
-				sharedConversationCommentSendButton.setClickable(false);
 				if(commentText.length()>0){
+			        progress.setTitle("Sending comment");
+			        progress.setMessage("Sending...");
+			        progress.show();    			
+			        sharedConversationCommentSendButton.setClickable(false);
 					if(isEmpty) {
 						isEmpty = false;
 						hint.setVisibility(View.GONE);
@@ -158,6 +159,9 @@ public class SharedConversationActivity extends SherlockActivity implements
 
 					attemptSend(recipient);
 					
+				}
+				else {
+					Toast.makeText(mContext, "Comment field is empty", Toast.LENGTH_LONG).show();
 				}
 			}
 		});
@@ -195,6 +199,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 				} else if(action.equals(Constants.ACTION_SHARE_COMPLETE)) {
 					int resultCode = intent.getIntExtra(Constants.EXTRA_SHARE_RESULT_CODE, 0);
 					int commentNum = intent.getIntExtra(Constants.EXTRA_COMMENT_NUMBER, -1);
+					progress.cancel();
 					switch(resultCode) {
 					case(0):	
 			            break;
@@ -318,15 +323,17 @@ public class SharedConversationActivity extends SherlockActivity implements
 	
 	
 	private void attemptSend(final String confidante) {
-    	ParseQuery<ParseUser> query = ParseUser.getQuery();
-    	query.whereEqualTo("username", ContentUtils.addCountryCode(confidante));
-    	query.findInBackground(new FindCallback<ParseUser>() {
-    	  public void done(List<ParseUser> objects, ParseException e) {
-    	    if (e == null && objects.size()>0) {
-    	    	parseRecipient = objects.get(0);
+		Log.i("about to query","about to query channel " + ContentUtils.setChannel(confidante));
+		ParseQuery<ParseObject> query = ParseQuery.getQuery("Channels");
+		query.whereEqualTo("channel", ContentUtils.setChannel(confidante));
+		query.findInBackground(new FindCallback<ParseObject>() {
+    	  public void done(List<ParseObject> objects, ParseException e) {
+    		  Log.i("done with query","finished query on channels");
+    		  if (e == null && objects.size()>0) {
     	    	sendComment();
+    	    	Log.i("sending comment","to a real user");
     	    } else {
-    	    	//TODO: Add dialog so user can invite friends
+    	    	progress.cancel();
     	    	askToInviteFriend();
     	    }
     	  }
@@ -334,6 +341,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 	}
 
 	protected void askToInviteFriend() {
+		Log.i("ask to invite friend","about to fire");
 		String recipient_name = ContentUtils.getContactDisplayNameByNumber(mContext, recipient);
     	AlertDialog.Builder builder = new AlertDialog.Builder(this);
 	    builder.setTitle("Get " + recipient_name + " on Pull"); 
@@ -371,11 +379,14 @@ public class SharedConversationActivity extends SherlockActivity implements
         		if (e == null) {
         			//everything is good
         			Log.i("comment saved","comment saved");
+        			progress.cancel();
 					DatabaseHandler db = new DatabaseHandler(mContext);
 					db.addComment(sharedConversationId, mCurrentComment);
 					String comment_id = mCurrentComment.getObjectId();
 					sendNotifications(comment_id);
         		} else {
+        			progress.cancel();
+        			Log.i("comment not saved",e.getMessage());
 					Intent broadcastIntent = new Intent();
 					broadcastIntent.setAction(Constants.ACTION_SHARE_COMPLETE);
 					broadcastIntent.putExtra(Constants.EXTRA_SHARE_RESULT_CODE, e.getCode());

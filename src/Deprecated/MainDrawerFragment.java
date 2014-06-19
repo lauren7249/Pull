@@ -1,4 +1,4 @@
-package com.Pull.pullapp.fragment;
+package Deprecated;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;

@@ -18,32 +18,16 @@
 package com.Pull.pullapp.util;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.TimeZone;
 
-import com.Pull.pullapp.MessageActivityCheckbox;
-import com.Pull.pullapp.ThreadsListActivity;
-import com.Pull.pullapp.R;
-import com.Pull.pullapp.R.drawable;
-
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.BaseColumns;
-import android.provider.ContactsContract;
 import android.provider.Telephony.Sms.Intents;
-import android.support.v4.app.NotificationCompat;
-import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
-import android.util.Log;
-import android.widget.Toast;
 
 public class SMSReceiver extends BroadcastReceiver {
 	public SMSReceiver() {

@@ -29,6 +29,7 @@ import android.text.TextWatcher;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -107,7 +108,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	protected int itemInView;
 	protected boolean startedScrolling;
 	private Cursor messages_cursor;
-	private MessageAdapter queue_adapter;
+	private QueuedMessageAdapter queue_adapter;
 	private MergeAdapter merge_adapter;
 	private String share_with;
 	private String share_with_name;
@@ -122,9 +123,12 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		mPrefs = mContext.getSharedPreferences(Constants.PREFERENCE_TIME_DELAY_PROMPT, Context.MODE_PRIVATE);
 		
 		mListView = getListView();
-		mLayout = (RelativeLayout) findViewById(R.id.main_layout);
-		//pListView = (ListView) findViewById(R.id.queue);
+		mListView.setFocusable(true);
+		mListView.setFocusableInTouchMode(true);	
+		mListView.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
 		
+		mLayout = (RelativeLayout) findViewById(R.id.main_layout);
+
 		isChecked = false;
 		delayPressed = false;
 		loader = new GetMessages();
@@ -134,7 +138,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		mConfidantesEditor.setAdapter(mRecipientsAdapter);
 			
 		messages = new ArrayList<SMSMessage>();
-		queue_adapter = new MessageAdapter(this,messages);
+		queue_adapter = new QueuedMessageAdapter(this,messages);
 		merge_adapter = new MergeAdapter();		
 
 		if(getIntent() != null && !isPopulated) {
@@ -376,7 +380,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			@Override
 			public void onGlobalLayout() {
 				if ((mLayout.getRootView().getHeight() - mLayout.getHeight()) > mLayout.getRootView().getHeight() / 3) {
-					mListView.setSelection(merge_adapter.getCount()-1);
+					//mListView.setSelection(merge_adapter.getCount()-1);
 				} 
 			}
 		});				
@@ -598,9 +602,38 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		}
 		if(mConfidantesEditor.constructContactsFromInput(false).getNumbers().length>0) 
 			recipients = mConfidantesEditor.constructContactsFromInput(false).getToNumbers();
-		hashtags_string = hashtag.getText().toString().trim(); 
+		//hashtags_string = hashtag.getText().toString().trim(); 
 		
-		mApp = (MainApplication) getApplication(); 
+		if(recipients.length == 0) {
+			Toast.makeText(mContext, "No recipients selected", Toast.LENGTH_LONG).show();
+			return;
+		}
+		
+		final ArrayList<SMSMessage> checked_messages = new ArrayList<SMSMessage>();
+		Iterator it = adapter.check_hash.entrySet().iterator();
+		while(it.hasNext()){
+			Map.Entry pairs = (Map.Entry)it.next();
+			SMSMessage m = (SMSMessage) pairs.getValue();
+			if(m != null) {
+				if(m.getMessage()!=null) {
+					checked_messages.add(m);
+				}
+			}
+		}
+
+		if(checked_messages.size() == 0) {
+			Toast.makeText(mContext, "No messages selected", Toast.LENGTH_LONG).show();
+			return;
+		}		
+		
+        share.setClickable(false);
+        progress = new ProgressDialog(this);
+        progress.setTitle("Sharing conversation");
+        progress.setMessage("Sending...");
+        progress.show();    
+        
+        mApp = (MainApplication) getApplication(); 
+        
 		ParseQuery<SharedConversation> query = ParseQuery.getQuery("SharedConversation");
 		query.whereEqualTo("original_recipient", ContentUtils.addCountryCode(number));
 		query.whereEqualTo("sharer", ContentUtils.addCountryCode(mApp.getUserName()));
@@ -608,16 +641,18 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		query.findInBackground(new FindCallback<SharedConversation>() {
 		    public void done(List<SharedConversation> convoList, ParseException e) {
 		        if (e==null && convoList.size()>0) {
+		        	
 		        	shareType = Constants.NOTIFICATION_UPDATE_SHARE;
 		        	mSharedConversation = convoList.get(0);
-		        	addMessages();
-		            Log.d("isContinuation", "Of convo " + mSharedConversation.getObjectId());
+		        	Log.d("isContinuation", "Of convo " + mSharedConversation.getObjectId());
+		        	shareConvo(checked_messages);
+		            
 		        } else {
 		        	shareType = Constants.NOTIFICATION_NEW_SHARE;
 		        	mSharedConversation = new SharedConversation(date, recipients[0], number);
 		        	mSharedConversation.setSharer(mApp.getUserName());
 		        	mSharedConversation.setOriginalRecipientName(name);		
-		        	addMessages();
+		        	shareConvo(checked_messages);
 		            Log.d("isContinuation", "Not a continuation");
 		        }
 		    }
@@ -625,41 +660,10 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		
     }     
 
-	protected void addMessages() {
-		Iterator it = adapter.check_hash.entrySet().iterator();
-		while(it.hasNext()){
-			Map.Entry pairs = (Map.Entry)it.next();
-			SMSMessage m = (SMSMessage) pairs.getValue();
-			if(m != null) {
-				if(m.getMessage()!=null) mSharedConversation.addMessage(m);
-			}
-		}
-       /** if (hashtags_string.length()>0) for(String h : hashtags_string.split(",")) {
-        	h = h.trim();
-        	if(!h.isEmpty()) {
-        		SMSMessage ht = new SMSMessage();
-	        	ht.setDate(System.currentTimeMillis());
-	        	ht.setMessage(h);
-	        	ht.setHashtag();
-	        	mSharedConversation.addMessage(ht);
-	        	
-        	}
-        }
-        Log.d("number of messages in convo",""+mSharedConversation.getMessages().size());**/
-		if(recipients.length == 0) {
-			Toast.makeText(mContext, "No recipients", Toast.LENGTH_LONG).show();
-			return;
-		}
-		if(mSharedConversation.getMessages().size() == 0) {
-			Toast.makeText(mContext, "No messages selected", Toast.LENGTH_LONG).show();
-			return;
-		}
+	protected void shareConvo(ArrayList<SMSMessage> messages) {
+		mSharedConversation.addMessages(messages);
         new ShareTagAction(mContext, mSharedConversation, shareType).start();					
-        share.setClickable(false);
-        progress = new ProgressDialog(this);
-        progress.setTitle("Sharing conversation");
-        progress.setMessage("Sending...");
-        progress.show();    
+
         if(suggestion != null) {
         	suggestion.setSharedConvo(mSharedConversation);  
         	suggestion.saveInBackground();

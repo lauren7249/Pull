@@ -19,11 +19,11 @@ import com.parse.ParseException;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
-public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversation> {
+public class SharedConversationsCursorAdapter extends ArrayAdapter<SharedConversation> {
     private List<SharedConversation> objects;
     private Context context;
     private int type;
-    public SharedConversationsListAdapter(Context context, int textViewResourceId,
+    public SharedConversationsCursorAdapter(Context context, int textViewResourceId,
         List<SharedConversation> objects, int type) {
       super(context, textViewResourceId, objects);
       this.objects = (List<SharedConversation>) objects;
@@ -57,7 +57,7 @@ public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversat
 		userQuery.whereEqualTo("username", conversant);
 		userQuery.findInBackground(new FindCallback<ParseUser>() {
 		public void done(List<ParseUser> results, ParseException e) {
-			if(e==null && results.size()>0) {
+			if(results.size()>0) {
 				profilePictureView.setProfileId(results.get(0).getString("facebookID"));
 				name.setText("Conversation about " + th.getOriginalRecipientName());
 			}

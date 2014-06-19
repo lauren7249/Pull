@@ -17,6 +17,7 @@ import android.content.SharedPreferences;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import com.Pull.pullapp.model.Channels;
 import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.FacebookUser;
 import com.Pull.pullapp.model.Hashtag;
@@ -62,6 +63,7 @@ public class MainApplication extends Application {
 		ParseObject.registerSubclass(Hashtag.class);
 		ParseObject.registerSubclass(FacebookUser.class);
 		ParseObject.registerSubclass(ShareSuggestion.class);
+		ParseObject.registerSubclass(Channels.class);
 		
 		Parse.initialize(this, getString(R.string.parse_app_id), getString(R.string.parse_key));
 		ParseFacebookUtils.initialize(getString(R.string.facebook_app_id));	
@@ -227,12 +229,15 @@ public class MainApplication extends Application {
 	
 
 	private void saveInstallation(){
-	       ParseInstallation installation = ParseInstallation.getCurrentInstallation();
-	       installation.put("user", currentUser);
-	       installation.addAllUnique("channels", Arrays.asList(ContentUtils.setChannel(mPhoneNumber)));
-	       installation.saveInBackground();		
-	       Log.i("saved installation","installation saved");
+		Channels c = new Channels(ContentUtils.setChannel(mPhoneNumber));
+		if(currentUser.getObjectId()!=null) c.put("user", currentUser);
+		c.saveInBackground();
+		ParseInstallation installation = ParseInstallation.getCurrentInstallation();
+		if(currentUser.getObjectId()!=null) installation.put("user", currentUser);
+		installation.addAllUnique("channels", Arrays.asList(ContentUtils.setChannel(mPhoneNumber)));
+		installation.saveInBackground();		
+		Log.i("saved installation","installation saved");
 	       
-		}	
+	}	
 
 }

@@ -1,10 +1,11 @@
 package com.Pull.pullapp;
 
+import java.util.HashMap;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.support.v4.widget.CursorAdapter;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,22 +16,29 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 	
 	private SharedPreferences mPrefs;
 	private SharedPreferences.Editor mEditor;
+	public HashMap<Integer,String> number_hash;
+	
     @SuppressWarnings("deprecation")
 	public ThreadItemsCursorAdapter(Context context, Cursor cursor) {
     	super(context, cursor);
     	mPrefs = context.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName(),Context.MODE_PRIVATE);
     	mEditor= mPrefs.edit();
+    	number_hash = new HashMap<Integer,String>();
     }
 
 	@Override
 	public void bindView(View v, Context context, Cursor threads) {
 		String name="", number, snippet,threadID,recipientId;
 		boolean read;
+		final int position= threads.getPosition();
 		
     	threadID = threads.getString(0);
     	read = (!threads.getString(1).equals("0"));	
     	recipientId = threads.getString(2);
-    	snippet = threads.getString(4);		    		    	
+    	snippet = threads.getString(4);		  
+    	
+    	number_hash.put(position, recipientId);
+    	
     	//Log.i("recipient id",recipientId);
     	name = mPrefs.getString(recipientId, null);
     	if(name==null) {
@@ -55,12 +63,15 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 		
         final LayoutInflater inflater = LayoutInflater.from(context);
         View v = inflater.inflate(R.layout.message_list_item, parent, false);
-
+        final int position= threads.getPosition();
+        
     	threadID = threads.getString(0);
     	read = (!threads.getString(1).equals("0"));	 
     	recipientId = threads.getString(2);
     	snippet = threads.getString(4);		    		    	
 		
+    	number_hash.put(position, recipientId);
+    	
     	name = mPrefs.getString(recipientId, null);
     	if(name==null) {
 			number = ContentUtils.getAddressFromID(context, recipientId);
