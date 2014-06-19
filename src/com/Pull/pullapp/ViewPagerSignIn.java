@@ -83,6 +83,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	private BroadcastReceiver mBroadcastReceiver;
 	private ProgressDialog progress;
 	private MixpanelAPI mixpanel;
+	protected boolean showdialog;
 	
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -219,7 +220,8 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 				    	   				    	   
 				       }
 			       }
-			       anonymousLogin(v,true);	
+			       showdialog=true;
+			       anonymousLogin(v);	
 			    } else {
 			    	
 			    	Log.i("signin.facebooklogin","able to login through fb");
@@ -242,7 +244,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 		mixpanel = MixpanelAPI.getInstance(mContext, Constants.MIXEDPANEL_TOKEN);
 	}
 	
-	public void anonymousLogin(View v, boolean showdialog){
+	public void anonymousLogin(View v){
         progress = new ProgressDialog(this);
         progress.setTitle("Signing Up");
         progress.setMessage("Signing up...");
@@ -340,7 +342,8 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 				new Request.GraphUserCallback() {
 					@Override
 					public void onCompleted(GraphUser user, Response response) {
-						anonymousLogin(v, false);	
+						showdialog = false;
+						anonymousLogin(v);	
 						if (user != null) {
 							Log.d("tag","Found graph user");
 							augmentProfile(user);

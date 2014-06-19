@@ -127,6 +127,7 @@ public class DailyShareSuggestion extends Thread {
 
 	private String getNumberToShareFrom(String best_friend_number, int hours_backwards) {
 		String idiot = "";
+		
 		String[] variables = new String[]{TextBasedSmsColumns.ADDRESS};
 		String querystring = TextBasedSmsColumns.TYPE + "=" + TextBasedSmsColumns.MESSAGE_TYPE_INBOX + 
 					" and " + TextBasedSmsColumns.DATE 
@@ -171,12 +172,12 @@ public class DailyShareSuggestion extends Thread {
             		Log.i("bestie", name);
             		bestie = contact;
             		cursor.close();
-            		return bestie;
+            		return PhoneNumberUtils.stripSeparators(bestie);
             	}
             } while (cursor.moveToNext());
         }
         cursor.close();
-		return bestie;
+		return PhoneNumberUtils.stripSeparators(bestie);
 	}
     
     

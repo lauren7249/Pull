@@ -1,7 +1,6 @@
 package com.Pull.pullapp.util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -16,12 +15,11 @@ import android.provider.Telephony.TextBasedSmsColumns;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-import com.Pull.pullapp.model.Channels;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.parse.FindCallback;
 import com.parse.ParseException;
-import com.parse.ParseInstallation;
+import com.parse.ParseObject;
 import com.parse.ParsePush;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
@@ -167,10 +165,10 @@ public class ShareTagAction extends Thread {
     	});
 	}
 	public void checkParseInstallation(String confidante) {
-		ParseQuery<Channels> query = ParseQuery.getQuery("Channels");
+		ParseQuery<ParseObject> query = ParseQuery.getQuery("Channels");
 		query.whereEqualTo("channel", ContentUtils.setChannel(confidante));
-		query.findInBackground(new FindCallback<Channels>() {
-		    public void done(List<Channels> list, ParseException e) {
+		query.findInBackground(new FindCallback<ParseObject>() {
+		    public void done(List<ParseObject> list, ParseException e) {
 		        if (e==null && list.size()>0) {
 		        	isPullUser = true;
 		        } else {
