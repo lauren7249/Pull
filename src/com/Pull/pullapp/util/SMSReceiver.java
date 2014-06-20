@@ -18,16 +18,28 @@
 package com.Pull.pullapp.util;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.TimeZone;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.Telephony.Sms.Intents;
+import android.support.v4.app.NotificationCompat;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsMessage;
+import android.util.Log;
+
+import com.Pull.pullapp.MessageActivityCheckboxCursor;
+import com.Pull.pullapp.R;
 
 public class SMSReceiver extends BroadcastReceiver {
 	public SMSReceiver() {
@@ -52,16 +64,18 @@ public class SMSReceiver extends BroadcastReceiver {
 					sb.append(messages[i].getMessageBody());
 				}
 				String sender = messages[0].getOriginatingAddress();
-				if (true) {
+		        SharedPreferences sharedPrefs = PreferenceManager
+		                .getDefaultSharedPreferences(context);
+		        boolean receive = sharedPrefs.getBoolean("prefReceiveTexts", false);
+				if (receive) {
 					// Contact not in address book: log message and don't let it through.
 					String message = sb.toString();
 					// Prevent other broadcast receivers from receiving broadcast.
-					//abortBroadcast();
+					abortBroadcast();
 					SimpleDateFormat dateFormat = new SimpleDateFormat(
 							"yyyy-MM-dd'T'HH:mm'Z'"); // ISO 8601, Local time zone.
 					dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-					
-					/*String date = dateFormat.format(new Date()); // Current time in UTC.
+
 					String name = ContentUtils.getContactDisplayNameByNumber(context, sender);
 					String threadID = ContentUtils.getThreadIDFromNumber(context, sender);
 					if(threadID == null || threadID.length()==0) {
@@ -72,24 +86,28 @@ public class SMSReceiver extends BroadcastReceiver {
 					NotificationManager mNotificationManager = (NotificationManager) context
 							.getSystemService(Context.NOTIFICATION_SERVICE);
 					int icon;
-					icon = R.drawable.ic_launcher;
+					icon = R.drawable.ic_launcher_gray;
 					NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
 							context).setSmallIcon(icon).setContentTitle(name)
 							.setContentText(message)
 							.setPriority(NotificationCompat.PRIORITY_LOW)
 							.setOnlyAlertOnce(true);
-					// TODO: Optional light notification.
-					Intent ni = new Intent(context, MessageActivity.class);
-					ni.putExtra("NUMBER",sender);
-					ni.putExtra("NAME",name);
-					ni.putExtra("THREAD_ID",threadID);
-					ni.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-							| Intent.FLAG_ACTIVITY_SINGLE_TOP);
+					Intent ni = new Intent(context, MessageActivityCheckboxCursor.class);
+					ni.putExtra(Constants.EXTRA_THREAD_ID,threadID);
+					ni.putExtra(Constants.EXTRA_NAME,name);
+			        //Log.i("sender",ContentUtils.addCountryCode(sender));
+			        ni.putExtra(Constants.EXTRA_NUMBER,ContentUtils.addCountryCode(sender));
+					ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 					PendingIntent pi = PendingIntent.getActivity(context, 0,
-							ni, 0);
+							ni, PendingIntent.FLAG_CANCEL_CURRENT);
 					mBuilder.setContentIntent(pi);
 					mBuilder.setAutoCancel(true);
-					mNotificationManager.notify(777, mBuilder.build());*/
+					Notification notification = mBuilder.build();
+					notification.defaults|= Notification.DEFAULT_SOUND;
+					notification.defaults|= Notification.DEFAULT_LIGHTS;
+					notification.defaults|= Notification.DEFAULT_VIBRATE;		
+					mNotificationManager.notify(Integer.valueOf(sender), notification);
 				}
 			}
 		}

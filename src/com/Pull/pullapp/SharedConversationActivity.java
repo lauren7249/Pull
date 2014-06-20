@@ -437,9 +437,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 		commentText = sharedConversationCommentEditText.getText().toString().trim();					
 		if(commentText.length()>0){
 	    	AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		    builder.setTitle("Propose sending this to " + 
-		    	ContentUtils.getContactDisplayNameByNumber(mContext,sharedConversation.getOriginalRecipient()) 
-		    	+ "?");
+		    builder.setTitle("Propose sending this to " + this.mOriginalRecipientName + "?");
 		    builder.setMessage(commentText)
 		           .setCancelable(true)
 		           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {

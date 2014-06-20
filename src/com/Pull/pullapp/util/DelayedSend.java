@@ -22,7 +22,7 @@ public class DelayedSend extends Thread {
         if(sendOn!=null){
         	this.sendOn = sendOn.getTime();
         }else{
-        	this.sendOn = System.currentTimeMillis();
+        	this.sendOn = System.currentTimeMillis()  + (5)*1000;
         }
         
         this.launchedOn = launchedOn;

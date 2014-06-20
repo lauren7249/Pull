@@ -4,13 +4,13 @@ import java.util.List;
 
 import android.content.Context;
 import android.provider.Telephony.TextBasedSmsColumns;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import com.Pull.pullapp.model.FacebookUser;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.ContentUtils;
 import com.facebook.widget.ProfilePictureView;
@@ -43,7 +43,7 @@ public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversat
 	   TextView info = (TextView) v.findViewById(R.id.txt_message_info);
 	   final SharedConversation th = objects.get(pos);
 	   
-	   info.setText(th.getHashtags());
+	   //info.setText(th.getHashtags());
 	   
 	   final String conversant;
 	   if(type == TextBasedSmsColumns.MESSAGE_TYPE_SENT) 
@@ -53,21 +53,21 @@ public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversat
 		   //Log.i("conversant",conversant);
 	   }
 	   
-		ParseQuery<ParseUser> userQuery = ParseUser.getQuery();
-		userQuery.whereEqualTo("username", conversant);
-		userQuery.findInBackground(new FindCallback<ParseUser>() {
-		public void done(List<ParseUser> results, ParseException e) {
+		ParseQuery<FacebookUser> fbQuery = ParseQuery.getQuery("FacebookUser");
+		fbQuery.whereEqualTo("phoneNumber", conversant);
+		fbQuery.findInBackground(new FindCallback<FacebookUser>() {
+		public void done(List<FacebookUser> results, ParseException e) {
 			if(e==null && results.size()>0) {
 				profilePictureView.setProfileId(results.get(0).getString("facebookID"));
-				name.setText("Conversation about " + th.getOriginalRecipientName());
-			}
-			else {
+			} else {
+				profilePictureView.setProfileId("");
 				//profilePictureView.setVisibility(View.GONE);
-				name.setText("Conversation about " + th.getOriginalRecipientName() + " with " 
-						+ ContentUtils.getContactDisplayNameByNumber(context, conversant));
 			}
 		  }
-		});  	   
+		});  	 
+		name.setText("Talking about " + th.getOriginalRecipientName());
+		info.setText("with " + ContentUtils.getContactDisplayNameByNumber(context, conversant));
+		
 	   return v;
     }
     @Override

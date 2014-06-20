@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.Pull.pullapp"
-    android:versionCode="28"
-    android:versionName="1.28" >
+    android:versionCode="29"
+    android:versionName="1.29" >
 
     <uses-sdk
         android:minSdkVersion="14"
@@ -49,13 +49,7 @@
         </activity>         
         <activity android:name="com.facebook.LoginActivity"/>      
         <meta-data android:value="@string/facebook_app_id" android:name="com.facebook.sdk.ApplicationId"/>  
-        <!-- Activities Required by Socialize -->
-        <activity android:name="com.socialize.ui.comment.CommentActivity" android:configChanges="orientation|keyboardHidden|screenSize"/>
-        <activity android:name="com.socialize.ui.action.ActionDetailActivity"/>
-        <activity android:name="com.socialize.ui.profile.ProfileActivity"/>
-        <activity android:name="com.socialize.auth.facebook.FacebookActivity"/>
-        <activity android:name="com.socialize.ui.SocializeLaunchActivity" android:noHistory="true"/>                  
- 
+ 		<activity android:name="com.Pull.pullapp.UserSettings"/>    
         <activity
             android:name="com.Pull.pullapp.SocializeActionBar"
             android:configChanges="keyboardHidden|orientation|screenSize"

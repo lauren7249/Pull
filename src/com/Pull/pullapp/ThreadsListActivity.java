@@ -191,11 +191,16 @@ public class ThreadsListActivity extends SherlockListActivity {
 	// when a user selects a menu item
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+		Intent intent;
 		switch (item.getItemId()) {
 		case R.id.new_message:
-            Intent intent = new Intent(mContext, MessageActivityCheckboxCursor.class);
+            intent = new Intent(mContext, MessageActivityCheckboxCursor.class);
             startActivity(intent);
 			return true;	
+		case R.id.settings:
+            intent = new Intent(mContext, UserSettings.class);
+            startActivity(intent);
+			return true;				
 		default:
 			return false;
 		}

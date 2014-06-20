@@ -51,8 +51,8 @@ public class DailyShareSuggestion extends Thread {
 
     	ParseQuery<ShareSuggestion> query = ParseQuery.getQuery("ShareSuggestion");
     	query.whereEqualTo("user", ParseUser.getCurrentUser());
-        query.whereGreaterThan("createdAt", midnight);
-        query.whereLessThan("createdAt", elevenfiftynine);    	
+        //query.whereGreaterThan("createdAt", midnight);
+        //query.whereLessThan("createdAt", elevenfiftynine);    	
     	query.findInBackground(new FindCallback<ShareSuggestion>() {
     	    public void done(List<ShareSuggestion> list, ParseException e) {
     	        if (e == null && list.size()==0) {

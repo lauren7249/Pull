@@ -60,7 +60,7 @@
                 android:layout_marginLeft="-5dp"
                 android:layout_marginRight="-5dp"
                 android:background="@drawable/cancel"
-                android:text="Edit"
+                android:text="Edit/cancel"
                 android:textColor="@color/cheeryBlossm"
                 android:textSize="14sp" />
 
