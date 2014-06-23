@@ -3,6 +3,7 @@
     android:id="@+id/main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/white"
     android:orientation="vertical" >
 
         <ListView
@@ -48,23 +49,14 @@
         android:layout_height="wrap_content"
         android:background="@drawable/comment_box_background"
         android:orientation="horizontal" >
-        <Button
-            android:id="@+id/shared_conversation_propose_button"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_gravity="center"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-			android:text=">?"
-			android:textSize="30dp"
-			android:background="@android:color/white"
-			android:onClick="propose" />
+
         <LinearLayout
             android:id="@+id/LinearLayout02"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.96"
             android:orientation="vertical"
+            android:background="@android:color/white"
             android:color="@android:color/white" >
 
             <EditText
@@ -97,5 +89,14 @@
             android:background="@drawable/send"
             android:onClick="shareMessages" />
     </LinearLayout>
-
+        <Button
+            android:id="@+id/shared_conversation_propose_button"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="6dp"
+			android:text="SUGGEST A MESSAGE"
+			android:background="@drawable/incoming"
+			android:textSize="14dp"
+			android:onClick="propose" />
 </LinearLayout>

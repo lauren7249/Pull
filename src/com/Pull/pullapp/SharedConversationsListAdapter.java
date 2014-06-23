@@ -53,7 +53,7 @@ public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversat
 		   //Log.i("conversant",conversant);
 	   }
 	   
-		ParseQuery<FacebookUser> fbQuery = ParseQuery.getQuery("FacebookUser");
+		final ParseQuery<FacebookUser> fbQuery = ParseQuery.getQuery("FacebookUser");
 		fbQuery.whereEqualTo("phoneNumber", conversant);
 		fbQuery.findInBackground(new FindCallback<FacebookUser>() {
 		public void done(List<FacebookUser> results, ParseException e) {

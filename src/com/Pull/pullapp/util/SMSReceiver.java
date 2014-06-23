@@ -107,7 +107,7 @@ public class SMSReceiver extends BroadcastReceiver {
 					notification.defaults|= Notification.DEFAULT_SOUND;
 					notification.defaults|= Notification.DEFAULT_LIGHTS;
 					notification.defaults|= Notification.DEFAULT_VIBRATE;		
-					mNotificationManager.notify(Integer.valueOf(sender), notification);
+					mNotificationManager.notify(111, notification);
 				}
 			}
 		}

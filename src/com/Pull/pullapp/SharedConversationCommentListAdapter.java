@@ -21,6 +21,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.Pull.pullapp.model.Comment;
+import com.Pull.pullapp.model.FacebookUser;
 import com.Pull.pullapp.util.ContentUtils;
 import com.facebook.widget.ProfilePictureView;
 import com.parse.FindCallback;
@@ -106,16 +107,17 @@ public class SharedConversationCommentListAdapter extends BaseAdapter {
 		        });    				
 			}
 		    final ProfilePictureView profilePictureView = (ProfilePictureView) convertView.findViewById(R.id.contact_image);
-			ParseQuery<ParseUser> userQuery = ParseUser.getQuery();
-			userQuery.whereEqualTo("username", ContentUtils.addCountryCode(comment.getSender()));
-			userQuery.findInBackground(new FindCallback<ParseUser>() {
-			public void done(List<ParseUser> results, ParseException e) {
-				if(e == null && results.size()>0) {
+			ParseQuery<FacebookUser> fbQuery = ParseQuery.getQuery("FacebookUser");
+			fbQuery.whereEqualTo("phoneNumber", comment.getSender());
+			fbQuery.findInBackground(new FindCallback<FacebookUser>() {
+			public void done(List<FacebookUser> results, ParseException e) {
+				if(e==null && results.size()>0) {
 					profilePictureView.setProfileId(results.get(0).getString("facebookID"));
-					profilePictureView.setPresetSize(ProfilePictureView.LARGE);
+				} else {
+					profilePictureView.setProfileId("");
 				}
 			  }
-			}); 
+			});  	 
 			holder.message = (TextView) convertView.findViewById(R.id.message_text);
 			holder.time = (TextView) convertView.findViewById(R.id.message_time);
 			holder.box = (LinearLayout) convertView.findViewById(R.id.message_box);
