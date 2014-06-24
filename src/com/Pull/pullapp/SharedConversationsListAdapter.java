@@ -58,9 +58,10 @@ public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversat
 		fbQuery.findInBackground(new FindCallback<FacebookUser>() {
 		public void done(List<FacebookUser> results, ParseException e) {
 			if(e==null && results.size()>0) {
-				profilePictureView.setProfileId(results.get(0).getString("facebookID"));
+				if(results.get(0).getString("facebookID")!=null && !results.get(0).getString("facebookID").equals("")) 
+					profilePictureView.setProfileId(results.get(0).getString("facebookID"));
 			} else {
-				profilePictureView.setProfileId("");
+				//profilePictureView.setProfileId("");
 				//profilePictureView.setVisibility(View.GONE);
 			}
 		  }

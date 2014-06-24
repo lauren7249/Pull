@@ -129,10 +129,11 @@ public class DailyShareSuggestion extends Thread {
 		String idiot = "";
 		
 		String[] variables = new String[]{TextBasedSmsColumns.ADDRESS};
-		String querystring = TextBasedSmsColumns.TYPE + "=" + TextBasedSmsColumns.MESSAGE_TYPE_INBOX + 
-					" and " + TextBasedSmsColumns.DATE 
+		String querystring = TextBasedSmsColumns.TYPE + "=" 
+					+ TextBasedSmsColumns.MESSAGE_TYPE_INBOX  
+					+ " and " + TextBasedSmsColumns.DATE 
 					+ ">=" + (System.currentTimeMillis() - hours_backwards*60*60*1000) 
-					+ " and " + TextBasedSmsColumns.ADDRESS + "!=" + best_friend_number;
+					+ " and " + TextBasedSmsColumns.ADDRESS + "!='" + best_friend_number + "'";
 	        
 		Cursor cursor = mContext.getContentResolver().query(Uri.parse("content://sms"),
 					variables,querystring ,null,"date desc");	      
@@ -172,12 +173,12 @@ public class DailyShareSuggestion extends Thread {
             		Log.i("bestie", name);
             		bestie = contact;
             		cursor.close();
-            		return PhoneNumberUtils.stripSeparators(bestie);
+            		return bestie;
             	}
             } while (cursor.moveToNext());
         }
         cursor.close();
-		return PhoneNumberUtils.stripSeparators(bestie);
+		return bestie;
 	}
     
     

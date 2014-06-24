@@ -4,12 +4,12 @@ import java.util.HashMap;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.widget.CursorAdapter;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -66,6 +66,9 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.box = (CheckBox) v.findViewById(R.id.cbBox);
 		holder.edit = (Button) v.findViewById(R.id.edit_message_button);	
 
+		int id = Resources.getSystem().getIdentifier("btn_check_holo_light", "drawable", "android");
+		holder.box.setButtonDrawable(id);
+		
         if (check_hash.containsKey(position)) holder.box.setChecked(true);
         else holder.box.setChecked(false);
 		if(showCheckboxes) holder.box.setVisibility(View.VISIBLE);
@@ -170,7 +173,10 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.time = (TextView) v.findViewById(R.id.message_time);
 		holder.box = (CheckBox) v.findViewById(R.id.cbBox);
 		holder.edit = (Button) v.findViewById(R.id.edit_message_button);	
-
+		
+		int id = Resources.getSystem().getIdentifier("btn_check_holo_light", "drawable", "android");
+		holder.box.setButtonDrawable(id);
+		
         if (check_hash.containsKey(position)) holder.box.setChecked(true);
         else holder.box.setChecked(false);
 		if(showCheckboxes) holder.box.setVisibility(View.VISIBLE);

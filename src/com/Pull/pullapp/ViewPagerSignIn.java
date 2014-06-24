@@ -241,7 +241,9 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 			    }
 			  }
 			});			
-		mixpanel = MixpanelAPI.getInstance(mContext, Constants.MIXEDPANEL_TOKEN);
+		/**mixpanel = MixpanelAPI.getInstance(mContext, Constants.MIXEDPANEL_TOKEN);
+		mixpanel.track("ViewPagerSignIn created", null);
+		mixpanel.flush();**/
 	}
 	
 	public void anonymousLogin(View v){
@@ -401,7 +403,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
     }
 	@Override
 	protected void onDestroy() {
-	    mixpanel.flush();
+		mixpanel.flush();
 	    super.onDestroy();
 	}	  		
 }
