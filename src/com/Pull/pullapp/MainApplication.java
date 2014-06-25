@@ -28,6 +28,7 @@ import com.Pull.pullapp.util.AlarmScheduler;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.facebook.model.GraphUser;
+import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.FindCallback;
 import com.parse.LogInCallback;
 import com.parse.Parse;
@@ -48,6 +49,7 @@ public class MainApplication extends Application {
 	private String mPhoneNumber, mFacebookID;
 	private ParseUser currentUser;
 	private GraphUser mGraphUser;
+	private MixpanelAPI mixpanel;
 	
 	
 	@Override
@@ -71,6 +73,10 @@ public class MainApplication extends Application {
 		PushService.setDefaultPushCallback(this, ViewPagerSignIn.class); 	
 	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();		    
 	    
+		mixpanel = MixpanelAPI.getInstance(getBaseContext(), Constants.MIXEDPANEL_TOKEN);
+		mixpanel.identify(ParseInstallation.getCurrentInstallation().getObjectId());
+		mixpanel.track("ViewPagerSignIn created", null);
+		
 	    new AlarmScheduler(getBaseContext(), false).start();
 	}
 	
@@ -157,16 +163,19 @@ public class MainApplication extends Application {
             return hex;
         }
     }		
-	void saveUserInfo(final String username, final String password) {
+	public void saveUserInfo(final String username, final String password) {
+		mixpanel.track("saveUserInfo started running", null);
     	ParseQuery<ParseUser> query = ParseUser.getQuery();
     	query.whereEqualTo("username", ContentUtils.addCountryCode(mPhoneNumber));
     	query.findInBackground(new FindCallback<ParseUser>() {
     	  public void done(List<ParseUser> objects, ParseException e) {
     	    if (e==null && objects.size()>0) {
     	    	currentUser = objects.get(0);
-    	    	Log.i("found a user","found a user");
+    	    	//Log.i("found a user","found a user");
+    	    	mixpanel.track("saveUserInfo found a user", null);
     	    	finishSavingUser(username,password);
     	    } else {
+    	    	mixpanel.track("saveUserInfo did not find a user", null);
     	    	signUp(username, password);
     	    }
     	  }
@@ -174,10 +183,12 @@ public class MainApplication extends Application {
 		
 	}	
 	protected void finishSavingUser(final String username, final String password) {
+		mixpanel.track("finishSavingUser started running", null);
 		ParseUser.logInInBackground(username, password, new LogInCallback(){
 			@Override
 			public void done(ParseUser user, ParseException e) {
 				if(e==null && user!=null) {
+					mixpanel.track("finishSavingUser found user", null);
 					saveInstallation();
 					setSignedIn(true, username, password);							
 				}
@@ -193,17 +204,23 @@ public class MainApplication extends Application {
 		Intent broadcastIntent = new Intent();
 		broadcastIntent.setAction(Constants.ACTION_COMPLETE_SIGNUP);
 		getBaseContext().sendBroadcast(broadcastIntent);	
+		mixpanel.flush();
 	}
 
 	protected void signUp(final String username, final String password) {
+		mixpanel.track("signUp started running", null);
 		currentUser = new ParseUser();
 		currentUser.setUsername(username);
 		currentUser.setPassword(password);
 		currentUser.signUpInBackground(new SignUpCallback() {
         	  public void done(ParseException e) {   
-        		  if(e == null) checkUser(username, password);
+        		  if(e == null) {
+        			  mixpanel.track("mapp.signUp succeeded", null);
+        			  checkUser(username, password);
+        		  }
         		  else {
-        			  Log.i("could not sign up",e.getMessage());
+        			  mixpanel.track("mapp.signUp failed " + e.getMessage(), null);
+        			  //Log.i("could not sign up",e.getMessage());
         			  sendResult();
         		  }
         	  }
@@ -217,10 +234,12 @@ public class MainApplication extends Application {
     	  public void done(List<ParseUser> objects, ParseException e) {
     	    if (e == null && objects.size()>0) {
     	    	currentUser = objects.get(0);
-    	    	Log.i("found a user","found a user");
+	    	    mixpanel.track("checkUser found a user",null);
+    	    	//Log.i("found a user","found a user");
     	    	finishSavingUser(username, password);
     	    } else {;
-    	    	Log.i("error checking user",e.getMessage());
+    	    	mixpanel.track("checkUser did not find a user " + e.getMessage(),null);
+    	    	//Log.i("error checking user",e.getMessage());
     	    	sendResult();
     	    }
     	  }
@@ -236,8 +255,8 @@ public class MainApplication extends Application {
 		if(currentUser.getObjectId()!=null) installation.put("user", currentUser);
 		installation.addAllUnique("channels", Arrays.asList(ContentUtils.setChannel(mPhoneNumber)));
 		installation.saveInBackground();		
-		Log.i("saved installation","installation saved");
+		mixpanel.track("saved installation",null);
 	       
 	}	
-
+	
 }

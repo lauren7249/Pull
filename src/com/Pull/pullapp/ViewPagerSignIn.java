@@ -6,6 +6,9 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.List;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.AlertDialog;
@@ -53,6 +56,7 @@ import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.LogInCallback;
 import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
+import com.parse.ParseInstallation;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.viewpagerindicator.CirclePageIndicator;
@@ -84,6 +88,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	private ProgressDialog progress;
 	private MixpanelAPI mixpanel;
 	protected boolean showdialog;
+	private JSONObject jsonUser;
 	
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,6 +120,19 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	    mSerialNumber = tMgr.getSimSerialNumber();
 	    mApp = (MainApplication) this.getApplication();   
 	    
+	    jsonUser = new JSONObject();
+	    try {
+	    	jsonUser.put("mPhoneNumber", mPhoneNumber);
+	    	jsonUser.put("mSerialNumber", mSerialNumber);
+		} catch (JSONException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	    
+		mixpanel = MixpanelAPI.getInstance(mContext, Constants.MIXEDPANEL_TOKEN);
+		mixpanel.identify(ParseInstallation.getCurrentInstallation().getObjectId());
+		mixpanel.track("ViewPagerSignIn created", jsonUser);
+
 	    mUserID.setText(mPhoneNumber);
 
 	 // Find the user's profile picture custom view
@@ -146,6 +164,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	    }
 		mParseUser = ParseUser.getCurrentUser();
 		if (mApp.isSignedIn() && mParseUser.isAuthenticated()) {
+			mixpanel.track("Authenticated & signed in", jsonUser);
 		    Intent mIntent = new Intent(mContext, ThreadsListActivity.class);
 	    	startActivity(mIntent); 						 	
 	    }
@@ -164,9 +183,11 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 		});		
 		
 	    if(appRunning("com.facebook.katana")) {
+	    	mixpanel.track("Facebook is running", jsonUser);
 	    	displayFacebookLoginOption();
 	    }
 	    else {
+	    	mixpanel.track("Facebook not running", jsonUser);
 	    	displayAlternateLoginOption();
 	    }		
 	    
@@ -182,11 +203,14 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 					    Intent mIntent = new Intent(mContext, ThreadsListActivity.class);
 				    	startActivity(mIntent);  		
 					} else {
-						if(mApp.getUserName() != null && ParseUser.getCurrentUser()!=null) 
+						if(mApp.getUserName() != null && ParseUser.getCurrentUser()!=null) {
+							mixpanel.track("Error signing in, user is null", jsonUser);
 							Toast.makeText(mContext, "Error signing in, user is null", Toast.LENGTH_LONG).show();
-						else 
+						}
+						else {
+							mixpanel.track("Error signing in, not authenticated", jsonUser);
 							Toast.makeText(mContext, "Error signing in, not authenticated", Toast.LENGTH_LONG).show();
-
+						}
 					}					
 					progress.dismiss(); 
 					//share.setClickable(true);
@@ -205,6 +229,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	 * pulls up the facebook login screen
 	 */
 	public void facebookLogin(final View v){
+		mixpanel.track("Facebook login button clicked" , jsonUser);
 	    ViewPagerSignIn.this.progressDialog = ProgressDialog.show(
 	    		ViewPagerSignIn.this, "", "Logging in...", true);	
 		List<String> permissions = Arrays.asList("basic_info", "user_about_me",
@@ -215,7 +240,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 			    if (user == null) {  
 			       Log.d("MyApp", "Uh oh. The user cancelled the Facebook login.");
 			       if(err != null) {
-				       Log.i("errorcode from login","code "+ err.getCode());
+				       mixpanel.track("errorcode from ParseFacebookUtils.logIn " + err.getMessage(), jsonUser);
 				       if(err.getCode() == ParseException.OTHER_CAUSE) {
 				    	   				    	   
 				       }
@@ -224,14 +249,16 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 			       anonymousLogin(v);	
 			    } else {
 			    	
-			    	Log.i("signin.facebooklogin","able to login through fb");
+			    	mixpanel.track("ParseFacebookUtils.logIn successful", jsonUser);
 			    	mParseUser = user;
 				    if (user.isNew()) {
 				    	isNewUser = true;
-				    	Log.d("MyApp", "User signed up and logged in through Facebook!");
+				    	mixpanel.track("New parse user", jsonUser);
+				    	//Log.d("MyApp", "User signed up and logged in through Facebook!");
 					} else {
 						isNewUser = false;
-						Log.d("MyApp", "User logged in through Facebook!");
+						mixpanel.track("Old parse user", jsonUser);
+						//Log.d("MyApp", "User logged in through Facebook!");
 					}			
 				    // Fetch Facebook user info if the session is active
 					Session session = ParseFacebookUtils.getSession();
@@ -241,9 +268,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 			    }
 			  }
 			});			
-		/**mixpanel = MixpanelAPI.getInstance(mContext, Constants.MIXEDPANEL_TOKEN);
-		mixpanel.track("ViewPagerSignIn created", null);
-		mixpanel.flush();**/
+
 	}
 	
 	public void anonymousLogin(View v){
@@ -255,6 +280,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 			mPhoneNumber = mUserID.getText().toString();
 			if(!PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber)) {
 				Toast.makeText(mContext, "Not a valid number", Toast.LENGTH_LONG).show();
+				mixpanel.track("Invalid phone number", jsonUser);
 				return;
 			}
 		}
@@ -279,8 +305,12 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 		if(!PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber)) {
 			mAssurance.setText("Confirm Phone Number");
 			mUserID.setVisibility(View.VISIBLE);
+			mixpanel.track("Internal phone number is not well formed" , jsonUser);
 		}
-		else mAssurance.setText("");
+		else {
+			mAssurance.setText("");
+			mixpanel.track("Internal phone number is well formed" , jsonUser);
+		}
 	}
 	
 	public void toggleGenericLogin(View v) {
@@ -340,17 +370,21 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 		super.onActivityResult(requestCode, resultCode, data);
 	}	
 	private void makeMeRequest(Session session, final View v) {
+		mixpanel.track("makeMeRequest", jsonUser);
 		Request request = Request.newMeRequest(session,
 				new Request.GraphUserCallback() {
 					@Override
 					public void onCompleted(GraphUser user, Response response) {
 						showdialog = false;
+						mixpanel.track("makeMeRequest completed", jsonUser);
 						anonymousLogin(v);	
 						if (user != null) {
-							Log.d("tag","Found graph user");
+							mixpanel.track("makeMeRequest found graph user", jsonUser);
+							//Log.d("tag","Found graph user");
 							augmentProfile(user);
 							
 						} else if (response.getError() != null) {
+							mixpanel.track("makeMeRequest error " + response.getError().getCategory(), jsonUser);
 							if ((response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_RETRY)
 									|| (response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_REOPEN_SESSION)) {
 								Log.d("tag","The facebook session was invalidated.");
@@ -367,8 +401,13 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 		FacebookUser fb = new FacebookUser(user,mPhoneNumber);  
     	fb.saveInBackground(new SaveCallback(){
         	public void done(ParseException e) {
-        		if(e==null) Log.i("saved fb user succcess","saved success");
-        		else Log.i("saved fb user NOT ","saved failure " + e.getMessage());
+        		if(e==null) {
+        			Log.i("saved fb user succcess","saved success");
+        			mixpanel.track("saved fb user ", jsonUser);
+        		}
+        		else {
+        			mixpanel.track("saved fb user NOT saved failure " + e.getMessage(), jsonUser);
+        		}
 			 }
 		 });	
 	}	

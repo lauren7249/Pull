@@ -264,7 +264,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 		mBuilder.setContentIntent(pi);
 		mBuilder.setAutoCancel(true);
 		Notification notification = mBuilder.build();
-		notification.defaults|= Notification.DEFAULT_SOUND;
+		notification.sound = Uri.parse("android.resource://" + mContext.getPackageName() + "/" + R.raw.jackie_sound_1);
 		notification.defaults|= Notification.DEFAULT_LIGHTS;
 		notification.defaults|= Notification.DEFAULT_VIBRATE;		
 		mNotificationManager.notify(777, notification);
