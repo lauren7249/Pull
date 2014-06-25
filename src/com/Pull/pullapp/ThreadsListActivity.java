@@ -133,10 +133,10 @@ public class ThreadsListActivity extends SherlockListActivity {
                 return true;
             case CONTEXTMENU_CONTACTITEM:
                 Intent intent = new Intent(Intent.ACTION_INSERT);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+               // intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
                 intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
-                mContext.startActivity(intent);            	
+                startActivity(intent);            	
                 return true;
         }
         return false;
