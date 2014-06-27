@@ -20,6 +20,7 @@ public class ContentUtils {
 
 	public static String getContactDisplayNameByNumber(Context context, String number) {
 		if(number == null) return null;
+		//Log.i("getContactDisplayNameByNumber number",  ": " + number);
 		Uri uri = Uri.withAppendedPath(
 				ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
 				Uri.encode(number));
@@ -202,7 +203,8 @@ public class ContentUtils {
 		public static Cursor getMessagesCursor(Context mContext,
 				String thread_id, String number) {
 			String querystring;
-			if(thread_id == null) {
+			if(thread_id == null || true) {
+				Log.i("thread id is null", number);
 				querystring = 
 				"REPLACE(REPLACE(REPLACE(REPLACE(" + TextBasedSmsColumns.ADDRESS + 
 						",'(',''),')',''),' ',''),'-','') " 
@@ -218,6 +220,7 @@ public class ContentUtils {
 
 			}
 			else {
+				Log.i("thread id is here", thread_id);
 				querystring = TextBasedSmsColumns.THREAD_ID + "=" + thread_id 
 			
 					+ " and " + TextBasedSmsColumns.TYPE + "!=" + 
@@ -234,9 +237,7 @@ public class ContentUtils {
 	        
 			Cursor messages_cursor = mContext.getContentResolver().query(Uri.parse("content://sms"),
 					variables,querystring ,null,TextBasedSmsColumns.DATE);	      
-	        //DatabaseHandler dh = new DatabaseHandler(mContext);
-	        //MergeCursor mc = new MergeCursor(new Cursor[]{messages_cursor,dh.getPendingMessagesCursor(number)});
-			//dh.close();
+			Log.i("messages_cursor size", " " + messages_cursor.getCount());
 	        return messages_cursor;
 		}		
  

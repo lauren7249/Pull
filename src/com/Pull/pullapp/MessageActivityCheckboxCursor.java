@@ -233,12 +233,6 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	    hideKeyboard();
 	    text.clearFocus();
 	    
-		messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
-		adapter = new MessageCursorAdapter(mContext, messages_cursor);
-		merge_adapter.addAdapter(adapter);
-		merge_adapter.addAdapter(queue_adapter);
-		setListAdapter(merge_adapter);	
-		mListView.setSelection(merge_adapter.getCount()-1);		
 		
 		send = (Button) this.findViewById(R.id.send_button);
 		share = (Button) this.findViewById(R.id.share_button);
@@ -386,9 +380,9 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		});				
 		
 		share_with = getIntent().getStringExtra(Constants.EXTRA_SHARE_TO_NUMBER);
-		share_with_name = ContentUtils.getContactDisplayNameByNumber(mContext, share_with);
-		String shID = getIntent().getStringExtra(Constants.EXTRA_SHARE_SUGGESTION_ID);
 		if(share_with != null) {
+			share_with_name = ContentUtils.getContactDisplayNameByNumber(mContext, share_with);
+			String shID = getIntent().getStringExtra(Constants.EXTRA_SHARE_SUGGESTION_ID);			
 			adapter.showCheckboxes = true;
 			isChecked = true;
 			viewSwitcher.setDisplayedChild(1);	
@@ -396,7 +390,8 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			recipients = mConfidantesEditor.constructContactsFromInput(false).getNumbers();
 			mConfidantesEditor.setText(Recipient.buildNameAndNumber(share_with_name, share_with));
 			if(shID != null) {
-				for(int i = adapter.getCount()-1; i>adapter.getCount()-4; i--) adapter.setChecked(i);				
+				for(int i = adapter.getCount()-1; i>adapter.getCount()-4; i--) 
+					adapter.setChecked(i);				
 				adapter.notifyDataSetChanged();
 				merge_adapter.notifyDataSetChanged();				
 				ParseQuery<ShareSuggestion> query = ParseQuery.getQuery("ShareSuggestion");
@@ -441,6 +436,12 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	private void populateMessages(){
 		loader.execute(); 
 		isPopulated = true;
+		messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
+		adapter = new MessageCursorAdapter(mContext, messages_cursor);
+		merge_adapter.addAdapter(adapter);
+		merge_adapter.addAdapter(queue_adapter);
+		setListAdapter(merge_adapter);	
+		mListView.setSelection(merge_adapter.getCount()-1);				
 	}
 
 	private void updateTime(){
@@ -562,7 +563,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
         		//TODO: MAKE IT SO THAT YOU CANT DO THE PAST
         	}
             
-            
+
 		}
 		hideKeyboard();
 		text.clearFocus();
@@ -726,7 +727,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 				
 	        dh = new DatabaseHandler(mContext);
 	        messages_cursor = dh.getPendingMessagesCursor(number);
-	        
+	        Log.i("GetMessages  for number",number);
 	        if(messages_cursor.moveToFirst()) {
 	        	m = getNextOutboxMessage(messages_cursor);
 	        	publishProgress(m);	

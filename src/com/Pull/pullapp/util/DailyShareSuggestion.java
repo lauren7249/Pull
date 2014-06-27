@@ -59,7 +59,8 @@ public class DailyShareSuggestion extends Thread {
     	        	String best_friend_number = getBestFriendNumber(date, days_backwards);
     	        	String share_convo_number = getNumberToShareFrom(best_friend_number, hours_ago);
     	        	if(best_friend_number !=null && share_convo_number !=null ) {
-    	        		notifyShareSuggestion(best_friend_number,share_convo_number);    	        		
+    	        		if(best_friend_number.length()>0 && share_convo_number.length()>0)
+    	        			notifyShareSuggestion(best_friend_number,share_convo_number);    	        		
     	        	}
 
     	        } else {
@@ -131,8 +132,8 @@ public class DailyShareSuggestion extends Thread {
 		String[] variables = new String[]{TextBasedSmsColumns.ADDRESS};
 		String querystring = TextBasedSmsColumns.TYPE + "=" 
 					+ TextBasedSmsColumns.MESSAGE_TYPE_INBOX  
-					+ " and " + TextBasedSmsColumns.DATE 
-					+ ">=" + (System.currentTimeMillis() - hours_backwards*60*60*1000) 
+				/*	+ " and " + TextBasedSmsColumns.DATE 
+					+ ">=" + (System.currentTimeMillis() - hours_backwards*60*60*1000) */
 					+ " and " + TextBasedSmsColumns.ADDRESS + "!='" + best_friend_number + "'";
 	        
 		Cursor cursor = mContext.getContentResolver().query(Uri.parse("content://sms"),
