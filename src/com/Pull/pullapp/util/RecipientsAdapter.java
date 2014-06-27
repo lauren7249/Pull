@@ -157,7 +157,7 @@ public class RecipientsAdapter extends ResourceCursorAdapter {
         //                   (408) 555-1289
         String formattedNumber = PhoneNumberUtils.formatNumber(number);
         if (!TextUtils.isEmpty(name) && !name.equals(number)) {
-          return name + " <" + formattedNumber + ">";
+          return name /*+ " <" + formattedNumber + ">"*/;
         } else {
           return formattedNumber;
         }

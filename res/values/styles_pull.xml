@@ -59,7 +59,7 @@
     
     <style name="RadioButtonStyle.Pull" parent="@android:style/Widget.CompoundButton.RadioButton">
         <item name="android:background">@drawable/tab_button_ab_pull</item>
-        <item name="android:button">@android:color/transparent</item>
+        <item name="android:button">@android:color/white</item>
         <item name="android:gravity">center</item>
         <item name="android:padding">10dp</item>
         <item name="android:textAllCaps">true</item>

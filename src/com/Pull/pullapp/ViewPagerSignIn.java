@@ -165,7 +165,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 		mParseUser = ParseUser.getCurrentUser();
 		if (mApp.isSignedIn() && mParseUser.isAuthenticated()) {
 			mixpanel.track("Authenticated & signed in", jsonUser);
-		    Intent mIntent = new Intent(mContext, ThreadsListActivity.class);
+		    Intent mIntent = new Intent(mContext, SharedListActivity.class);
 	    	startActivity(mIntent); 						 	
 	    }
 
@@ -200,7 +200,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 				if(action.equals(Constants.ACTION_COMPLETE_SIGNUP)) {
 					if(mApp.getUserName() != null && ParseUser.getCurrentUser()!=null
 							&& ParseUser.getCurrentUser().isAuthenticated()) {
-					    Intent mIntent = new Intent(mContext, ThreadsListActivity.class);
+					    Intent mIntent = new Intent(mContext, SharedListActivity.class);
 				    	startActivity(mIntent);  		
 					} else {
 						if(mApp.getUserName() != null && ParseUser.getCurrentUser()!=null) {

@@ -125,7 +125,7 @@
         
         
         
-        <activity android:name="SharedListActivity" android:label="Shared Conversation"></activity>
+        <activity android:name="SharedListActivity"></activity>
         <activity android:name="SharedConversationActivityDebug"></activity>
         <activity android:name="SharedConversationActivity">
             <meta-data

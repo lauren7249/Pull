@@ -395,10 +395,10 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			mConfidantesEditor.setText(share_with);
 			recipients = mConfidantesEditor.constructContactsFromInput(false).getNumbers();
 			mConfidantesEditor.setText(Recipient.buildNameAndNumber(share_with_name, share_with));
-			for(int i = adapter.getCount()-1; i>adapter.getCount()-4; i--) adapter.setChecked(i);
-			adapter.notifyDataSetChanged();
-			merge_adapter.notifyDataSetChanged();
 			if(shID != null) {
+				for(int i = adapter.getCount()-1; i>adapter.getCount()-4; i--) adapter.setChecked(i);				
+				adapter.notifyDataSetChanged();
+				merge_adapter.notifyDataSetChanged();				
 				ParseQuery<ShareSuggestion> query = ParseQuery.getQuery("ShareSuggestion");
 				query.whereEqualTo("objectId", shID);
 		    	query.findInBackground(new FindCallback<ShareSuggestion>() {
@@ -483,11 +483,13 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		case R.id.menu_share:
 			if(isChecked) {
 				adapter.showCheckboxes = false;
+				item.setTitle("SHARE");
 				isChecked = false;
 				viewSwitcher.setDisplayedChild(0);
 			}
 			else {
 				adapter.showCheckboxes = true;
+				item.setTitle("TEXT");
 				isChecked = true;
 				viewSwitcher.setDisplayedChild(1);
 			}

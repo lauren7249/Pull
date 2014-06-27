@@ -191,7 +191,7 @@ public class RecipientList {
 
             if (!TextUtils.isEmpty(name) &&
                     !name.equals(number)) {
-                return name + " <" + PhoneNumberUtils.formatNumber(number) + ">";
+                return name /*+ " <" + PhoneNumberUtils.formatNumber(number) + ">"*/;
             } else {
                 return PhoneNumberUtils.formatNumber(number);
             }            
@@ -316,7 +316,7 @@ public class RecipientList {
         int count = mInvalidRecipients.size();
         for (int i = 0 ; i < count ; i++) {
             if (i != 0) {
-                sb.append(",");
+                //sb.append(" | ");
             }
 
             Recipient recipient = mInvalidRecipients.get(i);

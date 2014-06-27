@@ -34,7 +34,7 @@ public class ThreadItemsListAdapter extends ArrayAdapter<ThreadItem> {
     	View v = convertView;
     	if (v == null) {
 	        LayoutInflater vi = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-	        v = vi.inflate(R.layout.message_list_item, parent, false);
+	        v = vi.inflate(R.layout.list_item_thread, parent, false);
     	}
 	   TextView name = (TextView) v.findViewById(R.id.txt_title);
 	   TextView snippet = (TextView) v.findViewById(R.id.txt_message_info);

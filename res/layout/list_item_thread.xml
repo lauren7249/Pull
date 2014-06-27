@@ -51,15 +51,18 @@
 
 	</LinearLayout>
 
-	        <Button
-	            android:id="@+id/share_info"
-			      android:layout_width="75dp"
-			      android:layout_height="35dp"
-	            android:layout_gravity="center"
-	            android:background="@drawable/send_button"
-	            android:lineSpacingExtra="2dp"
-	            android:textColor="#FFFFFF"
-	            android:text="SHARE"
-	            android:textSize="12sp" />	          	           
+    <Button
+         android:id="@+id/share_info"
+         android:layout_width="75dp"
+         android:layout_height="35dp"
+         android:background="@drawable/send_button"
+         android:visibility="gone"
+         android:lineSpacingExtra="2dp"
+         android:textColor="#FFFFFF"
+         android:onClick="share"
+         android:text="SHARE"
+         android:paddingLeft="4dp"
+         android:paddingRight="4dp"
+         android:textSize="12sp" />	          	           
 
 </LinearLayout>

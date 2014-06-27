@@ -35,7 +35,7 @@ public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversat
     	View v = convertView;
     	if (v == null) {
 	        LayoutInflater vi = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-	        v = vi.inflate(R.layout.message_list_item, parent, false);
+	        v = vi.inflate(R.layout.list_item_thread, parent, false);
     	}
   	
        final ProfilePictureView profilePictureView = (ProfilePictureView) v.findViewById(R.id.profile_pic);
@@ -66,8 +66,8 @@ public class SharedConversationsListAdapter extends ArrayAdapter<SharedConversat
 			}
 		  }
 		});  	 
-		name.setText("Talking about " + th.getOriginalRecipientName());
-		info.setText("with " + ContentUtils.getContactDisplayNameByNumber(context, conversant));
+		name.setText(th.getOriginalRecipientName());
+		info.setText("shared with: " + ContentUtils.getContactDisplayNameByNumber(context, conversant));
 		
 	   return v;
     }

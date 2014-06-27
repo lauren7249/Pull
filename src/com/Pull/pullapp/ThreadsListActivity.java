@@ -123,17 +123,20 @@ public class ThreadsListActivity extends SherlockListActivity {
 	}		
 
     public boolean onContextItemSelected(MenuItem aItem) {
+    	Toast.makeText(mContext, " + ", Toast.LENGTH_LONG).show();
         AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
         int position = menuInfo.position;
         String recipientID = adapter.number_hash.get(position);
         String number = ContentUtils.getAddressFromID(mContext, recipientID);
+        //Toast.makeText(mContext, " + "+  number, Toast.LENGTH_LONG).show();
         switch (aItem.getItemId()) {
             case CONTEXTMENU_DELETEITEM:
                 Toast.makeText(mContext, "not yet implemented", Toast.LENGTH_LONG).show();
                 return true;
             case CONTEXTMENU_CONTACTITEM:
+            	
                 Intent intent = new Intent(Intent.ACTION_INSERT);
-               // intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
                 intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
                 startActivity(intent);            	
@@ -233,7 +236,9 @@ public class ThreadsListActivity extends SherlockListActivity {
         intent.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(number));
         startActivity(intent);        
 
-    }    	
+    }   
+    
+    
   
 	
 

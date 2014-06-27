@@ -26,7 +26,7 @@ public class MyEndlessAdapter extends EndlessAdapter {
   
   @Override
   protected View getPendingView(ViewGroup parent) {
-    View row=LayoutInflater.from(parent.getContext()).inflate(R.layout.message_list_item, null);
+    View row=LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item_thread, null);
     
     pendingView=row.findViewById(R.id.txt_title);
     pendingView.setVisibility(View.GONE);

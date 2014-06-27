@@ -4,7 +4,7 @@
 	<color name="textColor">#333</color>
 	<color name="textFieldColor">#000</color>
 	<color name="textShadow">#FFF</color>
-	<color name="listViewBg">#DADFEE</color>
+	<color name="listViewBg">#FFFFFF</color>
 	<color name="messageDefaultBackground">#FFFFFF</color>
 	<color name="cheeryBlossm">#ff7f66</color>
 	
@@ -13,8 +13,11 @@
 	<color name="sendMeduimColor">#5D6CA5</color>
 	<color name="sendDarkColor">#515F9F</color>
 
-	<color name="barDarkColor">#CECECE</color>
-	<color name="barMeduimColor">#DFDEE0</color>
-	<color name="barLightColor">#F2F2F2</color>
-
+	<color name="barDarkColor">#ff7f66</color>
+	<color name="barMeduimColor">#ff7f66</color>
+	<color name="barLightColor">#FFFFFF</color>
+	
+	<color name="pullLight">#ff4941</color>
+	<color name="pullMedium">#a51e1b</color>
+	<color name="pullDark">#73211d</color>
 </resources>

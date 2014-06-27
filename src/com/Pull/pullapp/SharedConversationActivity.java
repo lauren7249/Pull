@@ -92,7 +92,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 		}
 		
 		
-		setContentView(R.layout.shared_conversation_thread_activity);
+		setContentView(R.layout.shared_conversation);
 		isEmpty = true;
 		mContext = getApplicationContext();
 		mLayout = (LinearLayout) findViewById(R.id.main_layout);

@@ -35,7 +35,7 @@ public class SharedConversationsCursorAdapter extends ArrayAdapter<SharedConvers
     	View v = convertView;
     	if (v == null) {
 	        LayoutInflater vi = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-	        v = vi.inflate(R.layout.message_list_item, parent, false);
+	        v = vi.inflate(R.layout.list_item_thread, parent, false);
     	}
   	
        final ProfilePictureView profilePictureView = (ProfilePictureView) v.findViewById(R.id.profile_pic);

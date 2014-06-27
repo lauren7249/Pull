@@ -62,7 +62,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 		boolean read;
 		
         final LayoutInflater inflater = LayoutInflater.from(context);
-        View v = inflater.inflate(R.layout.message_list_item, parent, false);
+        View v = inflater.inflate(R.layout.list_item_thread, parent, false);
         final int position= threads.getPosition();
         
     	threadID = threads.getString(0);

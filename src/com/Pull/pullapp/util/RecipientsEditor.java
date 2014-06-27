@@ -17,6 +17,8 @@
 
 package com.Pull.pullapp.util;
 
+import java.util.Iterator;
+
 import android.content.Context;
 import android.text.Annotation;
 import android.text.Layout;
@@ -25,16 +27,12 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.TextAppearanceSpan;
 import android.util.AttributeSet;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.ListAdapter;
 import android.widget.MultiAutoCompleteTextView;
-import android.util.Log;
-
-import java.util.Iterator;
-import java.util.List;
 
 import com.Pull.pullapp.util.RecipientList.Recipient;
 
@@ -61,7 +59,7 @@ public class RecipientsEditor extends MultiAutoCompleteTextView {
         Iterator<Recipient> iter = list.iterator();
         while (iter.hasNext()) {
             if (sb.length() != 0) {
-                sb.append(", ");
+                //sb.append(", ");
             }
 
             Recipient r = iter.next();
@@ -172,7 +170,7 @@ public class RecipientsEditor extends MultiAutoCompleteTextView {
     }
 
     private class RecipientsEditorTokenizer
-            extends MultiAutoCompleteTextView.CommaTokenizer
+            extends SpaceTokenizer
             implements MultiAutoCompleteTextView.Tokenizer {
         private final MultiAutoCompleteTextView mList;
         private final LayoutInflater mInflater;
@@ -231,4 +229,5 @@ public class RecipientsEditor extends MultiAutoCompleteTextView {
         RecipientList numbers = mTokenizer.getRecipientList();
         return numbers;
     }    
+    
 }
