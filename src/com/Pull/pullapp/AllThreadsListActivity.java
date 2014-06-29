@@ -114,16 +114,20 @@ public class AllThreadsListActivity extends SherlockListActivity {
 
 
 	private void populateList() {
+		String columns = DatabaseHandler.KEY_SHARED_WITH + 
+				", " + DatabaseHandler.KEY_CONVERSATION_FROM_NAME +
+				", " + DatabaseHandler.KEY_SHARER +
+				", " + DatabaseHandler.KEY_ID + " as _id";
 		switch(currentTab) {
 		case R.id.shared_tab:
 			shareType = TextBasedSmsColumns.MESSAGE_TYPE_SENT;
-			threads_cursor = dbHandler.getSharedConversationCursor(shareType);
+			threads_cursor = dbHandler.getSharedConversationCursor(shareType, columns);
 		    adapter = new ThreadItemsCursorAdapter(mContext, threads_cursor, currentTab);
 		    setListAdapter(adapter);  	
 		    return;
 		case R.id.shared_with_me_tab:
 			shareType = TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
-			threads_cursor = dbHandler.getSharedConversationCursor(shareType);
+			threads_cursor = dbHandler.getSharedConversationCursor(shareType, columns);
 		    adapter = new ThreadItemsCursorAdapter(mContext, threads_cursor, currentTab);
 		    setListAdapter(adapter);  		
 		    return;

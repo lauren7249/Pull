@@ -2,6 +2,7 @@
 package com.Pull.pullapp.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -12,6 +13,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.Telephony.TextBasedSmsColumns;
+import android.util.Log;
 
 import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.SMSMessage;
@@ -23,23 +25,23 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
  
     // Database Name
-    private static final String DATABASE_NAME = "pullDB";
+    public static final String DATABASE_NAME = "pullDB";
  
     // Contacts table name
-    private static final String TABLE_SHARED_CONVERSATIONS = "sharedConversations";
-    private static final String TABLE_OUTBOX = "outbox";
-    private static final String TABLE_SHARED_CONVERSATION_SMS = "sharedConversationsSMSs";
-    private static final String TABLE_SHARED_CONVERSATION_COMMENTS = "sharedConversationsComments";
+    public static final String TABLE_SHARED_CONVERSATIONS = "sharedConversations";
+    public static final String TABLE_OUTBOX = "outbox";
+    public static final String TABLE_SHARED_CONVERSATION_SMS = "sharedConversationsSMSs";
+    public static final String TABLE_SHARED_CONVERSATION_COMMENTS = "sharedConversationsComments";
     
     // Columns for shared convos
-    private static final String KEY_ID = "id";
-    private static final String KEY_DATE = "date";
-    private static final String KEY_SHARED_WITH = "number";
-    private static final String KEY_CONVERSATION_FROM = "orig_number";
-    private static final String KEY_HASHTAG_ID = "hashtagID";
-    private static final String KEY_SHARER = "sharer";
-	private static final String KEY_PROPOSED = "isproposal";
-	private static final String KEY_CONVERSATION_FROM_NAME = "orig_name";
+    public static final String KEY_ID = "id";
+    public static final String KEY_DATE = "date";
+    public static final String KEY_SHARED_WITH = "number";
+    public static final String KEY_CONVERSATION_FROM = "orig_number";
+    public static final String KEY_HASHTAG_ID = "hashtagID";
+    public static final String KEY_SHARER = "sharer";
+    public static final String KEY_PROPOSED = "isproposal";
+    public static final String KEY_CONVERSATION_FROM_NAME = "orig_name";
     
     private SQLiteDatabase db;
     public DatabaseHandler(Context context) {
@@ -314,12 +316,22 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     // Getting all messages
     public Cursor getSharedConversationCursor(int messageType) {
         // Select All Query
-        String selectQuery = "SELECT  *, " + KEY_ID + " as _id FROM " + TABLE_SHARED_CONVERSATIONS 
+        String selectQuery = "SELECT  * FROM " + TABLE_SHARED_CONVERSATIONS 
         		+ " where "	 + TextBasedSmsColumns.TYPE + "=? order by " +  KEY_DATE + " desc";
         String[] where = {Integer.toString(messageType)};
         Cursor cursor = db.rawQuery(selectQuery, where);
         return cursor;
     }
+    
+    // Getting all messages
+    public Cursor getSharedConversationCursor(int messageType, String columns) {
+        // Select All Query
+        String selectQuery = "SELECT " + columns + " FROM " + TABLE_SHARED_CONVERSATIONS 
+        		+ " where "	 + TextBasedSmsColumns.TYPE + "=? order by " +  KEY_DATE + " desc";
+        String[] where = {Integer.toString(messageType)};
+        Cursor cursor = db.rawQuery(selectQuery, where);
+        return cursor;
+    }    
 
 	public void deleteShared(SharedConversation shared) {
         db.delete(TABLE_SHARED_CONVERSATIONS, KEY_ID + " = ?",

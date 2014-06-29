@@ -118,9 +118,9 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 	    
 	    final String number;
 		String name="", facebookID="";
-    	String confidante = threads.getString(2);
-    	String originalRecipientName = threads.getString(4);
-    	String sharer = threads.getString(6);	
+    	String confidante = threads.getString(0);
+    	String originalRecipientName = threads.getString(1);
+    	String sharer = threads.getString(2);	
     	
     	snippet_view.setText(originalRecipientName + " doesn't know you're sharing");
     	
