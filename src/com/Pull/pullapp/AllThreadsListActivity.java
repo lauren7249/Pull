@@ -2,6 +2,7 @@ package com.Pull.pullapp;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -20,6 +21,7 @@ import android.widget.ListView;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
@@ -56,6 +58,8 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	private String mPassword;
 	private int currentTab, shareType;
 	private DatabaseHandler dbHandler;
+	private SharedPreferences mPrefs_recipientID_phoneNumber;
+	private SharedPreferences mPrefs_phoneNumber_Name;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -71,7 +75,7 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	    listview = getListView();
 	    
 	    currentTab = getIntent().getIntExtra(Constants.EXTRA_TAB_ID,R.id.my_conversation_tab);
-	    Log.i("about to make adapter",currentTab + " + ");
+
 	    radioGroup  = (RadioGroup) findViewById(R.id.switch_buttons);   
 	    radioGroup.check(currentTab);	
 	    radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -83,6 +87,11 @@ public class AllThreadsListActivity extends SherlockListActivity {
 			}
 		});
 		
+    	mPrefs_recipientID_phoneNumber = mContext.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
+    			+ "recipientId_phoneNumber",Context.MODE_PRIVATE);
+    	mPrefs_phoneNumber_Name = mContext.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
+    			+ "phoneNumber_Name",Context.MODE_PRIVATE);
+    	
 	   /** listview.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
 	    	 
 			@Override
@@ -160,29 +169,47 @@ public class AllThreadsListActivity extends SherlockListActivity {
         // clicked and load the data from the cursor.
         // (ConversationListAdapter extends CursorAdapter, so getItemAtPosition() should
         // return the cursor object, which is moved to the position passed in)
+    	Cursor threads  = (Cursor) getListView().getItemAtPosition(position);
+    	Intent intent;
 		switch(currentTab) {
 		case R.id.my_conversation_tab: 
-	    	Cursor threads  = (Cursor) getListView().getItemAtPosition(position);
-	    	String threadID = threads.getString(threads
-		  		      .getColumnIndex(ThreadsColumns._ID));   
+	        intent = new Intent(mContext, MessageActivityCheckboxCursor.class);
+	        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+	        //intent.putExtra(Constants.EXTRA_THREAD_ID,threadID);	    	
+	    	//String threadID = threads.getString(threads.getColumnIndex(ThreadsColumns._ID));   
 	  		boolean read = (!threads.getString(threads
 		  		      .getColumnIndex(ThreadsColumns.READ)).equals("0"));    	
 			String recipientId = threads.getString(threads
 				      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS));
 			threads.close();
-			String number = ContentUtils.getAddressFromID(mContext, recipientId);
-			String name = ContentUtils
-					.getContactDisplayNameByNumber(mContext, number);  		
-	        Intent intent = new Intent(mContext, MessageActivityCheckboxCursor.class);
-	        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-	        intent.addFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME);
-	        intent.addFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
-	        intent.putExtra(Constants.EXTRA_THREAD_ID,threadID);
+			String number = mPrefs_recipientID_phoneNumber.getString(recipientId, null);
+	    	if(number==null) {
+				number = ContentUtils.getAddressFromID(mContext, recipientId);
+				Editor editor = mPrefs_recipientID_phoneNumber.edit();
+				editor.putString(recipientId, number);
+				editor.commit();
+	    	}				
+			String name = mPrefs_phoneNumber_Name.getString(number, null);
+	    	name = mPrefs_phoneNumber_Name.getString(number, null);
+	    	if(name==null) {
+	    		name = ContentUtils.getContactDisplayNameByNumber(mContext, number);
+				Editor editor = mPrefs_phoneNumber_Name.edit();
+				editor.putString(number, name);
+				editor.commit();
+	    	}				
+
 	        intent.putExtra(Constants.EXTRA_NAME,name);
 	        intent.putExtra(Constants.EXTRA_READ,read);
 	        intent.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(number));
-	        startActivity(intent);      
+	        startActivity(intent);   
+	        return;
 		default:
+			String convoID = threads.getString(threads
+				      .getColumnIndex("_id"));
+			intent = new Intent(mContext, SharedConversationActivity.class);
+	        intent.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
+	        startActivity(intent);	
+	        return;
 		}    	
 
     }   

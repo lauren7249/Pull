@@ -160,5 +160,9 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	facebookID = mPrefs_phoneNumber_FacebookID.getString(number, "");
     	if(facebookID!=null && facebookID.length()>0) profilePictureView.setProfileId(facebookID);
     	else profilePictureView.setProfileId("0");
+    	
+    	//TODO: ADD DATA TO SHOW IF IT IS READ OR NOT
+    	read_indicator.setVisibility(View.GONE);
+    	
 	}
 }

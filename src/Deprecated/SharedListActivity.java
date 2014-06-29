@@ -1,4 +1,4 @@
-package com.Pull.pullapp;
+package Deprecated;
 
 import java.util.List;
 
@@ -21,6 +21,12 @@ import android.widget.ListView;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.Pull.pullapp.MessageActivityCheckboxCursor;
+import com.Pull.pullapp.R;
+import com.Pull.pullapp.SharedConversationActivity;
+import com.Pull.pullapp.R.color;
+import com.Pull.pullapp.R.id;
+import com.Pull.pullapp.R.layout;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.AlarmScheduler;
 import com.Pull.pullapp.util.Constants;

@@ -16,6 +16,7 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -294,7 +295,11 @@ public class SharedConversationActivity extends SherlockActivity implements
 		registerReceiver(tickReceiver,intentFilter);	
 		
 		if(isEmpty) {
-			hint.setText("Write a comment to " + recipientName);
+			String hintText = "In the box below, you can write a comment to " + recipientName + 
+					" without " + mOriginalRecipientName + " knowing. If you use the 'SUGGEST A MESSAGE'" + 
+					" button, the comment becomes a suggestion, which you can take by dragging it into " +
+					" your conversation with " + mOriginalRecipientName + ".";
+			hint.setText(hintText);
 			hint.setVisibility(View.VISIBLE);
 			sharedConversationCommentListView.setVisibility(View.GONE);
 		}
@@ -313,10 +318,15 @@ public class SharedConversationActivity extends SherlockActivity implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case android.R.id.home:
-            //NavUtils.navigateUpFromSameTask(this);
-	    	Intent mIntent = new Intent(mContext, SharedListActivity.class);
-	    	mIntent.putExtra(Constants.EXTRA_SHARE_TYPE, sharedConversation.getType());
-	    	startActivity(mIntent);						
+            NavUtils.navigateUpFromSameTask(this);
+		/*	int tab_id;
+	    	Intent mIntent = new Intent(mContext, AllThreadsListActivity.class);
+	    	if(sharedConversation.getType()==TextBasedSmsColumns.MESSAGE_TYPE_SENT) 
+	    		tab_id = R.id.shared_tab;
+	    	else 
+	    		tab_id = R.id.shared_with_me_tab;
+	    	mIntent.putExtra(Constants.EXTRA_TAB_ID, tab_id);
+	    	startActivity(mIntent);		*/				
             return true;
         default:
         	return false;
@@ -330,10 +340,10 @@ public class SharedConversationActivity extends SherlockActivity implements
 		query.whereEqualTo("channel", ContentUtils.setChannel(confidante));
 		query.findInBackground(new FindCallback<ParseObject>() {
     	  public void done(List<ParseObject> objects, ParseException e) {
-    		  Log.i("done with query","finished query on channels");
+    		 // Log.i("done with query","finished query on channels");
     		  if (e == null && objects.size()>0) {
     	    	sendComment();
-    	    	Log.i("sending comment","to a real user");
+    	    //	Log.i("sending comment","to a real user");
     	    } else {
     	    	progress.cancel();
     	    	askToInviteFriend();
@@ -343,7 +353,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 	}
 
 	protected void askToInviteFriend() {
-		Log.i("ask to invite friend","about to fire");
+		//Log.i("ask to invite friend","about to fire");
 		String recipient_name = ContentUtils.getContactDisplayNameByNumber(mContext, recipient);
     	AlertDialog.Builder builder = new AlertDialog.Builder(this);
 	    builder.setTitle("Get " + recipient_name + " on Pull"); 
