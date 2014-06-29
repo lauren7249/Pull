@@ -71,7 +71,7 @@ public class ThreadsListActivity extends SherlockListActivity {
 	    threads_cursor = ContentUtils.getThreadsCursor(mContext);
 	    //long time2 = System.currentTimeMillis();
 	    
-	    adapter = new ThreadItemsCursorAdapter(mContext, threads_cursor);
+	    adapter = new ThreadItemsCursorAdapter(mContext, threads_cursor,R.id.my_conversation_tab);
 	  //  adapter = new ThreadItemsListAdapter(mContext, R.layout.message_list_item,new ArrayList<ThreadItem>());	    
 	    //long time3 = System.currentTimeMillis();
 	    
@@ -126,7 +126,7 @@ public class ThreadsListActivity extends SherlockListActivity {
     	Toast.makeText(mContext, " + ", Toast.LENGTH_LONG).show();
         AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
         int position = menuInfo.position;
-        String recipientID = adapter.number_hash.get(position);
+        String recipientID = adapter.recipientID_hash.get(position);
         String number = ContentUtils.getAddressFromID(mContext, recipientID);
         //Toast.makeText(mContext, " + "+  number, Toast.LENGTH_LONG).show();
         switch (aItem.getItemId()) {

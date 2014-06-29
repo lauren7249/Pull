@@ -44,7 +44,6 @@ import com.parse.SignUpCallback;
 public class MainApplication extends Application {
 
 	private SharedPreferences prefs;
-	private ViewPagerSignIn mSignIn;
 	private SharedPreferences.Editor editor ;
 	private String mPhoneNumber, mFacebookID;
 	private ParseUser currentUser;
@@ -104,13 +103,6 @@ public class MainApplication extends Application {
 		editor.commit();
 	}	
 
-	public void setMainActivity(ViewPagerSignIn main){
-		mSignIn = main;
-	}
-
-	public ViewPagerSignIn getMainActivity(){
-		return mSignIn;
-	}
 
 	public void setFacebookID(String facebookId) {
 		editor = prefs.edit();

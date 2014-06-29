@@ -479,6 +479,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		switch (item.getItemId()) {
 		case android.R.id.home:
 			loader.cancel(true);	
+			//TODO: figure out why the back button doesnt work
             NavUtils.navigateUpFromSameTask(this);
             return true;
 		case R.id.menu_share:

@@ -117,6 +117,7 @@ public class Constants {
 	public static final String EXTRA_SHARE_TO_NUMBER = PACKAGE_NAME + "EXTRA_SHARE_TO_NUMBER";
 	public static final boolean SHARE_SUGGESTION_BOOLEAN = true;
 	public static final String EXTRA_SHARE_SUGGESTION_ID = PACKAGE_NAME + "EXTRA_SHARE_SUGGESTION_ID";
+	public static final String EXTRA_TAB_ID = PACKAGE_NAME + "EXTRA_TAB_ID";
 	
 	
 	

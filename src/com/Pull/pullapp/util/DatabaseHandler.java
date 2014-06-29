@@ -292,13 +292,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     // Getting all messages
     public List<SharedConversation> getAllSharedConversation(int messageType) {
         List<SharedConversation> sharedList = new ArrayList<SharedConversation>();
-        // Select All Query
-        String selectQuery = "SELECT  * FROM " + TABLE_SHARED_CONVERSATIONS 
-        		+ " where "	 + TextBasedSmsColumns.TYPE + "=?";
-        String[] where = {Integer.toString(messageType)};
-        Cursor cursor = db.rawQuery(selectQuery, where);
-        //Log.i("cursor size",selectQuery + messageType + " returned " + cursor.getCount());
-        // looping through all rows and adding to list
+        Cursor cursor = getSharedConversationCursor(messageType);
         if (cursor.moveToLast()) {
             do {
             	SharedConversation shared = new SharedConversation();
@@ -317,7 +311,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
         return sharedList;
     }
-
+    // Getting all messages
+    public Cursor getSharedConversationCursor(int messageType) {
+        // Select All Query
+        String selectQuery = "SELECT  *, " + KEY_ID + " as _id FROM " + TABLE_SHARED_CONVERSATIONS 
+        		+ " where "	 + TextBasedSmsColumns.TYPE + "=? order by " +  KEY_DATE + " desc";
+        String[] where = {Integer.toString(messageType)};
+        Cursor cursor = db.rawQuery(selectQuery, where);
+        return cursor;
+    }
 
 	public void deleteShared(SharedConversation shared) {
         db.delete(TABLE_SHARED_CONVERSATIONS, KEY_ID + " = ?",

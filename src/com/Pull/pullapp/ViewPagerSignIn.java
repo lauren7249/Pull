@@ -89,6 +89,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	private MixpanelAPI mixpanel;
 	protected boolean showdialog;
 	private JSONObject jsonUser;
+	private static final Class nextActivity = AllThreadsListActivity.class;
 	
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -165,8 +166,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 		mParseUser = ParseUser.getCurrentUser();
 		if (mApp.isSignedIn() && mParseUser.isAuthenticated()) {
 			mixpanel.track("Authenticated & signed in", jsonUser);
-		    Intent mIntent = new Intent(mContext, SharedListActivity.class);
-	    	startActivity(mIntent); 						 	
+			openThreads();
 	    }
 
 	    // Dirty Hack to detect keyboard
@@ -200,8 +200,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 				if(action.equals(Constants.ACTION_COMPLETE_SIGNUP)) {
 					if(mApp.getUserName() != null && ParseUser.getCurrentUser()!=null
 							&& ParseUser.getCurrentUser().isAuthenticated()) {
-					    Intent mIntent = new Intent(mContext, SharedListActivity.class);
-				    	startActivity(mIntent);  		
+						openThreads();
 					} else {
 						if(mApp.getUserName() != null && ParseUser.getCurrentUser()!=null) {
 							mixpanel.track("Error signing in, user is null", jsonUser);
@@ -225,6 +224,12 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 		registerReceiver(mBroadcastReceiver, intentFilter);			
     }
 	
+	private void openThreads() {
+	    Intent mIntent = new Intent(mContext, nextActivity);
+    	startActivity(mIntent); 	
+		
+	}
+
 	/**
 	 * pulls up the facebook login screen
 	 */
