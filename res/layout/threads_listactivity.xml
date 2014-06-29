@@ -6,12 +6,48 @@
     <include android:id="@+id/switch_buttons" 
         layout="@layout/navigation_tabbar"
         />
+	<LinearLayout
+	       android:id="@+id/confidantes_box"
+	       android:layout_width="fill_parent"
+	       android:layout_height="wrap_content"
+	       android:layout_below="@id/switch_buttons"
+	       android:orientation="horizontal"
+	       android:visibility="gone" >
+		<LinearLayout
+		       android:layout_width="match_parent"
+		       android:layout_height="wrap_content"
+		       android:layout_weight="1"
+		       android:orientation="vertical" >
+			   <com.Pull.pullapp.util.RecipientsEditor
+			       android:id="@+id/recipient_editor"
+			       android:layout_width="fill_parent"
+			       android:layout_height="fill_parent"				       
+			       android:completionThreshold="1"
+			       android:hint="Conversation with"
+			       android:isScrollContainer="true"/>		       
+			   <com.Pull.pullapp.util.RecipientsEditor
+			       android:id="@+id/confidantes_editor"
+			       android:layout_width="fill_parent"
+			       android:layout_height="fill_parent"			       
+			       android:completionThreshold="1"
+			       android:hint="Share with"
+			       android:isScrollContainer="true"/>				
+		</LinearLayout>	       
+		<ImageButton 
+	        android:id="@+id/pull_icon"
+	        android:layout_gravity="right|center"
+		    android:layout_width="45dp"
+		    android:layout_height="45dp" 	 
+		    android:onClick="startShare"   
+		    android:background="@drawable/ic_launcher"
+		    />	       	    
+	</LinearLayout>    
     <View
         android:id="@+id/separator"
         android:layout_width="fill_parent"
         android:layout_height="2dp"
         android:background="@color/pullDark" 
-        android:layout_below="@id/switch_buttons"/>
+        android:layout_below="@id/confidantes_box"/>
     <ListView
          android:id="@android:id/list"
         android:layout_width="wrap_content"

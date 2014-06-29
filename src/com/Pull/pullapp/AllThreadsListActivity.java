@@ -17,6 +17,7 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View;
 import android.view.View.OnCreateContextMenuListener;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioGroup;
 import android.widget.Toast;
@@ -25,6 +26,8 @@ import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
+import com.Pull.pullapp.util.RecipientsAdapter;
+import com.Pull.pullapp.util.RecipientsEditor;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.app.ActionBar;
@@ -60,6 +63,15 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	private DatabaseHandler dbHandler;
 	private SharedPreferences mPrefs_recipientID_phoneNumber;
 	private SharedPreferences mPrefs_phoneNumber_Name;
+    private RecipientsEditor mConfidantesEditor;
+	private RecipientsAdapter mRecipientsAdapter;
+    private LinearLayout mBox;
+	private RecipientsEditor mConversantsEditor;	
+	private String[] recipients;
+	private String[] conversants;
+	private String conversant;
+	private String recipient;
+	private boolean visible;	
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -91,6 +103,13 @@ public class AllThreadsListActivity extends SherlockListActivity {
     			+ "recipientId_phoneNumber",Context.MODE_PRIVATE);
     	mPrefs_phoneNumber_Name = mContext.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
     			+ "phoneNumber_Name",Context.MODE_PRIVATE);
+    	
+	    mBox = (LinearLayout)findViewById(R.id.confidantes_box);
+		mRecipientsAdapter = new RecipientsAdapter(this);
+		mConfidantesEditor = (RecipientsEditor)findViewById(R.id.confidantes_editor);
+		mConfidantesEditor.setAdapter(mRecipientsAdapter);
+		mConversantsEditor = (RecipientsEditor)findViewById(R.id.recipient_editor);
+		mConversantsEditor.setAdapter(mRecipientsAdapter);    	
     	
 	   /** listview.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
 	    	 
@@ -124,12 +143,14 @@ public class AllThreadsListActivity extends SherlockListActivity {
 			threads_cursor = dbHandler.getSharedConversationCursor(shareType, columns);
 		    adapter = new ThreadItemsCursorAdapter(mContext, threads_cursor, currentTab);
 		    setListAdapter(adapter);  	
+		    mBox.setVisibility(View.GONE);
 		    return;
 		case R.id.shared_with_me_tab:
 			shareType = TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
 			threads_cursor = dbHandler.getSharedConversationCursor(shareType, columns);
 		    adapter = new ThreadItemsCursorAdapter(mContext, threads_cursor, currentTab);
-		    setListAdapter(adapter);  		
+		    setListAdapter(adapter);  	
+		    mBox.setVisibility(View.GONE);
 		    return;
 		case R.id.my_conversation_tab: 
 		    threads_cursor = ContentUtils.getThreadsCursor(mContext);
@@ -149,11 +170,15 @@ public class AllThreadsListActivity extends SherlockListActivity {
 		switch (item.getItemId()) {
 		case R.id.new_message:
 			switch(currentTab) {
-				case R.id.my_conversation_tab: c = MessageActivityCheckboxCursor.class;
-				default: c = MessageActivityCheckboxCursor.class;
+				case R.id.my_conversation_tab: 
+					c = MessageActivityCheckboxCursor.class;
+		            intent = new Intent(mContext, c);
+		            startActivity(intent);	
+		            return true;
+				default: 
+					mBox.setVisibility(View.VISIBLE);
 			}
-            intent = new Intent(mContext, c);
-            startActivity(intent);
+
 			return true;	
 		case R.id.settings:
             intent = new Intent(mContext, UserSettings.class);
@@ -217,6 +242,57 @@ public class AllThreadsListActivity extends SherlockListActivity {
 		}    	
 
     }   
+    
+	public void startShare(View v) {			
+
+		if(mConversantsEditor.constructContactsFromInput(false).getNumbers().length==0) {
+			Toast.makeText(mContext, "No converstions selected", Toast.LENGTH_LONG).show();
+			return;
+		}
+		conversants = mConversantsEditor.constructContactsFromInput(false).getToNumbers();
+		
+		if(conversants.length == 0) {
+			Toast.makeText(mContext, "No converstions selected", Toast.LENGTH_LONG).show();
+			return;
+		}		
+		if(conversants.length > 1) {
+			Toast.makeText(mContext, "Select only one conversation", Toast.LENGTH_LONG).show();
+			return;
+		}			
+		if(mConfidantesEditor.constructContactsFromInput(false).getNumbers().length==0) {
+			Toast.makeText(mContext, "No valid recipients selected", Toast.LENGTH_LONG).show();
+			return;
+		}
+		recipients = mConfidantesEditor.constructContactsFromInput(false).getToNumbers();
+		
+		if(recipients.length == 0) {
+			Toast.makeText(mContext, "No recipients selected", Toast.LENGTH_LONG).show();
+			return;
+		}		
+		if(recipients.length > 1) {
+			Toast.makeText(mContext, "Select only one person to share with", Toast.LENGTH_LONG).show();
+			return;
+		}			
+				
+		mBox.setVisibility(View.GONE);
+		//newShare.setBackgroundResource(R.color.pullLight);
+		conversant = conversants[0];
+		recipient = recipients[0];
+		
+		final String shared_from_thread = ContentUtils.
+				getThreadIDFromNumber(mContext, conversant);
+		final String shared_from_name = ContentUtils.
+				getContactDisplayNameByNumber(mContext, conversant);
+		Intent ni = new Intent(mContext, MessageActivityCheckboxCursor.class);
+		ni.putExtra(Constants.EXTRA_THREAD_ID,shared_from_thread);
+		ni.putExtra(Constants.EXTRA_NAME,shared_from_name);
+		ni.putExtra(Constants.EXTRA_READ,true);
+		ni.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(conversant));	
+		ni.putExtra(Constants.EXTRA_SHARE_TO_NUMBER,PhoneNumberUtils.stripSeparators(recipient));	
+		startActivity(ni);
+	
+
+	}	
     
 	 // make the menu work
 	@Override
