@@ -53,7 +53,7 @@
 		    android:padding="10dp"
 		    android:layout_centerHorizontal="true"
 		    android:textColor="#ffffff"
-		    android:visibility="gone"
+		    android:visibility="visible"
 		    android:onClick="anonymousLogin"
 		    android:background="@drawable/neutral_signin_button"
 		    android:text="Sign Up Anonymously" />    		    

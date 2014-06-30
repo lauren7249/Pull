@@ -223,7 +223,8 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 		intentFilter.addAction(Constants.ACTION_COMPLETE_SIGNUP);		
 		registerReceiver(mBroadcastReceiver, intentFilter);			
     }
-	
+
+
 	private void openThreads() {
 	    Intent mIntent = new Intent(mContext, nextActivity);
     	startActivity(mIntent); 	
@@ -325,7 +326,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	
 	private void displayFacebookLoginOption() {
 		mSignInButton.setVisibility(View.VISIBLE);
-		mGenericSignInButton.setVisibility(View.GONE);
+		//mGenericSignInButton.setVisibility(View.GONE);
 		mUserID.setVisibility(View.GONE);
 		mPassword.setVisibility(View.GONE);
 		mConfirmPassword.setVisibility(View.GONE);

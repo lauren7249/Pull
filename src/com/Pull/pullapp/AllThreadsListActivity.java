@@ -86,7 +86,7 @@ public class AllThreadsListActivity extends SherlockListActivity {
 
 	    listview = getListView();
 	    
-	    currentTab = getIntent().getIntExtra(Constants.EXTRA_TAB_ID,R.id.my_conversation_tab);
+	    currentTab = getIntent().getIntExtra(Constants.EXTRA_TAB_ID,R.id.shared_tab);
 
 	    radioGroup  = (RadioGroup) findViewById(R.id.switch_buttons);   
 	    radioGroup.check(currentTab);	

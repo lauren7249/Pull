@@ -286,7 +286,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 		updateViews();
 				
 		sharedConversationMessageListAdapter.setItemList(sharedConversation.getMessages());
-		this.setTitle("Comments re: " + mOriginalRecipientName);
+		this.setTitle(mOriginalRecipientName + " can't see this");
 		
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(Constants.ACTION_TIME_TICK);
