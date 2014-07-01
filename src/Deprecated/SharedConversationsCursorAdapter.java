@@ -1,4 +1,4 @@
-package com.Pull.pullapp;
+package Deprecated;
 
 import java.util.List;
 
@@ -11,6 +11,9 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import com.Pull.pullapp.R;
+import com.Pull.pullapp.R.id;
+import com.Pull.pullapp.R.layout;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.ContentUtils;
 import com.facebook.widget.ProfilePictureView;
@@ -24,7 +27,7 @@ public class SharedConversationsCursorAdapter extends ArrayAdapter<SharedConvers
     private Context context;
     private int type;
     public SharedConversationsCursorAdapter(Context context, int textViewResourceId,
-        List<SharedConversation> objects, int type) {
+        List<SharedConversation> objects, int type, boolean b) {
       super(context, textViewResourceId, objects);
       this.objects = (List<SharedConversation>) objects;
       this.context = context;
