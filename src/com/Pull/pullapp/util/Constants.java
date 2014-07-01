@@ -115,9 +115,10 @@ public class Constants {
 	public static final String MIXEDPANEL_TOKEN = "921bc5e3a1bac45c27da39e992f09da7";
 	public static final String ACTION_DAILY_SHARE_SUGGESTION = PACKAGE_NAME + ".util.ACTION_DAILY_SHARE_SUGGESTION";
 	public static final String EXTRA_SHARE_TO_NUMBER = PACKAGE_NAME + "EXTRA_SHARE_TO_NUMBER";
-	public static final boolean SHARE_SUGGESTION_BOOLEAN = true;
+	public static final boolean SHARE_SUGGESTION_BOOLEAN = false;
 	public static final String EXTRA_SHARE_SUGGESTION_ID = PACKAGE_NAME + "EXTRA_SHARE_SUGGESTION_ID";
 	public static final String EXTRA_TAB_ID = PACKAGE_NAME + "EXTRA_TAB_ID";
+	public static final String ACTION_SHARE_STATE_CHANGED = PACKAGE_NAME + ".util.ACTION_SHARE_STATE_CHANGED";;
 	
 	
 	

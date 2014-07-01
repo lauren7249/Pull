@@ -4,7 +4,9 @@ import java.util.Date;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Typeface;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -93,8 +95,16 @@ public class QueuedMessageAdapter extends BaseAdapter{
 		
 		LayoutParams lp = (LayoutParams) holder.messageBox.getLayoutParams();
 
-		//Check whether message is mine to show green background and align to right
-		if(message.isSentByMe())
+		if(message.isEvent()) {
+			holder.messageBox.setBackgroundResource(android.R.color.white);
+			holder.messageBox.setGravity(Gravity.CENTER);
+			holder.message.setGravity(Gravity.CENTER);
+			holder.message.setTypeface(null, Typeface.ITALIC);
+			holder.time.setTypeface(null, Typeface.ITALIC);
+			holder.time.setGravity(Gravity.CENTER);
+			lp.gravity = Gravity.CENTER;
+		}
+		else if(message.isSentByMe())
 		{
 			holder.messageBox.setBackgroundResource(R.drawable.outgoing);
 			lp.gravity = Gravity.RIGHT;
@@ -129,7 +139,6 @@ public class QueuedMessageAdapter extends BaseAdapter{
 			holder.edit.setVisibility(View.GONE);
 		}
 		holder.messageBox.setLayoutParams(lp);
-		
 		return convertView;
 	}
 	private static class ViewHolder

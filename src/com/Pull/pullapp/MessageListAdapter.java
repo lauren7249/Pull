@@ -17,17 +17,17 @@ import android.widget.TextView;
 
 import com.Pull.pullapp.model.SMSMessage;
 
-public class SharedConversationMessageListAdapter extends BaseAdapter {
+public class MessageListAdapter extends BaseAdapter {
 	private Context mContext;
 	private ArrayList<SMSMessage> mMessages;
 	
-	public SharedConversationMessageListAdapter(Context context, ArrayList<SMSMessage> messages) {
+	public MessageListAdapter(Context context, ArrayList<SMSMessage> messages) {
 		super();
 		this.mContext = context;
 		this.mMessages = messages;
 	}
 
-	public SharedConversationMessageListAdapter(Context context,
+	public MessageListAdapter(Context context,
 			HashSet<SMSMessage> messages) {
 		this.mContext = context;
 		this.mMessages = new ArrayList<SMSMessage>(messages);

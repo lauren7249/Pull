@@ -536,7 +536,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 			loader.cancel(true);	
             NavUtils.navigateUpFromSameTask(this);
             return true;
-		case R.id.menu_share:
+		/**case R.id.menu_share:
 			if(isChecked) {
 				adapter.showCheckboxes = false;
 				isChecked = false;
@@ -547,10 +547,7 @@ public class MessageActivityCheckbox extends SherlockListActivity {
 				isChecked = true;
 				viewSwitcher.setDisplayedChild(1);
 			}
-			return true;		
-		case R.id.menu_autoforward:
-			
-			return true;	
+			return true;	**/	
 		default:
 			return false;
 		}

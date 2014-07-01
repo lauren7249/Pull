@@ -361,6 +361,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		return(exists(convoID)) ;
 	}
 
+	public Cursor getSharedConversationCursor(String columns) {
+        // Select All Query
+        String selectQuery = "SELECT " + columns + " FROM " + TABLE_SHARED_CONVERSATIONS 
+        		+ " order by " +  KEY_DATE + " desc";
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        return cursor;
+	}
+
 
  
 

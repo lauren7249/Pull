@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.View.OnDragListener;
 import android.widget.Toast;
 
-import com.Pull.pullapp.SharedConversationCommentListAdapter.SMSViewHolder;
+import com.Pull.pullapp.CommentListAdapter.SMSViewHolder;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;

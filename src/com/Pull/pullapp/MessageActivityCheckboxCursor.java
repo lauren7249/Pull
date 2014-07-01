@@ -18,9 +18,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.app.NavUtils;
 import android.telephony.TelephonyManager;
@@ -33,7 +35,8 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -46,6 +49,7 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
+import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.ShareSuggestion;
 import com.Pull.pullapp.model.SharedConversation;
@@ -67,17 +71,20 @@ import com.parse.ParseException;
 import com.parse.ParseQuery;
 
 public class MessageActivityCheckboxCursor extends SherlockListActivity {
-
+	
+	protected static final int CONTEXTMENU_CONTACTITEM = 1;	
+	protected static final int CONTEXTMENU_SHARE_SECTION = 2;	
+	protected static final int CONTEXTMENU_SHARE_PERSISTENT = 3;
 	private ArrayList<SMSMessage> messages;
 	private HashMap<Long,Integer> delayedMessages = new HashMap<Long,Integer>();
-	private MessageCursorAdapter adapter;
+	private MessageCursorAdapter messages_adapter;
 	private EditText text;
 	private String name, number, newMessage;
 	private Context mContext;
 	private final Calendar calendar = Calendar.getInstance();
 	private Button pickDelay, send, share;
 	private GetMessages loader;
-	private boolean isChecked, isPopulated;
+	private boolean checkBoxesAreShowing, isPopulated;
 	private CustomDateTimePicker customDateTimePicker;
 	private Date sendDate;
 	private ViewSwitcher viewSwitcher;
@@ -113,6 +120,10 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	private String share_with;
 	private String share_with_name;
 	protected ShareSuggestion suggestion;
+	private String[] confidantes;
+	private CommentListAdapter comments_adapter;
+	private ArrayList<Comment> comments;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -129,7 +140,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		
 		mLayout = (RelativeLayout) findViewById(R.id.main_layout);
 
-		isChecked = false;
+		checkBoxesAreShowing = false;
 		delayPressed = false;
 		loader = new GetMessages();
 		
@@ -139,6 +150,8 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			
 		messages = new ArrayList<SMSMessage>();
 		queue_adapter = new QueuedMessageAdapter(this,messages);
+		comments = new ArrayList<Comment>();
+		comments_adapter = new CommentListAdapter(mContext, comments, number, number);
 		merge_adapter = new MergeAdapter();		
 
 		if(getIntent() != null && !isPopulated) {
@@ -215,7 +228,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	        		});		        		
 	        		
 	        	} 	        	
-	        	else if(isIdealLength && n_characters<Constants.MIN_TEXT_LENGTH) {
+	        	else if((isIdealLength || n_characters>0) && n_characters<Constants.MIN_TEXT_LENGTH) {
 	        		isIdealLength = false;
 	        		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.pendinh_indicator));
 	        		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
@@ -238,14 +251,14 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		share = (Button) this.findViewById(R.id.share_button);
 		pickDelay = (Button) this.findViewById(R.id.time_delay_button);
 		viewSwitcher = (ViewSwitcher) this.findViewById(R.id.viewSwitcher);
-		
+/**		
 		hashtag = (MultiAutoCompleteTextView) this.findViewById(R.id.hashtags);
 		//hashtag.setText("#");
 		ArrayAdapter<String> aaEmo = new ArrayAdapter<String>(
 				this,android.R.layout.simple_spinner_dropdown_item,Constants.ALL_HASHTAGS);
 		hashtag.setAdapter(aaEmo);
 		hashtag.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer() );	
-		
+		**/
 		sendDate = null;
 		
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -256,6 +269,15 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			public void onReceive(Context context, Intent intent) {
 				String action = intent.getAction();
 				
+				if(action.equals(Constants.ACTION_SHARE_STATE_CHANGED)) {
+					if(messages_adapter.check_hash.size()==0) {
+						viewSwitcher.setDisplayedChild(0);
+					}
+					else {
+						viewSwitcher.setDisplayedChild(1);
+					}					
+					return;
+				}
 				if(action.equals(Constants.ACTION_SHARE_COMPLETE)) {
 					int resultCode = intent.getIntExtra(Constants.EXTRA_SHARE_RESULT_CODE, 0);
 					switch(resultCode) {
@@ -383,16 +405,16 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		if(share_with != null) {
 			share_with_name = ContentUtils.getContactDisplayNameByNumber(mContext, share_with);
 			String shID = getIntent().getStringExtra(Constants.EXTRA_SHARE_SUGGESTION_ID);			
-			adapter.showCheckboxes = true;
-			isChecked = true;
+			messages_adapter.showCheckboxes = true;
+			checkBoxesAreShowing = true;
 			viewSwitcher.setDisplayedChild(1);	
 			mConfidantesEditor.setText(share_with);
-			recipients = mConfidantesEditor.constructContactsFromInput(false).getNumbers();
+			confidantes = mConfidantesEditor.constructContactsFromInput(false).getNumbers();
 			mConfidantesEditor.setText(Recipient.buildNameAndNumber(share_with_name, share_with));
 			if(shID != null) {
-				for(int i = adapter.getCount()-1; i>adapter.getCount()-4; i--) 
-					adapter.setChecked(i);				
-				adapter.notifyDataSetChanged();
+				for(int i = messages_adapter.getCount()-1; i>messages_adapter.getCount()-4; i--) 
+					messages_adapter.setChecked(i);				
+				messages_adapter.notifyDataSetChanged();
 				merge_adapter.notifyDataSetChanged();				
 				ParseQuery<ShareSuggestion> query = ParseQuery.getQuery("ShareSuggestion");
 				query.whereEqualTo("objectId", shID);
@@ -411,6 +433,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 
 		}		
 
+
 	}
 	
 
@@ -422,7 +445,8 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		intentFilter.addAction(Constants.ACTION_SMS_OUTBOXED);
 		intentFilter.addAction(Constants.ACTION_SMS_UNOUTBOXED);
 		intentFilter.addAction(Constants.ACTION_SMS_DELIVERED);		
-		intentFilter.addAction(Constants.ACTION_SHARE_COMPLETE);		
+		intentFilter.addAction(Constants.ACTION_SHARE_COMPLETE);	
+		intentFilter.addAction(Constants.ACTION_SHARE_STATE_CHANGED);	
 		registerReceiver(mBroadcastReceiver, intentFilter);	
 		
 		calendar.get(Calendar.HOUR_OF_DAY);
@@ -437,9 +461,10 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		loader.execute(); 
 		isPopulated = true;
 		messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
-		adapter = new MessageCursorAdapter(mContext, messages_cursor);
-		merge_adapter.addAdapter(adapter);
+		messages_adapter = new MessageCursorAdapter(mContext, messages_cursor, number);
+		merge_adapter.addAdapter(messages_adapter);
 		merge_adapter.addAdapter(queue_adapter);
+		merge_adapter.addAdapter(comments_adapter);
 		setListAdapter(merge_adapter);	
 		mListView.setSelection(merge_adapter.getCount()-1);				
 	}
@@ -469,6 +494,9 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		super.onCreateOptionsMenu(menu);
 		//actionbar menu
 		getSupportMenuInflater().inflate(R.menu.thread_menu, menu);
+		/*menu.add(0, CONTEXTMENU_CONTACTITEM, 0, "Add to Contacts");
+		//menu.add(1, CONTEXTMENU_SHARE_PERSISTENT, 0, "Share Conversation");
+		menu.add(2, CONTEXTMENU_SHARE_SECTION, 0, "Share Specific Messages");*/
 		return true;
 	}	
 	
@@ -479,26 +507,32 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		switch (item.getItemId()) {
 		case android.R.id.home:
 			loader.cancel(true);	
-			//TODO: figure out why the back button doesnt work
             NavUtils.navigateUpFromSameTask(this);
-            return true;
-		case R.id.menu_share:
-			if(isChecked) {
-				adapter.showCheckboxes = false;
+            return true;	
+		case R.id.menu_contacts:
+            Intent intent = new Intent(Intent.ACTION_INSERT);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
+            intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
+            startActivity(intent);            	
+            return true;	               
+		case CONTEXTMENU_SHARE_PERSISTENT:
+			viewSwitcher.setDisplayedChild(1);
+            return true;			         
+	/*	case R.id.menu_share:
+			if(checkBoxesAreShowing) {
+				messages_adapter.showCheckboxes = false;
 				item.setTitle("SHARE");
-				isChecked = false;
+				checkBoxesAreShowing = false;
 				viewSwitcher.setDisplayedChild(0);
 			}
 			else {
-				adapter.showCheckboxes = true;
+				messages_adapter.showCheckboxes = true;
 				item.setTitle("TEXT");
-				isChecked = true;
+				checkBoxesAreShowing = true;
 				viewSwitcher.setDisplayedChild(1);
 			}
-			return true;		
-		case R.id.menu_autoforward:
-			
-			return true;	
+			return true;	*/	
 		default:
 			return false;
 		}
@@ -588,7 +622,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	}
 	
 	public void removeEditOption(int id) {
-		//adapter.getItem(id).isDelayed = false;
+		//messages_adapter.getItem(id).isDelayed = false;
 		merge_adapter.notifyDataSetChanged();	
 	}
 	
@@ -600,21 +634,27 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
     public void getShareContent() {
 		final long date = System.currentTimeMillis();
 		
-		if(mConfidantesEditor.constructContactsFromInput(false).getNumbers().length==0 && recipients.length==0) {
+		if(mConfidantesEditor.constructContactsFromInput(false).getNumbers().length==0 
+				&& (confidantes==null || confidantes.length==0)) {
 			Toast.makeText(mContext, "No valid recipients selected", Toast.LENGTH_LONG).show();
 			return;
 		}
 		if(mConfidantesEditor.constructContactsFromInput(false).getNumbers().length>0) 
-			recipients = mConfidantesEditor.constructContactsFromInput(false).getToNumbers();
+			confidantes = mConfidantesEditor.constructContactsFromInput(false).getToNumbers();
 		//hashtags_string = hashtag.getText().toString().trim(); 
 		
-		if(recipients.length == 0) {
+		if(confidantes==null || confidantes.length == 0) {
 			Toast.makeText(mContext, "No recipients selected", Toast.LENGTH_LONG).show();
 			return;
 		}
 		
+		if(messages_adapter.check_hash.size()==0) {
+			addPersistentSharers();
+			return;
+		}
+		
 		final ArrayList<SMSMessage> checked_messages = new ArrayList<SMSMessage>();
-		Iterator it = adapter.check_hash.entrySet().iterator();
+		Iterator it = messages_adapter.check_hash.entrySet().iterator();
 		while(it.hasNext()){
 			Map.Entry pairs = (Map.Entry)it.next();
 			SMSMessage m = (SMSMessage) pairs.getValue();
@@ -641,7 +681,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		ParseQuery<SharedConversation> query = ParseQuery.getQuery("SharedConversation");
 		query.whereEqualTo("original_recipient", ContentUtils.addCountryCode(number));
 		query.whereEqualTo("sharer", ContentUtils.addCountryCode(mApp.getUserName()));
-		query.whereEqualTo("confidante", ContentUtils.addCountryCode(recipients[0]));
+		query.whereEqualTo("confidante", ContentUtils.addCountryCode(confidantes[0]));
 		query.findInBackground(new FindCallback<SharedConversation>() {
 		    public void done(List<SharedConversation> convoList, ParseException e) {
 		        if (e==null && convoList.size()>0) {
@@ -653,7 +693,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		            
 		        } else {
 		        	shareType = Constants.NOTIFICATION_NEW_SHARE;
-		        	mSharedConversation = new SharedConversation(date, recipients[0], number);
+		        	mSharedConversation = new SharedConversation(date, confidantes[0], number);
 		        	mSharedConversation.setSharer(mApp.getUserName());
 		        	mSharedConversation.setOriginalRecipientName(name);		
 		        	shareConvo(checked_messages);
@@ -663,6 +703,34 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		});	
 		
     }     
+
+	private void addPersistentSharers() {
+    	SharedPreferences phoneNumber_SharedWith = mContext
+    			.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
+    			+ "phoneNumber_SharedWith" + number ,Context.MODE_PRIVATE); 	
+    	long currentTime = System.currentTimeMillis();
+    	long sharedSince = phoneNumber_SharedWith.getLong(confidantes[0], currentTime);
+    	if(sharedSince != currentTime && false) {
+    		Toast.makeText(mContext, "Already sharing with this person", Toast.LENGTH_LONG).show();
+    		return;
+    	}
+		Editor editor = phoneNumber_SharedWith.edit();
+		editor.putLong(confidantes[0], currentTime);
+		editor.commit();	
+		showSharingMessage(confidantes[0], currentTime);
+	}
+
+
+	private void showSharingMessage(String sharedWith, long date) {
+		SMSMessage c = new SMSMessage();
+		c.setSender(sharedWith);
+		c.setDate(date);
+		c.setEvent(true);
+		c.setMessage("Started sharing with " + ContentUtils
+				.getContactDisplayNameByNumber(mContext, sharedWith));
+		addNewMessage(c, false);
+	}
+
 
 	protected void shareConvo(ArrayList<SMSMessage> messages) {
 		mSharedConversation.addMessages(messages);

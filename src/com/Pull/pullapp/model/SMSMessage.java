@@ -17,6 +17,7 @@ public class SMSMessage extends ParseObject {
 	public long futureSendTime;
 	public long launchedOn;
 	private Hashtag ht;
+	private boolean event;
 	
     // Constructors
     public SMSMessage() {
@@ -171,5 +172,15 @@ public class SMSMessage extends ParseObject {
     	}
     	if(m.smsDate != this.smsDate) return false;
 		return true;
-    }    
+    }
+
+	public void setEvent(boolean b) {
+		this.event = b;
+		
+	}
+
+	public boolean isEvent() {
+		// TODO Auto-generated method stub
+		return this.event;
+	}    
 }

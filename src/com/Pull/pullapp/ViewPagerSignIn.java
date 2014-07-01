@@ -85,7 +85,6 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	private RelativeLayout mBottomHalf;
 	private String mPasswordString;
 	private BroadcastReceiver mBroadcastReceiver;
-	private ProgressDialog progress;
 	private MixpanelAPI mixpanel;
 	protected boolean showdialog;
 	private JSONObject jsonUser;
@@ -181,7 +180,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 				}
 			}
 		});		
-		
+		   
 	    if(appRunning("com.facebook.katana")) {
 	    	mixpanel.track("Facebook is running", jsonUser);
 	    	displayFacebookLoginOption();
@@ -211,8 +210,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 							Toast.makeText(mContext, "Error signing in, not authenticated", Toast.LENGTH_LONG).show();
 						}
 					}					
-					progress.dismiss(); 
-					//share.setClickable(true);
+					progressDialog.dismiss();
 					return;
 				}				
 				
@@ -226,6 +224,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 
 
 	private void openThreads() {
+		if(progressDialog!=null && progressDialog.isShowing()) progressDialog.dismiss();
 	    Intent mIntent = new Intent(mContext, nextActivity);
     	startActivity(mIntent); 	
 		
@@ -236,8 +235,9 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	 */
 	public void facebookLogin(final View v){
 		mixpanel.track("Facebook login button clicked" , jsonUser);
-	    ViewPagerSignIn.this.progressDialog = ProgressDialog.show(
-	    		ViewPagerSignIn.this, "", "Logging in...", true);	
+	    progressDialog = ProgressDialog.show(
+	    		ViewPagerSignIn.this, "", "Signing up...", true);	
+	    showdialog=false;
 		List<String> permissions = Arrays.asList("basic_info", "user_about_me",
 				"user_relationships", "user_birthday", "user_location");
 		ParseFacebookUtils.logIn(permissions,this, new LogInCallback() {
@@ -251,7 +251,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 				    	   				    	   
 				       }
 			       }
-			       showdialog=true;
+			       progressDialog.dismiss();
 			       anonymousLogin(v);	
 			    } else {
 			    	
@@ -278,10 +278,8 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 	}
 	
 	public void anonymousLogin(View v){
-        progress = new ProgressDialog(this);
-        progress.setTitle("Signing Up");
-        progress.setMessage("Signing up...");
-        if(showdialog) progress.show();		
+	    if(progressDialog==null || !progressDialog.isShowing()) progressDialog = ProgressDialog.show(
+	    		ViewPagerSignIn.this, "", "Signing up...", true);	
 		if(mUserID.getText().toString() != null) {
 			mPhoneNumber = mUserID.getText().toString();
 			if(!PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber)) {
@@ -306,7 +304,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
 		// TODO Auto-generated method stub
 		mSignInButton.setVisibility(View.GONE);
 		mGenericSignInButton.setVisibility(View.VISIBLE);
-		mGenericSignInButton.setText("Sign Up");
+		//mGenericSignInButton.setText("Sign Up");
 		
 		if(!PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber)) {
 			mAssurance.setText("Confirm Phone Number");

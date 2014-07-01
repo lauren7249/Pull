@@ -90,7 +90,7 @@ public class SharedListActivity extends Activity {
 					type = TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
 				    thread_list = dbHandler.getAllSharedConversation(type);
 				    adapter = new SharedConversationsListAdapter(mContext,
-				    		R.layout.list_item_shared, thread_list, type);
+				    		R.layout.list_item_thread, thread_list, type);
 				    mBox.setVisibility(View.GONE);
 				    newShare.setVisibility(View.GONE);
 				    newShare.setText("SUBSCRIBE TO A CONVERSATION");
@@ -100,7 +100,7 @@ public class SharedListActivity extends Activity {
 					type = TextBasedSmsColumns.MESSAGE_TYPE_SENT;
 				    thread_list = dbHandler.getAllSharedConversation(type);
 				    adapter = new SharedConversationsListAdapter(mContext,
-				    		R.layout.list_item_shared, thread_list, type);	
+				    		R.layout.list_item_thread, thread_list, type);	
 				    if(visible) mBox.setVisibility(View.VISIBLE);
 				    newShare.setVisibility(View.VISIBLE);
 				    newShare.setText("SHARE A CONVERSATION");
@@ -128,7 +128,7 @@ public class SharedListActivity extends Activity {
 	    thread_list = dbHandler.getAllSharedConversation(type);
 	    
 	    adapter = new SharedConversationsListAdapter(mContext,
-	    		R.layout.list_item_shared, thread_list, type);	  
+	    		R.layout.list_item_thread, thread_list, type);	  
 	    listview.setAdapter(adapter);
 	    
 	    if(type==TextBasedSmsColumns.MESSAGE_TYPE_SENT) {

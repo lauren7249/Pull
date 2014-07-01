@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.Pull.pullapp"
-    android:versionCode="37"
-    android:versionName="1.37" >
+    android:versionCode="39"
+    android:versionName="1.39" >
 
     <uses-sdk
         android:minSdkVersion="14"
@@ -101,8 +101,8 @@
                 <data android:scheme="sms" />
                 <data android:scheme="smsto" />
                 <data android:scheme="mms" />
-                <data android:scheme="mmsto" />
-            </intent-filter>                 
+                <data android:scheme="mmsto" />                
+            </intent-filter>                           
         </activity>      		
         <!-- Service that delivers messages from the phone "quick response" -->
         <service android:name="com.Pull.pullapp.HeadlessSmsSendService"

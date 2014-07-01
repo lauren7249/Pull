@@ -2,13 +2,14 @@ package com.Pull.pullapp;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
+import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.widget.CursorAdapter;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -93,7 +94,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 			editor.commit();
     	}		
     	name = mPrefs_phoneNumber_Name.getString(number, null);
-    	if(name==null) {
+    	if(name==null || name.length() == 0 || name.equals(number)) {
     		name = ContentUtils.getContactDisplayNameByNumber(context, number);
 			Editor editor = mPrefs_phoneNumber_Name.edit();
 			editor.putString(number, name);
@@ -111,26 +112,46 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 	}
 
 	private void setSharedFields(Context context, Cursor threads, View v) {
+		LinearLayout row = (LinearLayout) v.findViewById(R.id.row);
 		TextView name_view = (TextView) v.findViewById(R.id.txt_title);
 		TextView snippet_view = (TextView) v.findViewById(R.id.txt_message_info);
 		ImageView read_indicator = (ImageView) v.findViewById(R.id.indicator);
-	    final ProfilePictureView profilePictureView = (ProfilePictureView) v.findViewById(R.id.profile_pic);
+	    final ProfilePictureView their_pic = 
+	    		(ProfilePictureView) v.findViewById(R.id.profile_pic);
+	    final ProfilePictureView my_pic = 
+	    		(ProfilePictureView) v.findViewById(R.id.profile_pic_mine);
+	    
 	    
 	    final String number;
 		String name="", facebookID="";
     	String confidante = threads.getString(0);
     	String originalRecipientName = threads.getString(1);
     	String sharer = threads.getString(2);	
-    	
-    	snippet_view.setText(originalRecipientName + " doesn't know you're sharing");
-    	
-    	if(cursorType == R.id.shared_with_me_tab) 
-    		number = sharer;
-    	else 
+    	int type = Integer.valueOf(threads.getString(4));
+
+    	if(type == TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
     		number = confidante;
-		
+    		their_pic.setVisibility(View.GONE);
+    		my_pic.setVisibility(View.VISIBLE);
+    		row.setGravity(Gravity.RIGHT);
+    		name_view.setGravity(Gravity.RIGHT);
+    		snippet_view.setGravity(Gravity.RIGHT);
+    		snippet_view.setText(originalRecipientName + " doesn't know you've shared");
+    		
+    	} else {
+    		number = sharer;
+    		my_pic.setVisibility(View.GONE);
+    		their_pic.setVisibility(View.VISIBLE);  
+    		name_view.setGravity(Gravity.LEFT);
+    		snippet_view.setGravity(Gravity.LEFT);    		
+    		snippet_view.setText(originalRecipientName + " doesn't know " 
+    		+ ContentUtils.getContactDisplayNameByNumber(context, number) + " shared");
+    	}
+    	
+    	
+    	
     	name = mPrefs_phoneNumber_Name.getString(number, "");
-    	if(name.length()==0) {
+    	if(name.length()==0 || name.equals(number)) {
     		name = ContentUtils.getContactDisplayNameByNumber(context, number);
 			Editor editor = mPrefs_phoneNumber_Name.edit();
 			editor.putString(number, name);
@@ -158,8 +179,13 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 
     	}    	
     	facebookID = mPrefs_phoneNumber_FacebookID.getString(number, "");
-    	if(facebookID!=null && facebookID.length()>0) profilePictureView.setProfileId(facebookID);
-    	else profilePictureView.setProfileId("0");
+    	if(type == TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
+	    	if(facebookID!=null && facebookID.length()>0) my_pic.setProfileId(facebookID);
+	    	else my_pic.setProfileId("0");
+    	} else {
+	    	if(facebookID!=null && facebookID.length()>0) their_pic.setProfileId(facebookID);
+	    	else their_pic.setProfileId("0");    		
+    	}
     	
     	//TODO: ADD DATA TO SHOW IF IT IS READ OR NOT
     	read_indicator.setVisibility(View.GONE);

@@ -6,7 +6,6 @@
       android:orientation="horizontal"
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
-      android:background="@drawable/read_row"
       android:layout_margin="5dp">
     <com.facebook.widget.ProfilePictureView
         android:id="@+id/profile_pic"
@@ -17,21 +16,21 @@
         facebook:preset_size="small"/>        
     <LinearLayout
         android:id= "@+id/text_rows"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:background="@android:color/white"
         android:layout_margin="5dp"
         android:layout_weight="4">
 	    <LinearLayout
-	        android:layout_width="wrap_content"
+	        android:layout_width="fill_parent"
 	        android:layout_height="wrap_content"
 	        android:orientation="vertical"
 	        android:layout_weight="4">
 	
 	        <TextView
 	            android:id="@+id/txt_title"
-	            android:layout_width="wrap_content"
+	            android:layout_width="fill_parent"
 	            android:layout_height="wrap_content"
 	            android:background="@android:color/white"
 	            android:lineSpacingExtra="2dp"
@@ -41,7 +40,7 @@
 	
 	        <TextView
 	            android:id="@+id/txt_message_info"
-	            android:layout_width="wrap_content"
+	            android:layout_width="fill_parent"
 	            android:layout_height="wrap_content"
 	            android:background="@android:color/white"
 	            android:lineSpacingExtra="2dp"
@@ -58,7 +57,13 @@
 	         />	   	    
 
 	</LinearLayout>
-
+    <com.facebook.widget.ProfilePictureView
+        android:id="@+id/profile_pic_mine"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_gravity="right"
+	    android:visibility="gone"
+        facebook:preset_size="small"/>  
     <Button
          android:id="@+id/share_info"
          android:layout_width="75dp"

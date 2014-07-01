@@ -8,6 +8,12 @@
     android:paddingBottom="5dp"
     android:paddingTop="5dp" >
 
+    <CheckBox
+        android:id="@+id/cbBox"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent" >
+    </CheckBox>    
+    
     <com.facebook.widget.ProfilePictureView
             android:id="@+id/contact_image"
 	        android:layout_width="60dp"

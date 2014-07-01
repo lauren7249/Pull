@@ -29,13 +29,13 @@ import com.parse.ParseException;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
-public class SharedConversationCommentListAdapter extends BaseAdapter {
+public class CommentListAdapter extends BaseAdapter {
 	private Context mContext;
 	private ArrayList<Comment> mComments;
 	private String mConfidante, mOriginalRecipientName;
 	private SharedPreferences mPrefs;
 	private MainApplication mApp;
-	public SharedConversationCommentListAdapter(Context context, ArrayList<Comment> comments, String confidante, String orig_recipient) {
+	public CommentListAdapter(Context context, ArrayList<Comment> comments, String confidante, String orig_recipient) {
 		super();
 		this.mContext = context;
 		this.mComments = comments;

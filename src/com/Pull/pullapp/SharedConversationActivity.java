@@ -54,15 +54,15 @@ public class SharedConversationActivity extends SherlockActivity implements
 	
 	private Context mContext;
 	private LinearLayout mLayout;
-	private ListView sharedConversationListView;
-	public ListView sharedConversationCommentListView;
+	private ListView conversationListView;
+	public ListView commentListView;
 	private DatabaseHandler dbHandler;
 	private SharedConversation sharedConversation;
-	private SharedConversationMessageListAdapter sharedConversationMessageListAdapter;
+	private MessageListAdapter messageListAdapter;
 	private String sharedConversationId, confidanteName;
-	private EditText sharedConversationCommentEditText;
-	private Button sharedConversationCommentSendButton, proposeButton;
-	public SharedConversationCommentListAdapter sharedConversationCommentListAdapter;
+	private EditText commentEditText;
+	private Button commentSendButton, proposeButton;
+	public CommentListAdapter commentListAdapter;
 	private View separatorView;
 	private Handler mHandler = new Handler(); 
 	private ArrayList<Comment> commentList = new ArrayList<Comment>();
@@ -98,12 +98,12 @@ public class SharedConversationActivity extends SherlockActivity implements
 		mContext = getApplicationContext();
 		mLayout = (LinearLayout) findViewById(R.id.main_layout);
 		dbHandler = new DatabaseHandler(mContext);
-	    sharedConversationListView = (ListView) findViewById(R.id.shared_conversation_list_view);
+	    conversationListView = (ListView) findViewById(R.id.shared_conversation_list_view);
 	    
 	    separatorView = findViewById(R.id.separator);
-	    sharedConversationCommentListView = (ListView) findViewById(R.id.shared_conversation_comment_list_view);
-	    sharedConversationCommentEditText = (EditText) findViewById(R.id.shared_conversation_comment_edit_text);
-	    sharedConversationCommentSendButton = (Button) findViewById(R.id.shared_conversation_comment_send_button);
+	    commentListView = (ListView) findViewById(R.id.shared_conversation_comment_list_view);
+	    commentEditText = (EditText) findViewById(R.id.shared_conversation_comment_edit_text);
+	    commentSendButton = (Button) findViewById(R.id.shared_conversation_comment_send_button);
 	    proposeButton = (Button) findViewById(R.id.shared_conversation_propose_button);
 	    hint = (TextView) findViewById(R.id.hint);
 	    
@@ -123,7 +123,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 	    }
 	   	    
 	    mOriginalRecipientName = sharedConversation.getOriginalRecipientName();
-	    sharedConversationListView.setOnDragListener(new MyDragListener(this, sharedConversation));
+	    conversationListView.setOnDragListener(new MyDragListener(this, sharedConversation));
 	    
 	    Log.i("sharedconversation recipient", recipient);
 	    // Dirty Hack to detect keyboard
@@ -132,31 +132,31 @@ public class SharedConversationActivity extends SherlockActivity implements
 			@Override
 			public void onGlobalLayout() {
 				if ((mLayout.getRootView().getHeight() - mLayout.getHeight()) > mLayout.getRootView().getHeight() / 3) {
-					sharedConversationListView.setVisibility(View.GONE);
+					conversationListView.setVisibility(View.GONE);
 					separatorView.setVisibility(View.GONE);
 				} else {
-					sharedConversationListView.setVisibility(View.VISIBLE);
+					conversationListView.setVisibility(View.VISIBLE);
 					separatorView.setVisibility(View.VISIBLE);
 				}
 			}
 		});
 		
 		progress = new ProgressDialog(this);
-		sharedConversationCommentSendButton.setOnClickListener(new OnClickListener() {
+		commentSendButton.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
 				
-				commentText = sharedConversationCommentEditText.getText().toString().trim();
+				commentText = commentEditText.getText().toString().trim();
 				if(commentText.length()>0){
 			        progress.setTitle("Sending comment");
 			        progress.setMessage("Sending...");
 			        progress.show();    			
-			        sharedConversationCommentSendButton.setClickable(false);
+			        commentSendButton.setClickable(false);
 					if(isEmpty) {
 						isEmpty = false;
 						hint.setVisibility(View.GONE);
-						sharedConversationCommentListView.setVisibility(View.VISIBLE);
+						commentListView.setVisibility(View.VISIBLE);
 					}
 					mCurrentComment = new Comment(commentText, mApp.getUserName(), System.currentTimeMillis());
 
@@ -169,19 +169,19 @@ public class SharedConversationActivity extends SherlockActivity implements
 			}
 		});
 		
-	    sharedConversationMessageListAdapter = new SharedConversationMessageListAdapter(mContext, 
+	    messageListAdapter = new MessageListAdapter(mContext, 
 	    		sharedConversation.getMessages());
-	    sharedConversationListView.setAdapter(sharedConversationMessageListAdapter);
+	    conversationListView.setAdapter(messageListAdapter);
 	    
-	    sharedConversationCommentListAdapter = new SharedConversationCommentListAdapter(mContext, sharedConversation.getComments(), 
+	    commentListAdapter = new CommentListAdapter(mContext, sharedConversation.getComments(), 
 	    			sharedConversation.getConfidante(), mOriginalRecipientName);
-	    sharedConversationCommentListView.setAdapter(sharedConversationCommentListAdapter);
+	    commentListView.setAdapter(commentListAdapter);
 	    
 	    
 	    confidanteName = ContentUtils.getContactDisplayNameByNumber(mContext,sharedConversation.getConfidante());
 	    recipientName = ContentUtils.getContactDisplayNameByNumber(mContext,recipient);
 
-	    sharedConversationCommentEditText.setHint("Write to " + recipientName);
+	    commentEditText.setHint("Write to " + recipientName);
 	    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 	    
 		tickReceiver = new BroadcastReceiver() {
@@ -191,9 +191,9 @@ public class SharedConversationActivity extends SherlockActivity implements
 				
 				if(action.equals(Constants.ACTION_SEND_COMMENT_CANCELED)) {
 					//return comment to its previous position
-					sharedConversationCommentListAdapter = new SharedConversationCommentListAdapter(mContext, 
+					commentListAdapter = new CommentListAdapter(mContext, 
 							sharedConversation.getComments(), sharedConversation.getConfidante(), mOriginalRecipientName);
-				    sharedConversationCommentListView.setAdapter(sharedConversationCommentListAdapter);
+				    commentListView.setAdapter(commentListAdapter);
 				} else if(action.equals(Constants.ACTION_SEND_COMMENT_CONFIRMED)) {
 					//send comment
 					
@@ -236,13 +236,13 @@ public class SharedConversationActivity extends SherlockActivity implements
 	    View v=getCurrentFocus();
 	    if(v==null)return;
 	    inputManager.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-		if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);        			
+		if(commentList.size()>0) commentListView.setSelection(commentList.size()-1);        			
 	
 	}
 	
 	private void updateTime(){
-		sharedConversationMessageListAdapter.notifyDataSetChanged();
-		sharedConversationCommentListAdapter.notifyDataSetChanged();
+		messageListAdapter.notifyDataSetChanged();
+		commentListAdapter.notifyDataSetChanged();
 	}
 	
 	
@@ -280,12 +280,12 @@ public class SharedConversationActivity extends SherlockActivity implements
 		if(commentList.size()>0) {
 			isEmpty = false;
 			hint.setVisibility(View.GONE);
-			sharedConversationCommentListView.setVisibility(View.VISIBLE);			
+			commentListView.setVisibility(View.VISIBLE);			
 		}
 		sharedConversation.setComments(commentList);
 		updateViews();
 				
-		sharedConversationMessageListAdapter.setItemList(sharedConversation.getMessages());
+		messageListAdapter.setItemList(sharedConversation.getMessages());
 		this.setTitle(mOriginalRecipientName + " can't see this");
 		
 		IntentFilter intentFilter = new IntentFilter();
@@ -295,15 +295,15 @@ public class SharedConversationActivity extends SherlockActivity implements
 		registerReceiver(tickReceiver,intentFilter);	
 		
 		if(isEmpty) {
-			String hintText = "In the box below, you can write a comment to " + recipientName + 
-					" without " + mOriginalRecipientName + " knowing. If you use the 'SUGGEST A MESSAGE'" + 
-					" button, the comment becomes a suggestion, which you can take by dragging it into " +
+			String hintText = "Write a comment to " + recipientName + 
+					" without " + mOriginalRecipientName + " knowing. Or use the 'SUGGEST A MESSAGE'" + 
+					" button, then drag the message into " +
 					" your conversation with " + mOriginalRecipientName + ".";
 			hint.setText(hintText);
 			hint.setVisibility(View.VISIBLE);
-			sharedConversationCommentListView.setVisibility(View.GONE);
+			commentListView.setVisibility(View.GONE);
 		}
-		if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);        			
+		if(commentList.size()>0) commentListView.setSelection(commentList.size()-1);        			
 		
 	}
 	
@@ -318,15 +318,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case android.R.id.home:
-            NavUtils.navigateUpFromSameTask(this);
-		/*	int tab_id;
-	    	Intent mIntent = new Intent(mContext, AllThreadsListActivity.class);
-	    	if(sharedConversation.getType()==TextBasedSmsColumns.MESSAGE_TYPE_SENT) 
-	    		tab_id = R.id.shared_tab;
-	    	else 
-	    		tab_id = R.id.shared_with_me_tab;
-	    	mIntent.putExtra(Constants.EXTRA_TAB_ID, tab_id);
-	    	startActivity(mIntent);		*/				
+            NavUtils.navigateUpFromSameTask(this);			
             return true;
         default:
         	return false;
@@ -413,14 +405,14 @@ public class SharedConversationActivity extends SherlockActivity implements
 
 
 	protected void updateViews() {
-		sharedConversationCommentListAdapter.setItemList(commentList);
-		sharedConversationCommentListView.invalidateViews();
-		sharedConversationCommentListView.refreshDrawableState();					
-		sharedConversationCommentEditText.setText("");
-		sharedConversationCommentSendButton.setClickable(true);
+		commentListAdapter.setItemList(commentList);
+		commentListView.invalidateViews();
+		commentListView.refreshDrawableState();					
+		commentEditText.setText("");
+		commentSendButton.setClickable(true);
 		hideKeyboard();
-		sharedConversationCommentEditText.clearFocus();
-		if(commentList.size()>0) sharedConversationCommentListView.setSelection(commentList.size()-1);     
+		commentEditText.clearFocus();
+		if(commentList.size()>0) commentListView.setSelection(commentList.size()-1);     
 		
 	}
 
@@ -444,7 +436,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 	}
 
 	public void propose(View v) {
-		commentText = sharedConversationCommentEditText.getText().toString().trim();	
+		commentText = commentEditText.getText().toString().trim();	
 		if(commentText.length()==0){
 			Toast.makeText(mContext, "First write a message,  then suggest it!", 
 					Toast.LENGTH_LONG).show();
@@ -461,7 +453,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 							if(isEmpty) {
 								isEmpty = false;
 								hint.setVisibility(View.GONE);
-								sharedConversationCommentListView.setVisibility(View.VISIBLE);
+								commentListView.setVisibility(View.VISIBLE);
 							}
 							mCurrentComment = new Comment(commentText, mApp.getUserName(), System.currentTimeMillis());
 							mCurrentComment.setProposal(true);
