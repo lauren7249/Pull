@@ -29,6 +29,8 @@ public class SMSReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		if (intent.getAction()
+				.equals(Intents.SMS_RECEIVED_ACTION)) {		
+		if (intent.getAction()
 				.equals(Intents.SMS_RECEIVED_ACTION)) {
 			Bundle bundle = intent.getExtras();
 			if (bundle != null) {
@@ -90,6 +92,8 @@ public class SMSReceiver extends BroadcastReceiver {
 					notification.defaults|= Notification.DEFAULT_VIBRATE;		
 					mNotificationManager.notify(111, notification);
 				}
+			}
+			return;
 			}
 		}
 	}

@@ -5,24 +5,17 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.provider.Telephony.ThreadsColumns;
-import android.support.v4.app.NavUtils;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
-import android.util.Log;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View;
-import android.view.View.OnCreateContextMenuListener;
-import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
@@ -30,16 +23,10 @@ import com.Pull.pullapp.util.RecipientsAdapter;
 import com.Pull.pullapp.util.RecipientsEditor;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.SherlockListActivity;
-import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.facebook.model.GraphUser;
 import com.parse.ParseAnalytics;
-import com.parse.ParseException;
-import com.parse.ParseFacebookUtils;
 import com.parse.ParseUser;
-import com.parse.SaveCallback;
 
 public class AllThreadsListActivity extends SherlockListActivity {
 	
@@ -72,6 +59,7 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	private String conversant;
 	private String recipient;
 	private boolean visible;	
+	private Button hint;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -83,7 +71,9 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	    dbHandler = new DatabaseHandler(mContext);
 	    mApp = (MainApplication) this.getApplication();
 	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();
-
+	    
+	    hint = (Button) findViewById(R.id.hint);   
+	    hint.setVisibility(View.VISIBLE);
 	    listview = getListView();
 	    
 	    currentTab = getIntent().getIntExtra(Constants.EXTRA_TAB_ID,R.id.shared_tab);
@@ -182,6 +172,12 @@ public class AllThreadsListActivity extends SherlockListActivity {
 			return false;
 		}
 	}	
+	
+	public void showShareBox(View v) {
+		mBox.setVisibility(View.VISIBLE);
+		hint.setVisibility(View.GONE);
+		
+	}
 	
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {

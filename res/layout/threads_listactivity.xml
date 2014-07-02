@@ -53,5 +53,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/separator" />
+    <Button
+        android:id="@+id/hint"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:layout_margin="10dp"
+        android:gravity="center"
+        android:textSize="30dp"
+        android:onClick="showShareBox"
+        android:text="CLICK TO SHARE A CONVERSATION!"
+        android:divider="#00000000"
+        android:background="@color/pullLight"
+        android:layout_below="@android:id/list" >
+        </Button>          
 </RelativeLayout>
 
