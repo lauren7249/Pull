@@ -66,8 +66,10 @@ import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.commonsware.cwac.merge.MergeAdapter;
+import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParseInstallation;
 import com.parse.ParseQuery;
 
 public class MessageActivityCheckboxCursor extends SherlockListActivity {
@@ -123,6 +125,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	private String[] confidantes;
 	private CommentListAdapter comments_adapter;
 	private ArrayList<Comment> comments;
+	private MixpanelAPI mixpanel;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -154,6 +157,10 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		comments_adapter = new CommentListAdapter(mContext, comments, number, number);
 		merge_adapter = new MergeAdapter();		
 
+		mixpanel = MixpanelAPI.getInstance(mContext, Constants.MIXEDPANEL_TOKEN);
+		mixpanel.identify(ParseInstallation.getCurrentInstallation().getObjectId());
+		
+		
 		if(getIntent() != null && !isPopulated) {
 			
 			number =  getIntent().getStringExtra(Constants.EXTRA_NUMBER); 
@@ -753,10 +760,13 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	public void askAboutTimeDelay(){
 		View checkBoxView = View.inflate(this, R.layout.checkbox, null);
 		CheckBox checkBox = (CheckBox) checkBoxView.findViewById(R.id.checkbox);
+	
 		checkBox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
 		    @Override
 		    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+		    	mixpanel.track("user checked box button", null);
+		    	
 		    	editor = mPrefs.edit();
 		        // Save to shared preferences
 				editor.putBoolean(Constants.PREFERENCE_TIME_DELAY_PROMPT, !isChecked);	
@@ -773,14 +783,22 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		           .setView(checkBoxView)
 		           .setCancelable(true)
 		           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-		               public void onClick(DialogInterface dialog, int id) {
+		               public void onClick(DialogInterface dialog, int id)
+		               {
+		            	
+		            		mixpanel.track("alertdialog for text delay, user clicked yes", null);
+		            		
+		            		
 		            	   dialog.cancel();
 		            	   customDateTimePicker.showDialog();	
 		            	 
 		               	}
-		           })
+		           }) 
 		           .setNegativeButton("No", new DialogInterface.OnClickListener() {
-		               public void onClick(DialogInterface dialog, int id) {
+		               public void onClick(DialogInterface dialog, int id) 
+		               {
+		            	   mixpanel.track("alertdialog for a text delay, user clicked no", null);
+		            	   
 		                    dialog.cancel();
 		                    sendMessage(send);
 		               }
@@ -795,7 +813,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		protected Void doInBackground(Void... params) {
 				
 	        dh = new DatabaseHandler(mContext);
-	        messages_cursor = dh.getPendingMessagesCursor(number);
+	        messages_cursor = dh.getPendingMessagesCursor(number);    
 	        Log.i("GetMessages  for number",number);
 	        if(messages_cursor.moveToFirst()) {
 	        	m = getNextOutboxMessage(messages_cursor);
@@ -827,5 +845,9 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		imm.hideSoftInputFromWindow(text.getWindowToken(), 0);		
 		
 	}	
-		
+	@Override
+	protected void onDestroy() {
+		mixpanel.flush();
+	    super.onDestroy();
+	}	  		
 }

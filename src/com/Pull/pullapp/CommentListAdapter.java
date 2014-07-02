@@ -22,10 +22,13 @@ import android.widget.TextView;
 
 import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.FacebookUser;
+import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.facebook.widget.ProfilePictureView;
+import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParseInstallation;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
@@ -35,6 +38,7 @@ public class CommentListAdapter extends BaseAdapter {
 	private String mConfidante, mOriginalRecipientName;
 	private SharedPreferences mPrefs;
 	private MainApplication mApp;
+	private MixpanelAPI mixpanel;
 	public CommentListAdapter(Context context, ArrayList<Comment> comments, String confidante, String orig_recipient) {
 		super();
 		this.mContext = context;
@@ -44,7 +48,8 @@ public class CommentListAdapter extends BaseAdapter {
 		mApp = (MainApplication) context.getApplicationContext();
 		//mPrefs = context.getSharedPreferences(MainApplication.class.getSimpleName(), Context.MODE_PRIVATE);
 	}
-
+	
+	
 	@Override
 	public int getCount() {
 		return mComments.size();
@@ -99,7 +104,12 @@ public class CommentListAdapter extends BaseAdapter {
 				holder.retry = (Button) convertView.findViewById(R.id.retry_button);
 				if(comment.failedToDeliver) holder.retry.setVisibility(View.VISIBLE);
 				else holder.retry.setVisibility(View.GONE);
-		        holder.retry.setOnClickListener(new OnClickListener() {
+				
+				mixpanel = MixpanelAPI.getInstance(mContext, Constants.MIXEDPANEL_TOKEN);
+				mixpanel.identify(ParseInstallation.getCurrentInstallation().getObjectId());			
+				
+				mixpanel.track("failedtoDeliver user comment" , null);
+				holder.retry.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View v) {
 						//do something

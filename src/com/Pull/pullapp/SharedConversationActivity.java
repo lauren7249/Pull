@@ -39,8 +39,10 @@ import com.Pull.pullapp.util.DatabaseHandler;
 import com.Pull.pullapp.util.SendMessages;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.MenuItem;
+import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParseInstallation;
 import com.parse.ParseObject;
 import com.parse.ParsePush;
 import com.parse.ParseQuery;
@@ -78,6 +80,8 @@ public class SharedConversationActivity extends SherlockActivity implements
 	private GestureDetector mGestureDetector;
 	private String recipientName;
 	protected ProgressDialog progress;
+	private MixpanelAPI mixpanel;
+	
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -100,6 +104,10 @@ public class SharedConversationActivity extends SherlockActivity implements
 		dbHandler = new DatabaseHandler(mContext);
 	    conversationListView = (ListView) findViewById(R.id.shared_conversation_list_view);
 	    
+		
+		mixpanel = MixpanelAPI.getInstance(mContext, Constants.MIXEDPANEL_TOKEN);
+		mixpanel.identify(ParseInstallation.getCurrentInstallation().getObjectId());
+		
 	    separatorView = findViewById(R.id.separator);
 	    commentListView = (ListView) findViewById(R.id.shared_conversation_comment_list_view);
 	    commentEditText = (EditText) findViewById(R.id.shared_conversation_comment_edit_text);
@@ -124,13 +132,15 @@ public class SharedConversationActivity extends SherlockActivity implements
 	   	    
 	    mOriginalRecipientName = sharedConversation.getOriginalRecipientName();
 	    conversationListView.setOnDragListener(new MyDragListener(this, sharedConversation));
-	    
 	    Log.i("sharedconversation recipient", recipient);
 	    // Dirty Hack to detect keyboard
 		mLayout.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
 			
 			@Override
-			public void onGlobalLayout() {
+			public void onGlobalLayout() 
+			{
+			    mixpanel.track("globallayout dirty hack to keyboard", null);
+			    
 				if ((mLayout.getRootView().getHeight() - mLayout.getHeight()) > mLayout.getRootView().getHeight() / 3) {
 					conversationListView.setVisibility(View.GONE);
 					separatorView.setVisibility(View.GONE);
@@ -145,8 +155,10 @@ public class SharedConversationActivity extends SherlockActivity implements
 		commentSendButton.setOnClickListener(new OnClickListener() {
 			
 			@Override
-			public void onClick(View v) {
-				
+			public void onClick(View v) 
+			{
+			mixpanel.track("commentSenButton user sent message", null);
+			
 				commentText = commentEditText.getText().toString().trim();
 				if(commentText.length()>0){
 			        progress.setTitle("Sending comment");
@@ -274,6 +286,9 @@ public class SharedConversationActivity extends SherlockActivity implements
 		super.onResume();
 		
 		sharedConversation = dbHandler.getSharedConversation(sharedConversationId);
+		
+		mixpanel.track("sharedConversation user just shared message", null);
+				
 		if(sharedConversation == null) Log.i("shared convo is null", sharedConversationId);
 		mOriginalRecipientName = sharedConversation.getOriginalRecipientName();
 		commentList = dbHandler.getComments(sharedConversationId);
@@ -345,7 +360,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 	}
 
 	protected void askToInviteFriend() {
-		//Log.i("ask to invite friend","about to fire");
+		Log.i("ask to invite friend","about to fire");
 		String recipient_name = ContentUtils.getContactDisplayNameByNumber(mContext, recipient);
     	AlertDialog.Builder builder = new AlertDialog.Builder(this);
 	    builder.setTitle("Get " + recipient_name + " on Pull"); 
@@ -363,8 +378,12 @@ public class SharedConversationActivity extends SherlockActivity implements
 		            	   
 	               	}
 	           })
+	       
 	           .setNegativeButton("No", new DialogInterface.OnClickListener() {
-	               public void onClick(DialogInterface dialog, int id) {
+	               public void onClick(DialogInterface dialog, int id) 
+	               {
+	            	   mixpanel.track("alertdialog user denied inviting friend", null);
+	            	   
 	                    dialog.cancel();
 	               }
 	           }).show();	
@@ -448,7 +467,9 @@ public class SharedConversationActivity extends SherlockActivity implements
 		    builder.setMessage(commentText)
 		           .setCancelable(true)
 		           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-		               public void onClick(DialogInterface dialog, int id) {
+		               public void onClick(DialogInterface dialog, int id) 
+		               {
+		            	   mixpanel.track("alertdialog user accepts sending message", null);
 		            	   dialog.cancel();
 							if(isEmpty) {
 								isEmpty = false;
@@ -461,7 +482,9 @@ public class SharedConversationActivity extends SherlockActivity implements
 		               	}
 		           })
 		           .setNegativeButton("No", new DialogInterface.OnClickListener() {
-		               public void onClick(DialogInterface dialog, int id) {
+		               public void onClick(DialogInterface dialog, int id)
+		               {
+		    		   mixpanel.track("alertdialog user denies to sending message", null);
 		                    dialog.cancel();
 		                    commentText = "";
 		               }
@@ -560,4 +583,10 @@ public class SharedConversationActivity extends SherlockActivity implements
 		// TODO Auto-generated method stub
 		return false;
 	}
+	@Override
+	protected void onDestroy() {
+		mixpanel.flush();
+	    super.onDestroy();
+	}	
+	
 }
