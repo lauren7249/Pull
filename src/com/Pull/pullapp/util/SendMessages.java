@@ -3,18 +3,23 @@ package com.Pull.pullapp.util;
 
 import java.util.ArrayList;
 
-import com.parse.ParsePush;
-
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
+import android.provider.Telephony;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.telephony.SmsManager;
 import android.util.Log;
+import com.koushikdutta.ion.future.ResponseFuture;
+import com.klinker.android.send_message.Message;
+import com.klinker.android.send_message.Settings;
+import com.klinker.android.send_message.Transaction;
+import com.parse.ParsePush;
 
 public class SendMessages  {    
   
@@ -61,6 +66,53 @@ public class SendMessages  {
 	        Log.e(TAG, "undefined Error: SMS sending failed ... please REPORT to ISSUE Tracker");
 	    }
 	}
+	
+	@Deprecated
+	// This function sends the sms with the SMSManager
+	public static void sendmms(Context context, final String phoneNumber, final String message, 
+			long launchedOn, final Boolean AddtoSent)	{
+		try {
+			Intent myIntent = new Intent(Constants.ACTION_SMS_DELIVERED);
+			myIntent.putExtra(Constants.EXTRA_RECIPIENT, phoneNumber);
+			myIntent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
+			myIntent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);
+	    	PendingIntent sentPI = PendingIntent
+	    			.getBroadcast(context, (int)launchedOn, myIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+	        
+	    	Settings sendSettings = new Settings();
+
+	    	Cursor cursor = context.getContentResolver().query(Uri.withAppendedPath(Telephony.Carriers.CONTENT_URI, "current"),
+	    	        null, null, null, null);
+	    	cursor.moveToLast();
+	    	String mmsc = cursor.getString(cursor.getColumnIndex(Telephony.Carriers.MMSC));
+	    	String proxy = cursor.getString(cursor.getColumnIndex(Telephony.Carriers.MMSPROXY));
+	    	String port = cursor.getString(cursor.getColumnIndex(Telephony.Carriers.MMSPORT));
+	    	sendSettings.setMmsc(mmsc);
+	    	sendSettings.setProxy(proxy);
+	    	sendSettings.setSendLongAsMms(true);
+	    	sendSettings.setDeliveryReports(false);
+	    	sendSettings.setSplit(false);
+	    	sendSettings.setGroup(true);
+	    	sendSettings.setStripUnicode(false);
+	    	sendSettings.setSignature("");
+	    	sendSettings.setPort(port);	 
+	    	sendSettings.setRnrSe(null);
+	    	
+	    	Transaction sendTransaction = new Transaction(context, sendSettings);
+	    	Message mMessage = new Message(message, phoneNumber);
+	    	mMessage.setType(Message.TYPE_SMSMMS);  // could also be Message.TYPE_VOICE
+	    	sendTransaction.sendNewMessage(mMessage,Transaction.NO_THREAD_ID);
+	    	
+	    	
+	        if (AddtoSent)	{
+				//addMessageToSent(context, phoneNumber, message);
+			}
+		} catch (Exception e) {
+	        e.printStackTrace();
+	        Log.e(TAG, "undefined Error: SMS sending failed ... please REPORT to ISSUE Tracker");
+	    }
+	}
+	
 	// This function add's the sent sms to the SMS sent folder
 	private static void addMessageToSent(Context context, String phoneNumber, String message) {
 	    ContentValues sentSms = new ContentValues();

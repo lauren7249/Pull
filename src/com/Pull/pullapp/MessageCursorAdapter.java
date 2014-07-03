@@ -1,8 +1,7 @@
 package com.Pull.pullapp;
 
-import java.util.HashMap;
 import java.util.List;
-
+import java.util.TreeSet;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -24,7 +23,6 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
-
 import com.Pull.pullapp.model.FacebookUser;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.util.Constants;
@@ -33,9 +31,11 @@ import com.facebook.widget.ProfilePictureView;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
+
 public class MessageCursorAdapter extends CursorAdapter {
+	
 	public boolean showCheckboxes;
-	public HashMap<Integer,SMSMessage> check_hash;
+	public TreeSet<SMSMessage> check_hash;
 	private SharedPreferences mPrefs_phoneNumber_FacebookID;
 	private String other_person;
 	private String facebookID;
@@ -43,7 +43,7 @@ public class MessageCursorAdapter extends CursorAdapter {
     @SuppressWarnings("deprecation")
 	public MessageCursorAdapter(Context context, Cursor cursor, String number) {
     	super(context, cursor);
-    	check_hash = new HashMap<Integer,SMSMessage>();
+    	check_hash = new TreeSet<SMSMessage>();
     	mPrefs_phoneNumber_FacebookID = context.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
     			+ "phoneNumber_FacebookID",Context.MODE_PRIVATE); 	
     	other_person = ContentUtils.addCountryCode(number);
@@ -88,8 +88,6 @@ public class MessageCursorAdapter extends CursorAdapter {
     	date = c.getLong(6);
     	message = new SMSMessage(date, body, address, type);
 		
-    	if(check_hash.containsKey(position)) check_hash.put(position, message);
-
 		final ViewHolder holder; 
 		holder = (ViewHolder) v.getTag();
 		holder.messageBox = (LinearLayout) v.findViewById(R.id.message_box);
@@ -102,7 +100,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		int id = Resources.getSystem().getIdentifier("btn_check_holo_light", "drawable", "android");
 		holder.box.setButtonDrawable(id);
 		
-        if (check_hash.containsKey(position)) {
+        if (check_hash.contains(message)) {
         	holder.box.setChecked(true);
 			if(message.isSentByMe()) 
 				holder.messageBox.setBackgroundResource(R.drawable.outgoing_pressed);
@@ -122,43 +120,24 @@ public class MessageCursorAdapter extends CursorAdapter {
 			
 		v.setTag(holder);		
 		holder.message.setText(message.getMessage());
-		/*v.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				if(showCheckboxes){
-					holder.box.toggle();
-					//message.box = ! message.box;
-					if(check_hash.containsKey(position)) check_hash.remove(position);
-					else check_hash.put(position,message);
-					
-				}
-			}
-		});
 		
-		holder.box.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				if(check_hash.containsKey(position)) check_hash.remove(position);
-				else check_hash.put(position,message);
-			};
-        });		*/
 		holder.messageBox.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				Intent broadcastIntent = new Intent();
 				broadcastIntent.setAction(Constants.ACTION_SHARE_STATE_CHANGED);
+				broadcastIntent.putExtra(Constants.EXTRA_MESSAGE_POSITION, position);
 				mContext.sendBroadcast(broadcastIntent);					
 				holder.box.toggle();
-				if(check_hash.containsKey(position)) {
-					check_hash.remove(position);
+				if(check_hash.contains(message)) {
+					check_hash.remove(message);
 					if(message.isSentByMe()) 
 						holder.messageBox.setBackgroundResource(R.drawable.outgoing);
 					else 
 						holder.messageBox.setBackgroundResource(R.drawable.incoming);
 				}
 				else {
-					check_hash.put(position,message);
+					check_hash.add(message);
 					if(message.isSentByMe()) 
 						holder.messageBox.setBackgroundResource(R.drawable.outgoing_pressed);
 					else 
@@ -172,7 +151,6 @@ public class MessageCursorAdapter extends CursorAdapter {
 		//Check whether message is mine to show green background and align to right
 		if(message.isSentByMe())
 		{
-			//holder.messageBox.setBackgroundResource(R.drawable.outgoing);
 			lp.gravity = Gravity.RIGHT;
 			holder.pic.setVisibility(View.GONE);	
 		}
@@ -184,8 +162,6 @@ public class MessageCursorAdapter extends CursorAdapter {
 	    		holder.pic.setVisibility(View.VISIBLE);
 	    	}
 	    	else holder.pic.setVisibility(View.GONE);	
-	    	
-			//holder.messageBox.setBackgroundResource(R.drawable.incoming);
 			lp.gravity = Gravity.LEFT;
 		}
 		
@@ -234,9 +210,7 @@ public class MessageCursorAdapter extends CursorAdapter {
     	read = c.getString(5).toString();
     	date = c.getLong(6);
     	message = new SMSMessage(date, body, address, type);
-		
-    	if(check_hash.containsKey(position)) check_hash.put(position, message);
-    	
+
     	//TODO: ADD BACK IN
     	if(!SmsMessageId.equals("")) {
         	ContentValues values = new ContentValues();
@@ -256,7 +230,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		int id = Resources.getSystem().getIdentifier("btn_check_holo_light", "drawable", "android");
 		holder.box.setButtonDrawable(id);
 		
-        if (check_hash.containsKey(position)) {
+        if (check_hash.contains(message)) {
         	holder.box.setChecked(true);
 			if(message.isSentByMe()) 
 				holder.messageBox.setBackgroundResource(R.drawable.outgoing_pressed);
@@ -275,13 +249,12 @@ public class MessageCursorAdapter extends CursorAdapter {
 		
 		v.setTag(holder);		
 		holder.message.setText(message.getMessage());
-		
+				
 		LayoutParams lp = (LayoutParams) holder.messageBox.getLayoutParams();
 
 		if(message.isSentByMe())
 		{
 			holder.pic.setVisibility(View.GONE);	
-			//holder.messageBox.setBackgroundResource(R.drawable.outgoing);
 			lp.gravity = Gravity.RIGHT;
 			
 		}
@@ -293,7 +266,6 @@ public class MessageCursorAdapter extends CursorAdapter {
 	    		holder.pic.setVisibility(View.VISIBLE);
 	    	}
 	    	else holder.pic.setVisibility(View.GONE);			
-			//holder.messageBox.setBackgroundResource(R.drawable.incoming);
 			lp.gravity = Gravity.LEFT;
 		}
 		
@@ -331,8 +303,6 @@ public class MessageCursorAdapter extends CursorAdapter {
 		Button edit;
 		ProfilePictureView pic;
 	}
-	public void setChecked(int i) {
-		check_hash.put(i, null);
-	}
+
 
 }

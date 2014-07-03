@@ -118,6 +118,7 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	protected void onResume() {
 		super.onResume();
 		populateList();
+		hint.setVisibility(View.VISIBLE);
 	}
 	
 
@@ -193,7 +194,7 @@ public class AllThreadsListActivity extends SherlockListActivity {
 		switch(currentTab) {
 		case R.id.my_conversation_tab: 
 	        intent = new Intent(mContext, MessageActivityCheckboxCursor.class);
-	        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+	        //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 	        //intent.putExtra(Constants.EXTRA_THREAD_ID,threadID);	    	
 	    	//String threadID = threads.getString(threads.getColumnIndex(ThreadsColumns._ID));   
 	  		boolean read = (!threads.getString(threads

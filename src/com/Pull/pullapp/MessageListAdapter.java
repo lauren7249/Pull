@@ -2,6 +2,7 @@ package com.Pull.pullapp;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.TreeSet;
 
 import android.content.Context;
 import android.text.format.DateUtils;
@@ -28,10 +29,11 @@ public class MessageListAdapter extends BaseAdapter {
 	}
 
 	public MessageListAdapter(Context context,
-			HashSet<SMSMessage> messages) {
+			TreeSet<SMSMessage> messages) {
 		this.mContext = context;
 		this.mMessages = new ArrayList<SMSMessage>(messages);
 	}
+
 
 	@Override
 	public int getCount() {
@@ -44,8 +46,8 @@ public class MessageListAdapter extends BaseAdapter {
 	}
 	
 	
-	public void setItemList(ArrayList<SMSMessage> messages) {
-		this.mMessages = messages;
+	public void setItemList(TreeSet<SMSMessage> messages) {
+		this.mMessages = new ArrayList<SMSMessage>(messages);
 		notifyDataSetChanged();
 	}
 	public void setItemList(HashSet<SMSMessage> messages) {

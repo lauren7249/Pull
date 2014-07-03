@@ -21,9 +21,9 @@
         android:layout_width="fill_parent"
         android:padding="10dip"
         app:radius="10dp"
-        app:fillColor="@color/messageDefaultBackground"
-        app:pageColor="@color/android:white"
-        app:strokeColor="#FF000000"
+        app:fillColor="@color/pullLight"
+        app:pageColor="@color/pullMedium"
+        app:strokeColor="@color/pullDark"
         app:strokeWidth="2dp"        
         />
     <View

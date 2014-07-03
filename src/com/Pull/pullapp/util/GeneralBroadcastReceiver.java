@@ -3,6 +3,7 @@ package com.Pull.pullapp.util;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.TreeSet;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -204,7 +205,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	    		  if(exception == null && message_list.size()>0) {
 	    			  Log.i("got it","found messages!");
 	    			  Log.i("messages in comvo",message_list.size() + " messages in convo");
-	    			  s.setMessages(new HashSet<SMSMessage>(message_list));
+	    			  s.setMessages(new TreeSet<SMSMessage>(message_list));
 	    			  getCommentsFromConvo(s, true);
 	    		  }
 	    	  }

@@ -118,7 +118,8 @@ public class Constants {
 	public static final boolean SHARE_SUGGESTION_BOOLEAN = false;
 	public static final String EXTRA_SHARE_SUGGESTION_ID = PACKAGE_NAME + "EXTRA_SHARE_SUGGESTION_ID";
 	public static final String EXTRA_TAB_ID = PACKAGE_NAME + "EXTRA_TAB_ID";
-	public static final String ACTION_SHARE_STATE_CHANGED = PACKAGE_NAME + ".util.ACTION_SHARE_STATE_CHANGED";;
+	public static final String ACTION_SHARE_STATE_CHANGED = PACKAGE_NAME + ".util.ACTION_SHARE_STATE_CHANGED";
+	public static final String EXTRA_MESSAGE_POSITION = PACKAGE_NAME + "EXTRA_MESSAGE_POSITION";
 	
 	
 	

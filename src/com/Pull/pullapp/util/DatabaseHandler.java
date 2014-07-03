@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.TreeSet;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -224,8 +225,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return comments;
     }    
     
-    private HashSet<SMSMessage> getMessages(String convo_id) {
-    	LinkedHashSet<SMSMessage> messages = new LinkedHashSet<SMSMessage>();
+    private TreeSet<SMSMessage> getMessages(String convo_id) {
+    	TreeSet<SMSMessage> messages = new TreeSet<SMSMessage>();
         Cursor cursor = db.query(TABLE_SHARED_CONVERSATION_SMS, null, KEY_ID + "=?",
                 new String[] { convo_id }, null, null, KEY_DATE , null);
         // looping through all rows and adding to list

@@ -2,6 +2,7 @@ package com.Pull.pullapp.model;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.TreeSet;
 
 import com.Pull.pullapp.util.ContentUtils;
 import com.parse.ParseClassName;
@@ -13,7 +14,7 @@ public class SharedConversation extends ParseObject {
 	private String confidante, original_recipient, sharer;
 	private int type;
 	private long date_shared;
-	private HashSet<SMSMessage> conversation = new HashSet<SMSMessage>();
+	private TreeSet<SMSMessage> conversation = new TreeSet<SMSMessage>();
 	private ArrayList<String> sms_ids = new ArrayList<String>();
 	private ArrayList<Comment> comments = new ArrayList<Comment>();
 	private String originalRecipientName;
@@ -91,7 +92,7 @@ public class SharedConversation extends ParseObject {
 		}
 		return sms_ids;
 	}	
-	public HashSet<SMSMessage> getMessages(){
+	public TreeSet<SMSMessage> getMessages(){
 		return conversation;
 	}
 
@@ -116,7 +117,7 @@ public class SharedConversation extends ParseObject {
 		
 	}
 
-	public void setMessages(HashSet<SMSMessage> messages) {
+	public void setMessages(TreeSet<SMSMessage> messages) {
 		this.conversation = messages;
 		for(SMSMessage c : messages) {
 			c.put("parent", this);

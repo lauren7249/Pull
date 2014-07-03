@@ -7,7 +7,8 @@ import com.parse.ParseClassName;
 import com.parse.ParseObject;
 
 @ParseClassName("SMSMessage")
-public class SMSMessage extends ParseObject {
+public class SMSMessage extends ParseObject implements Comparable {
+	
 	private int smsId;
 	private long smsDate;
 	private String smsSender, smsMessage, smsRecipient;
@@ -16,7 +17,6 @@ public class SMSMessage extends ParseObject {
     private boolean isHashtag;
 	public long futureSendTime;
 	public long launchedOn;
-	private Hashtag ht;
 	private boolean event;
 	
     // Constructors
@@ -150,7 +150,7 @@ public class SMSMessage extends ParseObject {
 	
     @Override
     public int hashCode() {
-        return (smsSender+smsRecipient+smsMessage+Long.toString(smsDate)).hashCode();
+        return (Long.toBinaryString(smsDate)+smsSender+smsRecipient+smsMessage).hashCode();
     }	
     
     
@@ -182,5 +182,11 @@ public class SMSMessage extends ParseObject {
 	public boolean isEvent() {
 		// TODO Auto-generated method stub
 		return this.event;
+	}
+
+	@Override
+	public int compareTo(Object another) {
+		SMSMessage obj = (SMSMessage) another;
+		return ((Long) this.smsDate).compareTo(obj.getDate());
 	}    
 }

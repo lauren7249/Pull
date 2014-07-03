@@ -1,7 +1,9 @@
 package com.Pull.pullapp.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -13,11 +15,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.telephony.TelephonyManager;
+import android.text.format.DateUtils;
 import android.util.Log;
 
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.parse.FindCallback;
+import com.parse.ParseAnalytics;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParsePush;
@@ -51,6 +55,9 @@ public class ShareTagAction extends Thread {
     	this.recipient = mSharedConversation.getConfidante();
     	this.hashtags = mSharedConversation.getHashtags();
     	this.tmgr = (TelephonyManager)parent.getSystemService(Context.TELEPHONY_SERVICE);
+    	Map dimensions = new HashMap();
+    	//dimensions.put("user", ParseUser.getCurrentUser());  	
+    	ParseAnalytics.trackEvent("Shared Conversation", dimensions);
     }
 
     @Override
@@ -89,24 +96,14 @@ public class ShareTagAction extends Thread {
 	}
 
 	protected void addToPhoneStorage() {
-        //add to phone storage
-		//Log.d("number of messages in convo",""+mSharedConversation.getMessages().size());
 		DatabaseHandler db = new DatabaseHandler(parent);
 		if(!db.contains(mSharedConversation) ) {
 			db.addSharedConversation(mSharedConversation); 
-			 
-			app_plug = "Hey, check out my conversation with " + person_shared + ". " 
-					+ hashtags;
 		}
 		else {
 			db.updateSharedConversation(mSharedConversation); 
-
-			app_plug = "My conversation with " + person_shared + " continued.... " 
-					+ hashtags;
 		}
 		db.close();
-		//Log.i("shared messages in db", id  + " ");
-		
 	}
 
 	protected void addToSharedList(SMSMessage message) {
@@ -121,7 +118,6 @@ public class ShareTagAction extends Thread {
 
 	private void finishSharing() {
 		convo_id = mSharedConversation.getObjectId();
-		//Log.i("finished sharing","convo id " + convo_id);
 		Intent broadcastIntent = new Intent();
 		broadcastIntent.setAction(Constants.ACTION_SHARE_COMPLETE);
 		broadcastIntent.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convo_id);
@@ -145,7 +141,6 @@ public class ShareTagAction extends Thread {
 			push.setData(data);
 			push.sendInBackground();				
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -169,7 +164,7 @@ public class ShareTagAction extends Thread {
 		query.whereEqualTo("channel", ContentUtils.setChannel(confidante));
 		query.findInBackground(new FindCallback<ParseObject>() {
 		    public void done(List<ParseObject> list, ParseException e) {
-		        if (e==null && list.size()>0) {
+		        if (e==null && list.size()>0  && false) {
 		        	isPullUser = true;
 		        } else {
 	    	    	isPullUser = false;
@@ -181,29 +176,30 @@ public class ShareTagAction extends Thread {
 	protected void shareViaSMS() {
 
         AlarmManager am = (AlarmManager) parent.getSystemService(Context.ALARM_SERVICE);   
-    	
-        setSendAlarm(am, app_plug, 1, System.currentTimeMillis());
-        ArrayList<SMSMessage> messages = new ArrayList<SMSMessage>(mSharedConversation.getMessages());
+		DatabaseHandler db = new DatabaseHandler(parent);
+		if(!db.contains(mSharedConversation) ) {
+			app_plug = "Hey, check out my conversation with " + person_shared + ". " 
+					+ Constants.APP_PLUG_END;
+		}
+		else {
+			app_plug = "My conversation with " + person_shared + " continued.... " 
+					+ Constants.APP_PLUG_END;
+		}    	
+		
+		long currentDate = System.currentTimeMillis();
+        setSendAlarm(am, app_plug, 1, currentDate);
+        int i = 1;
+        for(SMSMessage m: mSharedConversation.getMessages()) {
+        	long longdate = m.getDate();
+    		String date = " [" + DateUtils.getRelativeDateTimeString(parent, 
+    				longdate, DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0) + "]: ";
+        	if(m.isSentByMe()) text =  "Me " + date + m.getMessage();
+        	else text = person_shared + date + m.getMessage();
+        	int elapse = (int) (currentDate + i*1000);
+        	setSendAlarm(am, text, (int) elapse, (long) elapse);
+        	i++;
+    	}
 
-        int n = messages.size();
-        for(int i = 0; i<n; i++) {
-        	SMSMessage m = messages.get(n - i - 1);
-        	try {
-				Thread.sleep(2);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-        	if(!m.isHashtag()){
-	        	if(m.isSentByMe()) text =  "Me: " + m.getMessage();
-	        	else text = person_shared + ": " + m.getMessage();
-	        	setSendAlarm(am, text, (int) (System.currentTimeMillis()+(i*2000)), System.currentTimeMillis()+(i*2000));
-        	}
-    	}       
-        n++;
-        setSendAlarm(am, Constants.APP_PLUG_END, 
-        		(int) (System.currentTimeMillis()+(n*2000)), 
-        		System.currentTimeMillis()+(n*2000));
 		
 	}
 
