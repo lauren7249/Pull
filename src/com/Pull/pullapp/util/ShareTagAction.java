@@ -164,7 +164,7 @@ public class ShareTagAction extends Thread {
 		query.whereEqualTo("channel", ContentUtils.setChannel(confidante));
 		query.findInBackground(new FindCallback<ParseObject>() {
 		    public void done(List<ParseObject> list, ParseException e) {
-		        if (e==null && list.size()>0  && false) {
+		        if (e==null && list.size()>0) {
 		        	isPullUser = true;
 		        } else {
 	    	    	isPullUser = false;
@@ -172,7 +172,7 @@ public class ShareTagAction extends Thread {
 		        }
 		    }
 		});	
-			}
+	}
 	protected void shareViaSMS() {
 
         AlarmManager am = (AlarmManager) parent.getSystemService(Context.ALARM_SERVICE);   

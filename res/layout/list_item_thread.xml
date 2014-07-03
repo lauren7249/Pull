@@ -13,7 +13,15 @@
 	    android:layout_width="50dp"
 	    android:layout_height="50dp"
 	    android:layout_margin="5dp"
-        facebook:preset_size="small"/>        
+        facebook:preset_size="small"/>       
+    <ImageView
+        android:id="@+id/other_pic"
+        android:layout_gravity="left"
+	    android:layout_width="50dp"
+	    android:layout_height="50dp"
+	    android:layout_margin="5dp"
+	    android:visibility="gone"
+        facebook:preset_size="small"/>          
     <LinearLayout
         android:id= "@+id/text_rows"
         android:layout_width="fill_parent"

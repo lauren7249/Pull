@@ -6,11 +6,23 @@
     <include android:id="@+id/switch_buttons" 
         layout="@layout/navigation_tabbar"
         />
+    <Button
+        android:id="@+id/hint"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:gravity="center"
+        android:textSize="22dp"
+        android:onClick="showShareBox"
+        android:text="Share texts with a friend"
+        android:divider="#00000000"
+        android:background="@drawable/outgoing"
+        android:layout_below="@id/switch_buttons" />    
 	<LinearLayout
 	       android:id="@+id/confidantes_box"
 	       android:layout_width="fill_parent"
 	       android:layout_height="wrap_content"
-	       android:layout_below="@id/switch_buttons"
+	       android:layout_below="@id/hint"
 	       android:orientation="horizontal"
 	       android:visibility="gone" >
 		<LinearLayout
@@ -39,7 +51,7 @@
 		    android:layout_width="45dp"
 		    android:layout_height="45dp" 	 
 		    android:onClick="startShare"   
-		    android:background="@drawable/ic_launcher"
+		    android:background="@drawable/search"
 		    />	       	    
 	</LinearLayout>    
     <View
@@ -52,19 +64,6 @@
          android:id="@android:id/list"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/separator" />
-    <Button
-        android:id="@+id/hint"
-        android:layout_width="match_parent"
-        android:layout_height="fill_parent"
-        android:layout_margin="10dp"
-        android:gravity="center"
-        android:textSize="22dp"
-        android:onClick="showShareBox"
-        android:text="CLICK TO SHARE A CONVERSATION!"
-        android:divider="#00000000"
-        android:background="@drawable/outgoing"
-        android:layout_below="@android:id/list" >
-        </Button>          
+        android:layout_below="@id/separator" />           
 </RelativeLayout>
 

@@ -60,7 +60,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
             //dont send if the user canceled (removed from outbox) or received a message since launching
             if(!messagedAfterLaunch(context,recipient,launchedOn) &&  
             		SendMessages.removeFromOutbox(context, message, recipient, launchedOn, false)>0) {
-            	SendMessages.sendsms(context, recipient, message, launchedOn, true);
+            	SendMessages.sendmms(context, recipient, message, launchedOn, true);
 
             }
             	

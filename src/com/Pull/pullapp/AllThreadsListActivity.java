@@ -118,7 +118,6 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	protected void onResume() {
 		super.onResume();
 		populateList();
-		hint.setVisibility(View.VISIBLE);
 	}
 	
 
@@ -133,14 +132,17 @@ public class AllThreadsListActivity extends SherlockListActivity {
 		case R.id.shared_tab:
 			shareType = TextBasedSmsColumns.MESSAGE_TYPE_SENT;
 			threads_cursor = dbHandler.getSharedConversationCursor(columns);
-		    adapter = new ThreadItemsCursorAdapter(mContext, threads_cursor, currentTab);
+		    adapter = new ThreadItemsCursorAdapter(mContext, threads_cursor, currentTab, this);
 		    setListAdapter(adapter);  	
 		    mBox.setVisibility(View.GONE);
+		    hint.setVisibility(View.VISIBLE);
 		    return;
 		case R.id.my_conversation_tab: 
 		    threads_cursor = ContentUtils.getThreadsCursor(mContext);
-		    adapter = new ThreadItemsCursorAdapter(mContext, threads_cursor, currentTab);
-		    setListAdapter(adapter);  	
+		    adapter = new ThreadItemsCursorAdapter(mContext, threads_cursor, currentTab, this);
+		    setListAdapter(adapter); 
+		    mBox.setVisibility(View.GONE);
+		    hint.setVisibility(View.GONE);
 		    return;
 		default: 
 			
@@ -194,9 +196,6 @@ public class AllThreadsListActivity extends SherlockListActivity {
 		switch(currentTab) {
 		case R.id.my_conversation_tab: 
 	        intent = new Intent(mContext, MessageActivityCheckboxCursor.class);
-	        //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-	        //intent.putExtra(Constants.EXTRA_THREAD_ID,threadID);	    	
-	    	//String threadID = threads.getString(threads.getColumnIndex(ThreadsColumns._ID));   
 	  		boolean read = (!threads.getString(threads
 		  		      .getColumnIndex(ThreadsColumns.READ)).equals("0"));    	
 			String recipientId = threads.getString(threads
