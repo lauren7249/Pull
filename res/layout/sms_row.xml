@@ -5,14 +5,14 @@
     android:orientation="horizontal"
     android:gravity="center"
     android:paddingBottom="5dp"
-    android:paddingTop="5dp" >
+   	android:clipChildren="false" >
     
     <CheckBox
         android:id="@+id/cbBox"
         android:layout_width="wrap_content"
         android:layout_height="match_parent" >
     </CheckBox>    
-    
+   
     <com.facebook.widget.ProfilePictureView
             android:id="@+id/contact_image"
 	        android:layout_width="60dp"
@@ -20,21 +20,31 @@
 	        android:layout_gravity="left"
 	        android:visibility="gone"
 	        android:layout_margin="5dp" /> 
-     <LinearLayout
+     <LinearLayout
          android:id="@+id/message_box"
          android:layout_width="fill_parent"
          android:layout_height="wrap_content"
          android:layout_marginLeft="5dp"
          android:layout_marginRight="5dp"
+         android:clipToPadding="false"
+         android:clipChildren="false"
          android:orientation="vertical" >
-
+         <ImageView
+             android:id="@+id/add_ppl"
+             android:layout_width="30dp"
+             android:layout_height="30dp"
+             android:layout_marginBottom="-30dp"
+			 android:visibility="visible" 
+			 android:background="@drawable/add"		 /> 
          <TextView
              android:id="@+id/message_text"
              android:layout_width="fill_parent"
              android:layout_height="wrap_content"
              android:layout_marginLeft="5dp"
              android:layout_marginRight="5dp"
+             android:gravity="right"
              android:layout_marginTop="5dp"
+             android:padding="5dp"
              android:fontFamily="sans-serif-light"
              android:text="Message Content"
              android:textColor="@color/textColor"
@@ -45,22 +55,52 @@
              android:layout_width="fill_parent"
              android:layout_height="wrap_content"
              android:layout_margin="5dp"
+             android:padding="5dp"
+             android:gravity="right"
              android:text="Message Time"
              android:textSize="12sp"
-             android:textStyle="bold" />
-
+             android:textStyle="bold" 
+             />    
+                           
+         <TextView
+             android:id="@+id/shared_with_text"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+			 android:text="Shared With"
+			 android:gravity="center|center"
+			 android:padding="5dp"
+			 android:layout_margin="5dp"
+             android:fontFamily="sans-serif-light"
+             android:textColor="@color/textColor"
+			 android:visibility="gone" 
+			 android:background="@drawable/ppl_shadow"		 
+             android:textSize="15sp"/>         
+                           
+         <HorizontalScrollView
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:padding="5dp"
+             >   	 
+                 			     
+	         <LinearLayout
+	             android:id="@+id/shared_with"
+	             android:layout_width="match_parent"
+	             android:layout_height="wrap_content"
+	             android:orientation="horizontal"
+	            
+	             >   	     			                
+	          </LinearLayout>                             
+          </HorizontalScrollView>      
          <Button
              android:id="@+id/edit_message_button"
              android:layout_width="match_parent"
-             android:layout_height="30dp"
-             android:layout_marginBottom="-5dp"
-             android:layout_marginLeft="-5dp"
-             android:layout_marginRight="-5dp"
-             android:background="@drawable/cancel"
+             android:layout_height="wrap_content"
+             android:background="@drawable/cancel_transparent"
              android:text="Edit/cancel"
+             android:padding="5dp"
              android:textColor="@color/cheeryBlossm"
              android:textSize="12sp" />
-
+          
      </LinearLayout>
 
 </LinearLayout>

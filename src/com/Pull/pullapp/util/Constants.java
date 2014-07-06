@@ -100,6 +100,7 @@ public class Constants {
 			"#flake","#player","#socute","#icanteven","#entitled","look who stopped responding",
 			"make this person go away","#dyinginside"};
 	public static List<String> ALL_HASHTAGS_LIST = Arrays.asList(ALL_HASHTAGS);
+	
 	public static final String GOOGLE_PLAY_LINK = "https://play.google.com/store/apps/details?id=com.Pull.pullapp";
 	public static final String APP_PLUG_END = "Download the app at Google play: " + GOOGLE_PLAY_LINK;
 	public static final int MIN_TEXT_LENGTH = 40;
@@ -120,6 +121,12 @@ public class Constants {
 	public static final String EXTRA_TAB_ID = PACKAGE_NAME + "EXTRA_TAB_ID";
 	public static final String ACTION_SHARE_STATE_CHANGED = PACKAGE_NAME + ".util.ACTION_SHARE_STATE_CHANGED";
 	public static final String EXTRA_MESSAGE_POSITION = PACKAGE_NAME + "EXTRA_MESSAGE_POSITION";
+	public static final String ACTION_RECEIVE_SHARED_MESSAGES = PACKAGE_NAME + ".util.ACTION_RECEIVE_SHARED_MESSAGES";
+	public static final String EXTRA_SHARED_SENDER = PACKAGE_NAME + "EXTRA_SHARED_SENDER";
+	public static final String EXTRA_SHARED_ADDRESS = PACKAGE_NAME + "EXTRA_SHARED_ADDRESS";
+	public static final String ACTION_INVITE_FRIEND = PACKAGE_NAME + ".util.ACTION_INVITE_FRIEND";
+	public static final String  ACTION_CONFIRM_FRIEND= PACKAGE_NAME + ".util.ACTION_CONFIRM_FRIEND";
+	public static final String EXTRA_USER_ID = PACKAGE_NAME + "EXTRA_USER_ID";
 	
 	
 	

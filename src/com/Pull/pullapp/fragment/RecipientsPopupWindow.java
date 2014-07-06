@@ -1,5 +1,6 @@
-package com.Pull.pullapp;
+package com.Pull.pullapp.fragment;
 
+import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,11 +8,17 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-public class SimplePopupWindow extends BetterPopupWindow implements OnClickListener {
-	private String message;
+import com.Pull.pullapp.R;
+import com.Pull.pullapp.util.RecipientsAdapter;
+import com.Pull.pullapp.util.RecipientsEditor;
+
+public class RecipientsPopupWindow extends BetterPopupWindow implements OnClickListener {
 	private TextView b;
-	
-	public SimplePopupWindow(View anchor) {
+	private RecipientsEditor mConfidantesEditor;
+	private RecipientsAdapter mRecipientsAdapter;
+	private ViewGroup root;
+	private Context mContext;	
+	public RecipientsPopupWindow(View anchor) {
 		super(anchor);
 	}
 
@@ -21,21 +28,22 @@ public class SimplePopupWindow extends BetterPopupWindow implements OnClickListe
 		LayoutInflater inflater =
 				(LayoutInflater) this.anchor.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-		ViewGroup root = (ViewGroup) inflater.inflate(R.layout.popup_layout, null);
+		root = (ViewGroup) inflater.inflate(R.layout.share_popup_layout, null);
 		b = (TextView) root.getChildAt(0);
+		
+
 		
 		// set the inflated view as what we want to display
 		this.setContentView(root);
 		
 		
+		
 	}
+
 
 	@Override
 	public void onClick(View v) {
-		this.dismiss();
-	}
-	public void setMessage(String message) {
-		this.message = message;
-		b.setText(message);
+		// TODO Auto-generated method stub
+		
 	}
 }

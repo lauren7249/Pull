@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="wrap_content"
+	android:layout_height="wrap_content"
+	android:background="@android:drawable/alert_light_frame"
+>
+	 <com.Pull.pullapp.util.RecipientsEditor
+	     android:id="@+id/confidantes_editor"
+	     android:layout_width="fill_parent"
+	     android:layout_height="wrap_content"
+	     android:layout_weight="1"
+	     android:completionThreshold="1"
+	     android:hint="Share with"
+	     android:isScrollContainer="true"
+	     android:textSize="20sp" />
+</TableLayout>

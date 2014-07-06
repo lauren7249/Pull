@@ -2,7 +2,13 @@ package com.Pull.pullapp.util;
 
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeSet;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.ContentResolver;
@@ -14,14 +20,23 @@ import android.net.Uri;
 import android.provider.Telephony;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.telephony.SmsManager;
+import android.text.format.DateUtils;
 import android.util.Log;
-import com.koushikdutta.ion.future.ResponseFuture;
+import android.widget.Toast;
+
+import com.Pull.pullapp.model.SMSMessage;
 import com.klinker.android.send_message.Message;
 import com.klinker.android.send_message.Settings;
 import com.klinker.android.send_message.Transaction;
+import com.parse.FindCallback;
+import com.parse.ParseACL;
+import com.parse.ParseException;
+import com.parse.ParseObject;
 import com.parse.ParsePush;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
 
-public class SendMessages  {    
+public class SendUtils  {    
   
 	private static final String TAG = "SendSMS";
 	
@@ -150,11 +165,7 @@ public class SendMessages  {
 		    intent.putExtra(Constants.EXTRA_RECIPIENT, recipient);
 		    intent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);
 		    intent.putExtra(Constants.EXTRA_MESSAGE_BODY, body);
-	        PendingIntent outbox;
-	        outbox = PendingIntent
-	        		.getBroadcast(context, (int)launchedOn, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-	        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);   
-	        am.set(AlarmManager.RTC, System.currentTimeMillis(), outbox);  			
+	        context.sendBroadcast(intent);		
 		}
 		return rowsdeleted;
 	}
@@ -164,5 +175,119 @@ public class SendMessages  {
 		push.setMessage(message);
 		push.sendInBackground();		
 	}	
+	
+	public static void inviteFriend(final String number, final Context context, Activity a) {
+		UserInfoStore store = new UserInfoStore(context);
+		store.logInvite(number);
+		ParseQuery<ParseObject> query = ParseQuery.getQuery("Channels");
+		query.whereEqualTo("channel", ContentUtils.setChannel(number));
+		query.findInBackground(new FindCallback<ParseObject>() {
+		    public void done(List<ParseObject> list, ParseException e) {
+		        if (e==null && list.size()>0) {
+		        	inviteViaPush(number, context);
+		        } else {
+		        	inviteViaSMS(number, context);
+		        }
+		    }
+		});			
+		Toast.makeText(context, "Invite sent", Toast.LENGTH_LONG).show();
+		
+	}
+
+	protected static void inviteViaSMS(String number, Context context) {
+		// TODO Make this use Twilio? but maybe not because the recipient would not trust it
+		SendUtils.sendsms(context, number,
+				"Join me on Pull, the new Android app for sharing text conversations with friends. " 
+				+ Constants.APP_PLUG_END, System.currentTimeMillis(), false);
+		
+	}
+
+	protected static void inviteViaPush(String number, Context context) {
+		JSONObject data = new JSONObject();
+		String channel = ContentUtils.setChannel(number);
+		try {
+			data.put("action", Constants.ACTION_INVITE_FRIEND);
+			data.put("number", ParseUser.getCurrentUser().get("username"));
+			data.put("userid",ParseUser.getCurrentUser().getObjectId());
+			ParsePush push = new ParsePush();
+			push.setChannel(channel);
+			push.setData(data);
+			push.sendInBackground();
+			//Log.i("push sent","to channel " + channel);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}	
+	public static void shareViaSMS(Context parent, String person_shared, String confidante, 
+			TreeSet<SMSMessage> messages) {
+        AlarmManager am = (AlarmManager) parent.getSystemService(Context.ALARM_SERVICE);   
+		DatabaseHandler db = new DatabaseHandler(parent);
+		String app_plug, text;
+		if(true) {
+			app_plug = "Hey, check out my conversation with " + person_shared + ". " 
+					+ Constants.APP_PLUG_END;
+		}
+		else {
+			app_plug = "My conversation with " + person_shared + " continued.... " 
+					+ Constants.APP_PLUG_END;
+		}    	
+		
+		long currentDate = System.currentTimeMillis();
+		SendUtils.setSendAlarm(am, app_plug, 1, currentDate, confidante, parent);
+        int i = 1;
+        Log.i("messages size", " " + messages.size());
+        for(SMSMessage m: messages) {
+        	long longdate = m.getDate();
+    		String date = " [" + DateUtils.getRelativeDateTimeString(parent, 
+    				longdate, DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0) + "]: ";
+        	if(m.isSentByMe()) text =  "Me " + date + m.getMessage();
+        	else text = person_shared + date + m.getMessage();
+        	int elapse = (int) (currentDate + i*1000);
+        	SendUtils.setSendAlarm(am, text, (int) elapse, (long) elapse, confidante, parent);
+        	i++;
+    	}
+		
+	}
+	public static void setSendAlarm(AlarmManager am, String message, int id, long sendOn, String recipient,
+			Context parent){
+        Intent intent = new Intent(Constants.ACTION_SHARE_TAG);
+        intent.putExtra(Constants.EXTRA_RECIPIENT, recipient);
+        intent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
+        PendingIntent sendMessage;
+        sendMessage = PendingIntent.getBroadcast(parent, id, 
+        		intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        am.set(AlarmManager.RTC, sendOn, sendMessage);         	
+    }
+
+	public static void confirmFriend(String number, String userID) {
+		ParseUser me = ParseUser.getCurrentUser();
+		ParseACL acl = new ParseACL();
+		acl.setReadAccess(userID, true);
+		me.setACL(acl);
+		me.saveInBackground();
+		sendFriendConfirmation(number, userID, me.getObjectId());
+		
+	}
+
+	private static void sendFriendConfirmation(String number, String friend_userID,
+			String my_userID) {
+		JSONObject data = new JSONObject();
+		String channel = ContentUtils.setChannel(number);
+		try {
+			data.put("action", Constants.ACTION_CONFIRM_FRIEND);
+			data.put("number", ParseUser.getCurrentUser().get("username"));
+			data.put("sender_userid",my_userID);
+			data.put("receiver_userid",friend_userID);
+			ParsePush push = new ParsePush();
+			push.setChannel(channel);
+			push.setData(data);
+			push.sendInBackground();
+			//Log.i("push sent","to channel " + channel);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
+	}	
+
 
 }

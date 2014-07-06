@@ -1,4 +1,7 @@
-package com.Pull.pullapp;
+package com.Pull.pullapp.fragment;
+
+import com.Pull.pullapp.R;
+import com.Pull.pullapp.R.layout;
 
 import android.content.Context;
 import android.view.LayoutInflater;

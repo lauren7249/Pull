@@ -1,7 +1,6 @@
 package com.Pull.pullapp.util;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -23,14 +22,22 @@ import android.support.v4.app.NotificationCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import com.Pull.pullapp.AllThreadsListActivity;
+import com.Pull.pullapp.FriendsActivity;
+import com.Pull.pullapp.MessageActivityCheckboxCursor;
 import com.Pull.pullapp.R;
 import com.Pull.pullapp.SharedConversationActivity;
 import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
+import com.Pull.pullapp.threads.AlarmScheduler;
+import com.Pull.pullapp.threads.DailyShareSuggestion;
+import com.Pull.pullapp.threads.SmsLogger;
 import com.parse.FindCallback;
+import com.parse.ParseACL;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
+import com.parse.ParseUser;
 
 
 public class GeneralBroadcastReceiver extends BroadcastReceiver {
@@ -39,18 +46,56 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	protected Comment comment;
 	private TelephonyManager tmgr;
 	private DatabaseHandler db;
+	private UserInfoStore store;
     @SuppressWarnings("unused")
 	@Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
         mContext = context;
+        store = new UserInfoStore(context);
         db = new DatabaseHandler(context);
         tmgr = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         if (action.equals(Constants.ACTION_CHECK_OUT_SMS) && Constants.LOG_SMS) {
             new SmsLogger(context).start();
             return;
         }
+        if (action.equals(Constants.ACTION_INVITE_FRIEND)) {
+            try {
+                JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
+                String userid = json.getString("userid");
+                String number = json.getString("number");
+                String name = store.getName(number);
+                notifyInvited(userid, name, number);
+            } catch (JSONException e) {
+          	  Log.i("exception",e.getMessage());
+            }
+            return;
+        }     
         
+        if (action.equals(Constants.ACTION_CONFIRM_FRIEND)) {
+            try {
+                JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
+                String sender_userid = json.getString("sender_userid");
+                String receiver_userid = json.getString("receiver_userid");
+                String number = json.getString("number");
+                if(receiver_userid.equals(ParseUser.getCurrentUser().getObjectId()) 
+                		&& store.wasInvited(number)) {
+                	store.saveFriend(number, sender_userid);
+            		ParseUser me = ParseUser.getCurrentUser();
+            		ParseACL acl = new ParseACL();
+            		acl.setReadAccess(sender_userid, true);
+            		me.setACL(acl);
+            		me.saveInBackground();                	
+                	String name = store.getName(number);
+                	notifyFriendConfirmed(name);
+                }
+                
+                
+            } catch (JSONException e) {
+          	  Log.i("exception",e.getMessage());
+            }
+            return;
+        }              
         if (action.equals(Constants.ACTION_SEND_DELAYED_TEXT)) {
             String recipient = intent.getStringExtra(Constants.EXTRA_RECIPIENT);
             String message = intent.getStringExtra(Constants.EXTRA_MESSAGE_BODY);
@@ -59,8 +104,8 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
             
             //dont send if the user canceled (removed from outbox) or received a message since launching
             if(!messagedAfterLaunch(context,recipient,launchedOn) &&  
-            		SendMessages.removeFromOutbox(context, message, recipient, launchedOn, false)>0) {
-            	SendMessages.sendmms(context, recipient, message, launchedOn, true);
+            		SendUtils.removeFromOutbox(context, message, recipient, launchedOn, false)>0) {
+            	SendUtils.sendsms(context, recipient, message, launchedOn, true);
 
             }
             	
@@ -69,7 +114,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         if (action.equals(Constants.ACTION_SHARE_TAG)) {
             String recipient = intent.getStringExtra(Constants.EXTRA_RECIPIENT);
             String message = intent.getStringExtra(Constants.EXTRA_MESSAGE_BODY);
-            SendMessages.sendsms(context, recipient, message, 0, false);
+            SendUtils.sendsms(context, recipient, message, 0, false);
             return;
         }          
         
@@ -106,7 +151,19 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
               }
             return;
         }   
-        
+        if (action.equals(Constants.ACTION_RECEIVE_SHARED_MESSAGES)) {
+        	Log.i("received broadcast","ACTION_RECEIVE_SHARED_MESSAGES");
+            try {
+                JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
+                String sender = json.getString("from");
+                String person_shared = json.getString("person_shared");
+                String address = json.getString("address");
+                notifySharedMessages(sender,person_shared,address);
+              } catch (JSONException e) {
+            	  Log.i("exception",e.getMessage());
+              }
+            return;
+        }           
         if (action.equals(Constants.ACTION_RECEIVE_COMMENT)) {
         	Log.i("received broadcast","ACTION_RECEIVE_COMMENT");
             try {
@@ -133,6 +190,93 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         
     }
    
+
+	private void notifyFriendConfirmed(String name) {
+		NotificationManager mNotificationManager = (NotificationManager) mContext
+				.getSystemService(Context.NOTIFICATION_SERVICE);
+		int icon;
+		icon = R.drawable.explosion;
+		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
+				mContext).setSmallIcon(icon).setContentTitle(name + " is now your friend ")
+				.setContentText("Maybe share something?")
+				.setPriority(NotificationCompat.PRIORITY_LOW)
+				.setOnlyAlertOnce(true);
+		// TODO: Optional light notification.
+		Intent ni = new Intent(mContext, AllThreadsListActivity.class);
+		ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);		
+		PendingIntent pi = PendingIntent.getActivity(mContext, 0,
+				ni, PendingIntent.FLAG_CANCEL_CURRENT);
+		mBuilder.setContentIntent(pi);
+		mBuilder.setAutoCancel(true);
+		Notification notification = mBuilder.build();
+		notification.defaults|= Notification.DEFAULT_SOUND;
+		notification.defaults|= Notification.DEFAULT_LIGHTS;
+		notification.defaults|= Notification.DEFAULT_VIBRATE;		
+		mNotificationManager.notify(1, notification);
+	}
+
+
+	private void notifyInvited(String userid, String name, String number) {
+		NotificationManager mNotificationManager = (NotificationManager) mContext
+				.getSystemService(Context.NOTIFICATION_SERVICE);
+		int icon;
+		icon = R.drawable.explosion;
+		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
+				mContext).setSmallIcon(icon).setContentTitle(name + " friend requested you ")
+				.setContentText("Will you accept?")
+				.setPriority(NotificationCompat.PRIORITY_LOW)
+				.setOnlyAlertOnce(true);
+		// TODO: Optional light notification.
+		Intent ni = new Intent(mContext, FriendsActivity.class);
+		ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);		
+		ni.putExtra(Constants.EXTRA_USER_ID, userid);
+		ni.putExtra(Constants.EXTRA_NUMBER, number);
+		ni.putExtra(Constants.EXTRA_NAME, name);
+		PendingIntent pi = PendingIntent.getActivity(mContext, 0,
+				ni, PendingIntent.FLAG_CANCEL_CURRENT);
+		mBuilder.setContentIntent(pi);
+		mBuilder.setAutoCancel(true);
+		Notification notification = mBuilder.build();
+		notification.defaults|= Notification.DEFAULT_SOUND;
+		notification.defaults|= Notification.DEFAULT_LIGHTS;
+		notification.defaults|= Notification.DEFAULT_VIBRATE;		
+		mNotificationManager.notify(0, notification);
+		
+	}
+
+
+	private void notifySharedMessages(String sender, String person_shared,
+			String address) {
+		String from = store.getName(sender);
+		NotificationManager mNotificationManager = (NotificationManager) mContext
+				.getSystemService(Context.NOTIFICATION_SERVICE);
+		int icon;
+		icon = R.drawable.explosion;
+		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
+				mContext).setSmallIcon(icon).setContentTitle(from + "'s messages")
+				.setContentText("with " + person_shared)
+				.setPriority(NotificationCompat.PRIORITY_LOW)
+				.setOnlyAlertOnce(true);
+		// TODO: Optional light notification.
+		Intent ni = new Intent(mContext, MessageActivityCheckboxCursor.class);
+		ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);		
+		ni.putExtra(Constants.EXTRA_SHARED_SENDER, sender);
+		ni.putExtra(Constants.EXTRA_SHARED_ADDRESS, sender);
+		PendingIntent pi = PendingIntent.getActivity(mContext, 0,
+				ni, PendingIntent.FLAG_CANCEL_CURRENT);
+		mBuilder.setContentIntent(pi);
+		mBuilder.setAutoCancel(true);
+		Notification notification = mBuilder.build();
+		notification.sound = Uri.parse("android.resource://" + mContext.getPackageName() + "/" + R.raw.jackie_sound_1);
+		notification.defaults|= Notification.DEFAULT_LIGHTS;
+		notification.defaults|= Notification.DEFAULT_VIBRATE;		
+		mNotificationManager.notify(777, notification);
+		
+	}
+
 
 	private void getCommentFromParse(final String convoID, final String commentID) {
     	ParseQuery<Comment> comments = ParseQuery.getQuery(Comment.class);
@@ -311,9 +455,9 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	        	long date = cursor.getLong(cursor.getColumnIndex(TextBasedSmsColumns.DATE));
 	        	String sender = cursor.getString(cursor.getColumnIndex(TextBasedSmsColumns.ADDRESS));
 	        	/*Log.i("messagedAfterLaunch", "LAST text was received on " + 
-	        			date + " from "+ SendMessages.addCountryCode(sender));
+	        			date + " from "+ SendUtils.addCountryCode(sender));
 	        	Log.i("messagedAfterLaunch", "delayed send was launched: " + 
-	        			launchTime + " to "+ SendMessages.addCountryCode(address));*/
+	        			launchTime + " to "+ SendUtils.addCountryCode(address));*/
         	}
         	return true;
         }

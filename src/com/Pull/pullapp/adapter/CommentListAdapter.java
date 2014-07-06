@@ -1,11 +1,10 @@
-package com.Pull.pullapp;
+package com.Pull.pullapp.adapter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import android.content.ClipData;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.telephony.PhoneNumberUtils;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -20,23 +19,22 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.Pull.pullapp.MainApplication;
+import com.Pull.pullapp.R;
 import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.FacebookUser;
 import com.Pull.pullapp.util.Constants;
-import com.Pull.pullapp.util.ContentUtils;
 import com.facebook.widget.ProfilePictureView;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseInstallation;
 import com.parse.ParseQuery;
-import com.parse.ParseUser;
 
 public class CommentListAdapter extends BaseAdapter {
 	private Context mContext;
 	private ArrayList<Comment> mComments;
 	private String mConfidante, mOriginalRecipientName;
-	private SharedPreferences mPrefs;
 	private MainApplication mApp;
 	private MixpanelAPI mixpanel;
 	public CommentListAdapter(Context context, ArrayList<Comment> comments, String confidante, String orig_recipient) {
@@ -46,7 +44,6 @@ public class CommentListAdapter extends BaseAdapter {
 		this.mConfidante = confidante;
 		this.mOriginalRecipientName = orig_recipient;
 		mApp = (MainApplication) context.getApplicationContext();
-		//mPrefs = context.getSharedPreferences(MainApplication.class.getSimpleName(), Context.MODE_PRIVATE);
 	}
 	
 	
@@ -161,7 +158,7 @@ public class CommentListAdapter extends BaseAdapter {
 	public static class SMSViewHolder
 	{
 		TextView time;
-		TextView message;
+		public TextView message;
 		LinearLayout box;
 		Button retry;
 	}

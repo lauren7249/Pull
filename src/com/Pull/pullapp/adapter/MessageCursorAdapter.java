@@ -1,0 +1,311 @@
+package com.Pull.pullapp.adapter;
+
+import java.util.HashMap;
+import java.util.Set;
+import java.util.TreeSet;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.Telephony.TextBasedSmsColumns;
+import android.support.v4.widget.CursorAdapter;
+import android.text.format.DateUtils;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
+import android.widget.TextView;
+
+import com.Pull.pullapp.R;
+import com.Pull.pullapp.model.SMSMessage;
+import com.Pull.pullapp.util.Constants;
+import com.Pull.pullapp.util.ContentUtils;
+import com.Pull.pullapp.util.SendUtils;
+import com.Pull.pullapp.util.UserInfoStore;
+import com.facebook.widget.ProfilePictureView;
+
+public class MessageCursorAdapter extends CursorAdapter {
+	
+	public boolean showCheckboxes;
+	public TreeSet<SMSMessage> check_hash;
+	public HashMap<Long,Integer> delayedMessages;
+	private String other_person, other_person_name;
+	private String facebookID;
+	private Activity activity;
+	private UserInfoStore store;
+	
+    @SuppressWarnings("deprecation")
+	public MessageCursorAdapter(Context context, Cursor cursor, String number, Activity activity) {
+    	super(context, cursor);
+    	check_hash = new TreeSet<SMSMessage>();
+    	delayedMessages = new HashMap<Long,Integer>();
+    	store = new UserInfoStore(context);
+    	other_person = ContentUtils.addCountryCode(number);
+    	other_person_name = store.getName(other_person);
+		facebookID = store.getFacebookID(other_person);
+		this.activity = activity;
+   	    	
+    }
+
+	@Override
+	public void bindView(View v, Context context, Cursor c) {
+		populate(context, c, v, false);
+	}
+
+	@Override
+	public View newView(Context context, Cursor c, ViewGroup parent) {
+		final LayoutInflater inflater = LayoutInflater.from(context);
+		View v = inflater.inflate(R.layout.sms_row, parent, false);
+		populate(context, c, v, true);
+		return v;
+	}
+	private void populate(final Context context, Cursor c, View v, boolean isnew) {
+		String body="";
+		final String address;
+		long date;
+		final SMSMessage message;
+		final int position = c.getPosition();
+
+		int type = Integer.parseInt(c.getString(1).toString());
+		if(type==TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return;
+		body = c.getString(2).toString();
+    	address = c.getString(4).toString();
+    	date = c.getLong(6);
+    	String read = c.getString(5).toString();
+    	String SmsMessageId = c.getString(3).toString();
+    	
+    	if(!SmsMessageId.equals("") && read.equals("0")) {
+        	ContentValues values = new ContentValues();
+    		values.put("read",true);
+    		context.getContentResolver().update(Uri.parse("content://sms/"),
+    				values, "_id="+SmsMessageId, null);	
+    	}	    	
+    	
+    	message = new SMSMessage(date, body, address, type, store);
+
+		final ViewHolder holder; 
+		if(isnew) holder = new ViewHolder();
+		else holder = (ViewHolder) v.getTag();
+		
+		holder.messageBox = (LinearLayout) v.findViewById(R.id.message_box);
+		holder.message = (TextView) v.findViewById(R.id.message_text);
+		holder.time = (TextView) v.findViewById(R.id.message_time);
+		holder.box = (CheckBox) v.findViewById(R.id.cbBox);
+		holder.edit = (Button) v.findViewById(R.id.edit_message_button);	
+		holder.pic = (ProfilePictureView) v.findViewById(R.id.contact_image);
+		holder.sharedWith = (LinearLayout) v.findViewById(R.id.shared_with);
+		holder.shared_with_text = (TextView) v.findViewById(R.id.shared_with_text);
+		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);
+		
+		//int id = Resources.getSystem().getIdentifier("btn_check_holo_light", "drawable", "android");
+		//holder.box.setButtonDrawable(id);
+		holder.shared_with_text.setVisibility(View.GONE);
+		
+		Set<String> sharedWith = message.getConfidantes();
+		holder.sharedWith.removeAllViews();
+		if(sharedWith.size()>0) {
+			holder.shared_with_text.setVisibility(View.VISIBLE);
+			holder.shared_with_text.setOnClickListener(new OnClickListener(){
+
+				@Override
+				public void onClick(View v) {
+					if(holder.sharedWith.getVisibility() == View.VISIBLE) 
+						holder.sharedWith.setVisibility(View.GONE);
+					else 
+						holder.sharedWith.setVisibility(View.VISIBLE);
+				}
+				
+			});
+			for(String confidante : sharedWith) {
+				final String name = store.getName(confidante);
+				ProfilePictureView p = new ProfilePictureView(mContext);
+				p.setPresetSize(ProfilePictureView.SMALL);					
+				final String fbID = store.getFacebookID(confidante);
+				if(!fbID.isEmpty()) {
+					p.setProfileId(fbID);
+					p.setOnClickListener(new OnClickListener() {
+						@Override
+						public void onClick(View v) {
+							View pullProfileView = View.inflate(mContext, R.layout.pull_profile, null);
+							ProfilePictureView pp = (ProfilePictureView) pullProfileView
+									.findViewById(R.id.contact_image);
+							pp.setProfileId(fbID);
+							AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+							builder.setTitle(name);
+					        builder.setCancelable(true).setView(pullProfileView)	
+					           .setPositiveButton("Close", new DialogInterface.OnClickListener() {
+					               public void onClick(DialogInterface dialog, int id){
+					            	   dialog.cancel();
+					               	}
+					           });					        
+					        builder.show();
+						};
+			        });			
+					holder.sharedWith.addView(p);
+				} else {
+					final TextView tv = new TextView(mContext);
+					LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT,
+							LayoutParams.MATCH_PARENT);
+					params.setMargins(0, 0, 0, 0);
+					tv.setText(name);
+					tv.setHint(confidante);
+					//tv.setLayoutParams(holder.shared_with_text.getLayoutParams());
+					tv.setBackgroundResource(R.drawable.sms);
+					tv.setTextColor(R.color.textColor);
+					tv.setPadding(15, 15, 15, 15);
+					tv.setGravity(Gravity.CENTER);
+					tv.setLayoutParams(params);
+					if(!store.isFriend(confidante)) tv.setOnClickListener(new OnClickListener() {
+						@Override
+						public void onClick(View v) {
+							View addFriendView = View.inflate(mContext, R.layout.add_friend, null);
+							AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+						    builder.setTitle("Invite Friend");
+						    builder.setMessage("Invite " + tv.getText().toString() 
+						    		+ " to be your friend on Pull?")
+						           .setCancelable(true)
+						           .setView(addFriendView)
+						           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+						               public void onClick(DialogInterface dialog, int id)
+						               {
+
+						            	   SendUtils.inviteFriend(tv.getHint().toString(), mContext, activity);
+
+						               	}
+						           }) 
+						           .setNegativeButton("No", new DialogInterface.OnClickListener() {
+						               public void onClick(DialogInterface dialog, int id) 
+						               {
+						                    dialog.cancel();
+						               }
+						           }).show();	
+						};
+			        });				
+					holder.sharedWith.addView(tv);
+				}
+			}
+		}
+
+
+        if (check_hash.contains(message)) {
+        	holder.box.setChecked(true);
+        	holder.addPPl.setVisibility(View.GONE);
+			if(message.isSentByMe()) {
+				holder.messageBox.setBackgroundResource(R.drawable.outgoing_pressed);
+				holder.message.setGravity(Gravity.RIGHT);
+				holder.time.setGravity(Gravity.RIGHT);
+			}else {
+				holder.messageBox.setBackgroundResource(R.drawable.incoming_pressed); 
+				holder.message.setGravity(Gravity.LEFT);
+				holder.time.setGravity(Gravity.LEFT);				
+			}
+        }
+        else {
+        	holder.box.setChecked(false);
+        	
+        	LayoutParams layoutParams=(LayoutParams) holder.addPPl.getLayoutParams();
+			if(message.isSentByMe()) {
+				holder.messageBox.setBackgroundResource(R.drawable.outgoing);
+				holder.message.setPadding(35, 5, 5, 5);
+				layoutParams.gravity = Gravity.LEFT;
+				//layoutParams.leftMargin = -40;
+				holder.message.setGravity(Gravity.RIGHT);
+				holder.time.setGravity(Gravity.RIGHT);				
+			}else {
+				holder.messageBox.setBackgroundResource(R.drawable.incoming);  
+				holder.message.setPadding(5, 5, 35, 5);
+				layoutParams.gravity = Gravity.RIGHT;
+				//layoutParams.rightMargin = -40;
+				holder.message.setGravity(Gravity.LEFT);
+				holder.time.setGravity(Gravity.LEFT);					
+			}
+		//	holder.addPPl.setLayoutParams(layoutParams);
+			holder.addPPl.setVisibility(View.VISIBLE);
+        }
+		if(showCheckboxes) holder.box.setVisibility(View.VISIBLE);
+		else holder.box.setVisibility(View.GONE);
+		
+		v.setTag(holder);		
+		holder.message.setText(message.getMessage());
+		holder.messageBox.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent broadcastIntent = new Intent();
+				broadcastIntent.setAction(Constants.ACTION_SHARE_STATE_CHANGED);
+				//broadcastIntent.putExtra(Constants.EXTRA_MESSAGE_POSITION, position);
+				context.sendBroadcast(broadcastIntent);					
+				holder.box.toggle();
+				if(check_hash.contains(message)) 
+					check_hash.remove(message);
+				else 
+					check_hash.add(message);
+				notifyDataSetChanged();
+			};
+        });				
+		LayoutParams lp = (LayoutParams) holder.messageBox.getLayoutParams();
+
+		if(message.isSentByMe())
+		{
+			holder.pic.setVisibility(View.GONE);	
+			lp.gravity = Gravity.RIGHT;
+			
+		}
+		//If not mine then it is from sender to show yellow background and align to left
+		else
+		{
+	    	if(facebookID!=null && facebookID.length()>0) {
+	    		holder.pic.setProfileId(facebookID);
+	    		holder.pic.setVisibility(View.VISIBLE);
+	    	}
+	    	else holder.pic.setVisibility(View.GONE);			
+			lp.gravity = Gravity.LEFT;
+		}
+		
+		if(message.isDelayed) {
+			holder.edit.setVisibility(View.VISIBLE);
+
+		    CharSequence relativeTime;
+		    if(System.currentTimeMillis()-message.getFutureSendTime()<DateUtils.MINUTE_IN_MILLIS){
+				relativeTime = DateUtils.getRelativeDateTimeString(context, message.getFutureSendTime(), DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+			}else{
+				relativeTime = "Now";
+			}
+		    holder.time.setText(relativeTime);
+		} else {
+			CharSequence relativeTime;
+			if(System.currentTimeMillis()-message.getDate()>DateUtils.MINUTE_IN_MILLIS){
+				relativeTime = DateUtils.getRelativeDateTimeString(context, message.getDate(), 
+						DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+			}else{
+				relativeTime = "Just Now";
+			}
+			holder.time.setText(relativeTime);
+			holder.edit.setVisibility(View.GONE);
+		}
+		holder.messageBox.setLayoutParams(lp);
+
+	}
+	private static class ViewHolder
+	{
+		TextView message, time, shared_with_text;
+		LinearLayout messageBox, sharedWith;
+		CheckBox box;
+		Button edit;
+		ProfilePictureView pic;
+		ImageView addPPl;
+	}
+	
+
+
+}

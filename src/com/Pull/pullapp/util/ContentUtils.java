@@ -1,11 +1,15 @@
 package com.Pull.pullapp.util;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.MergeCursor;
 import android.net.Uri;
+import android.os.Environment;
 import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
@@ -240,5 +244,30 @@ public class ContentUtils {
 			Log.i("messages_cursor size", " " + messages_cursor.getCount());
 	        return messages_cursor;
 		}		
+		/** Create a File for saving an image or video */
+		public static  File getOutputMediaFile(Context context){
+		    // To be safe, you should check that the SDCard is mounted
+		    // using Environment.getExternalStorageState() before doing this. 
+		    File mediaStorageDir = new File(Environment.getExternalStorageDirectory()
+		            + "/Android/data/"
+		            + context.getPackageName()
+		            + "/Files"); 
+
+		    // This location works best if you want the created images to be shared
+		    // between applications and persist after your app has been uninstalled.
+
+		    // Create the storage directory if it does not exist
+		    if (! mediaStorageDir.exists()){
+		        if (! mediaStorageDir.mkdirs()){
+		            return null;
+		        }
+		    } 
+		    // Create a media file name
+		    String timeStamp = new SimpleDateFormat("ddMMyyyy_HHmm").format(new Date());
+		    File mediaFile;
+		        String mImageName="MI_"+ timeStamp +".jpg";
+		        mediaFile = new File(mediaStorageDir.getPath() + File.separator + mImageName);  
+		    return mediaFile;
+		} 		
  
 }

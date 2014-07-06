@@ -1,4 +1,4 @@
-package com.Pull.pullapp.util;
+package com.Pull.pullapp.threads;
 
 import java.util.Date;
 import java.util.List;
@@ -19,6 +19,8 @@ import com.Pull.pullapp.MainApplication;
 import com.Pull.pullapp.MessageActivityCheckboxCursor;
 import com.Pull.pullapp.R;
 import com.Pull.pullapp.model.ShareSuggestion;
+import com.Pull.pullapp.util.Constants;
+import com.Pull.pullapp.util.ContentUtils;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;

@@ -46,6 +46,7 @@ import android.widget.Toast;
 import com.Pull.pullapp.model.FacebookUser;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
+import com.Pull.pullapp.adapter.*;
 import com.facebook.FacebookRequestError;
 import com.facebook.Request;
 import com.facebook.Response;
@@ -61,7 +62,7 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.viewpagerindicator.CirclePageIndicator;
 
-public class ViewPagerSignIn extends BaseSampleActivity {
+public class ViewPagerSignIn extends BaseActivity {
 	private ParseUser mParseUser;
     private Button mSignInButton;
 	private SharedPreferences prefs;
@@ -96,7 +97,7 @@ public class ViewPagerSignIn extends BaseSampleActivity {
         setContentView(R.layout.signin_viewpager);
         mLayout = (LinearLayout) findViewById(R.id.main_layout);
         mBottomHalf = (RelativeLayout) findViewById(R.id.signin_area);
-        mAdapter = new TestFragmentAdapter(getSupportFragmentManager());
+        mAdapter = new SignInFragmentAdapter(getSupportFragmentManager());
 
         mPager = (ViewPager)findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);

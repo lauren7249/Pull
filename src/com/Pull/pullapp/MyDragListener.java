@@ -8,11 +8,11 @@ import android.view.View;
 import android.view.View.OnDragListener;
 import android.widget.Toast;
 
-import com.Pull.pullapp.CommentListAdapter.SMSViewHolder;
+import com.Pull.pullapp.adapter.CommentListAdapter.SMSViewHolder;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
-import com.Pull.pullapp.util.SendMessages;
+import com.Pull.pullapp.util.SendUtils;
 
 public class MyDragListener implements OnDragListener {
 	
@@ -59,7 +59,7 @@ public class MyDragListener implements OnDragListener {
 							broadcastIntent.setAction(Constants.ACTION_SEND_COMMENT_CONFIRMED);
 							activity.getApplicationContext().sendBroadcast(broadcastIntent);	
 							if(convo.getSharer().equals(mApp.getUserName()))
-								SendMessages.sendsms(activity.getApplicationContext(), 
+								SendUtils.sendsms(activity.getApplicationContext(), 
 									convo.getOriginalRecipient(), message, System.currentTimeMillis(), true);
 							else {
 								Toast.makeText(activity.getApplicationContext(), "not yet implemented for friends",

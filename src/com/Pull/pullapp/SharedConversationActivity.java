@@ -31,12 +31,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.Pull.pullapp.adapter.CommentListAdapter;
+import com.Pull.pullapp.adapter.MessageListAdapter;
 import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
-import com.Pull.pullapp.util.SendMessages;
+import com.Pull.pullapp.util.SendUtils;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.MenuItem;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
@@ -494,7 +496,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 				
 	}
 	protected void commentViaSMS(String recipient) {
-		SendMessages.sendsms(mContext, recipient, commentText, 0, false);
+		SendUtils.sendsms(mContext, recipient, commentText, 0, false);
 	}	
 
 	private void createFakeConvo(){

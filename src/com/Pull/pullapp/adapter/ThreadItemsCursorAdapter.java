@@ -1,17 +1,21 @@
-package com.Pull.pullapp;
+package com.Pull.pullapp.adapter;
 
+import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
-import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
+import android.content.Intent;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.widget.CursorAdapter;
+import android.util.Base64;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,36 +24,27 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.Pull.pullapp.model.FacebookUser;
+import com.Pull.pullapp.MessageActivityCheckboxCursor;
+import com.Pull.pullapp.R;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
-import com.Pull.pullapp.util.SendMessages;
+import com.Pull.pullapp.util.SendUtils;
+import com.Pull.pullapp.util.UserInfoStore;
 import com.facebook.widget.ProfilePictureView;
-import com.parse.FindCallback;
-import com.parse.ParseException;
-import com.parse.ParseObject;
-import com.parse.ParseQuery;
 public class ThreadItemsCursorAdapter extends CursorAdapter {
 	
-	private SharedPreferences mPrefs_recipientID_phoneNumber, mPrefs_phoneNumber_Name, 
-					mPrefs_phoneNumber_FacebookID;
 	public HashMap<Integer,String> recipientID_hash;
 	private int cursorType;
 	private Context mContext;
 	protected Activity activity;
+	private UserInfoStore store;
 	
     @SuppressWarnings("deprecation")
 	public ThreadItemsCursorAdapter(Context context, Cursor cursor, int cursorType, Activity a) {
     	super(context, cursor);
-    	mContext = context;
-    	mPrefs_recipientID_phoneNumber = context.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
-    			+ "recipientId_phoneNumber",Context.MODE_PRIVATE);
-    	mPrefs_phoneNumber_Name = context.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
-    			+ "phoneNumber_Name",Context.MODE_PRIVATE);
-    	mPrefs_phoneNumber_FacebookID = context.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
-    			+ "phoneNumber_FacebookID",Context.MODE_PRIVATE); 	
+    	mContext = context;  	
+    	this.store = new UserInfoStore(context);
     	recipientID_hash = new HashMap<Integer,String>();
     	this.cursorType = cursorType;
     	activity = a;
@@ -86,38 +81,36 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 		TextView name_view = (TextView) v.findViewById(R.id.txt_title);
 		TextView snippet_view = (TextView) v.findViewById(R.id.txt_message_info);
 		ImageView read_indicator = (ImageView) v.findViewById(R.id.indicator);
+		ImageView share = (ImageView) v.findViewById(R.id.share_button);
+		
 	    final ProfilePictureView their_pic = 
 	    		(ProfilePictureView) v.findViewById(R.id.profile_pic);
 	    final ImageView other_pic = 
 	    		(ImageView) v.findViewById(R.id.other_pic);
-	    
+
 		String name="", snippet="", recipientId="";
 		final String number;
 		boolean read = true;        
-		
+
         final int position= threads.getPosition();
         
     	read = (!threads.getString(1).equals("0"));	 
     	recipientId = threads.getString(2);
     	snippet = threads.getString(4);		    		    	
-		
+
     	recipientID_hash.put(position, recipientId);
     	
 
-    	if(mPrefs_recipientID_phoneNumber.getString(recipientId, null)==null) {
+    	if(store.getPhoneNumber(recipientId)==null) {
 			number = ContentUtils.addCountryCode(ContentUtils.getAddressFromID(context, recipientId));
-			Editor editor = mPrefs_recipientID_phoneNumber.edit();
-			editor.putString(recipientId, number);
-			editor.commit();
+			store.setPhoneNumber(recipientId, number);
     	}		
-    	else number = mPrefs_recipientID_phoneNumber.getString(recipientId, null);
+    	else number = store.getPhoneNumber(recipientId);
     	
-    	name = mPrefs_phoneNumber_Name.getString(number, null);
+    	name = store.getName(number);
     	if(name==null || name.length() == 0 || name.equals(number)) {
     		name = ContentUtils.getContactDisplayNameByNumber(context, number);
-			Editor editor = mPrefs_phoneNumber_Name.edit();
-			editor.putString(number, name);
-			editor.commit();
+    		store.setName(number, name);
     	}	
     	
     	final String friend_name = name;
@@ -129,42 +122,19 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 		} else {
 			read_indicator.setVisibility(View.GONE);
 		}  
-		
-    	String facebookID = mPrefs_phoneNumber_FacebookID.getString(number, "");
-    	if(facebookID.length()==0) {
-    		ParseQuery<FacebookUser> fbQuery = ParseQuery.getQuery("FacebookUser");
-    		fbQuery.whereEqualTo("phoneNumber", number);
-    		fbQuery.findInBackground(new FindCallback<FacebookUser>() {
-    		public void done(List<FacebookUser> results, ParseException e) { 	
-    			if(e==null && results.size()>0) {
-    				if(results.get(0).getString("facebookID")!=null && 
-    						!results.get(0).getString("facebookID").equals("")) {
-    					Editor editor = mPrefs_phoneNumber_FacebookID.edit();
-    					editor.putString(number, results.get(0).getString("facebookID"));
-    					editor.commit();  
-    					
-    				}
-    			}
-    		  }
-    		});  
 
-    	} 
-    	
-    	final boolean isPullUser;
-    	facebookID = mPrefs_phoneNumber_FacebookID.getString(number, "");
+    	String facebookID = store.getFacebookID(number);
+
     	if(facebookID!=null && facebookID.length()>0) {
     		their_pic.setProfileId(facebookID);
-    		isPullUser = true;
     		their_pic.setVisibility(View.VISIBLE);
     		other_pic.setVisibility(View.GONE);
     	}
     	else {
     		other_pic.setVisibility(View.VISIBLE);
-    		other_pic.setBackgroundResource(R.color.pullDark);
     		their_pic.setVisibility(View.GONE);
-    		isPullUser = false;
     	}
-    	other_pic.setOnClickListener(new OnClickListener(){
+    	if(!store.isFriend(number)) other_pic.setOnClickListener(new OnClickListener(){
 
 			@Override
 			public void onClick(View v) {
@@ -177,9 +147,9 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 			           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 			               public void onClick(DialogInterface dialog, int id)
 			               {
-			            	
-			            	   inviteFriend(number);
-			            	 
+
+			            	   SendUtils.inviteFriend(number, mContext, activity);
+
 			               	}
 			           }) 
 			           .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -188,12 +158,27 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 			                    dialog.cancel();
 			               }
 			           }).show();		
-				
+
 			}
     		
     	});
-	
+    	share.setOnClickListener(new OnClickListener(){
+
+			@Override
+			public void onClick(View v) {
+				Intent ni = new Intent(mContext, MessageActivityCheckboxCursor.class);
+				ni.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				ni.putExtra(Constants.EXTRA_NAME,friend_name);
+				ni.putExtra(Constants.EXTRA_NUMBER,number);	
+				ni.putExtra(Constants.EXTRA_SHARE_TO_NUMBER,"");	
+				mContext.startActivity(ni);				
+
+			}
+    		
+    	});    	
+
 	}
+
 
 	private void setSharedFields(Context context, Cursor threads, View v) {
 		LinearLayout row = (LinearLayout) v.findViewById(R.id.row);
@@ -238,35 +223,16 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	
     	
     	
-    	name = mPrefs_phoneNumber_Name.getString(number, "");
+    	name = store.getName(number);
     	if(name.length()==0 || name.equals(number)) {
     		name = ContentUtils.getContactDisplayNameByNumber(context, number);
-			Editor editor = mPrefs_phoneNumber_Name.edit();
-			editor.putString(number, name);
-			editor.commit();
+    		store.setName(number, name);
     	}		
     	
     	name_view.setText(name);
     	
-    	facebookID = mPrefs_phoneNumber_FacebookID.getString(number, "");
-    	if(facebookID.length()==0) {
-    		ParseQuery<FacebookUser> fbQuery = ParseQuery.getQuery("FacebookUser");
-    		fbQuery.whereEqualTo("phoneNumber", number);
-    		fbQuery.findInBackground(new FindCallback<FacebookUser>() {
-    		public void done(List<FacebookUser> results, ParseException e) {
-    			if(e==null && results.size()>0) {
-    				if(results.get(0).getString("facebookID")!=null && 
-    						!results.get(0).getString("facebookID").equals("")) {
-    					Editor editor = mPrefs_phoneNumber_FacebookID.edit();
-    					editor.putString(number, results.get(0).getString("facebookID"));
-    					editor.commit();     
-    				}
-    			}
-    		  }
-    		});  
+    	facebookID = store.getFacebookID(number);
 
-    	}    	
-    	facebookID = mPrefs_phoneNumber_FacebookID.getString(number, "");
     	if(type == TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
 	    	if(facebookID!=null && facebookID.length()>0) my_pic.setProfileId(facebookID);
 	    	else my_pic.setProfileId("0");
@@ -297,7 +263,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 			               public void onClick(DialogInterface dialog, int id)
 			               {
 			            	
-			            	   inviteFriend(number);
+			            	   SendUtils.inviteFriend(number, mContext, activity);
 			            	 
 			               	}
 			           }) 
@@ -316,31 +282,18 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	read_indicator.setVisibility(View.GONE);
     	
 	}
-	private void inviteFriend(final String number) {
-		ParseQuery<ParseObject> query = ParseQuery.getQuery("Channels");
-		query.whereEqualTo("channel", ContentUtils.setChannel(number));
-		query.findInBackground(new FindCallback<ParseObject>() {
-		    public void done(List<ParseObject> list, ParseException e) {
-		        if (e==null && list.size()>0) {
-		        	inviteViaPush(number);
-		        } else {
-		        	inviteViaSMS(number);
-		        }
-		    }
-		});			
-		Toast.makeText(mContext, "Invite sent", Toast.LENGTH_LONG).show();
+/**	private void cacheImage(ProfilePictureView p, String number) {
+		ImageView fbImage = ( ( ImageView)p.getChildAt( 0));
+		Bitmap    bitmap  = ( ( BitmapDrawable) fbImage.getDrawable()).getBitmap();  
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);   
+		byte[] b = baos.toByteArray();      
+		String encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
+		Editor editor = mPrefs_phoneNumber_picturePath.edit();
+		editor.putString(number, encodedImage);
+		editor.commit();   
+        Log.d("tag",
+                "saved bitmap for " + number);// e.getMessage());
 		
-	}
-
-	protected void inviteViaSMS(String number) {
-		// TODO Make this use Twilio?
-		SendMessages.sendsms(mContext, number,
-				"Be my friend on Pull, the new Android app for sharing text conversations with friends. " 
-				+ Constants.APP_PLUG_END, System.currentTimeMillis(), false);
-		
-	}
-
-	protected void inviteViaPush(String number) {
-		Toast.makeText(mContext, "Invite sent", Toast.LENGTH_LONG).show();
-	}	
+	}	**/
 }

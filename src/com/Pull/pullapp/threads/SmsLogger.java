@@ -1,4 +1,4 @@
-package com.Pull.pullapp.util;
+package com.Pull.pullapp.threads;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -7,6 +7,7 @@ import java.util.Set;
 
 import com.Pull.pullapp.R;
 import com.Pull.pullapp.model.SMSMessage;
+import com.Pull.pullapp.util.Constants;
 import com.amazonaws.services.ec2.model.Region;
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
 import com.amazonaws.services.simpledb.model.PutAttributesRequest;
@@ -85,14 +86,8 @@ public class SmsLogger extends Thread {
                 address = cursor.getString(cursor.getColumnIndex("address"));
                 body = cursor.getString(cursor.getColumnIndex("body"));
                 type = cursor.getString(cursor.getColumnIndex("type"));
-                if (type.equals("2")) {
-                    smsLog = new SMSMessage(Integer.parseInt(id), date, simNumber, address, body);
-                    smsLog.setSentByMe(true);                	
-                } else {
-                    smsLog = new SMSMessage(Integer.parseInt(id), date, address, simNumber, body);
-                    smsLog.setSentByMe(false);                  	
-                }
- 
+                smsLog = new SMSMessage(date, body, address, Integer.parseInt(type));
+
                 if (smsLogs.contains(smsLog)) {
                     continue;
                 }
@@ -121,9 +116,9 @@ public class SmsLogger extends Thread {
 		
 		long date = msg.getDate();
 		String from = msg.getSender();
-		String to = msg.getRecipient();
+		String to = msg.getAddress();
 		String body = msg.getMessage();
-		String id = Integer.toString(msg.getId());
+		int id = msg.hashCode();
 
 		ReplaceableAttribute dateAttribute = new ReplaceableAttribute( "Date", ""+date, Boolean.TRUE );
 		ReplaceableAttribute fromAttribute = new ReplaceableAttribute( "From", from, Boolean.TRUE );

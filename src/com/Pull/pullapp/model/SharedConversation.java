@@ -101,14 +101,6 @@ public class SharedConversation extends ParseObject {
 		return this.comments;
 	}
 
-	public String getHashtags() {
-		String hashtags = "";
-		for(SMSMessage c : conversation) {
-			if(c.isHashtag()) hashtags = hashtags + " " + c.getMessage();
-		}
-		return hashtags;
-	}
-
 	public void setComments(ArrayList<Comment> comments) {
 		this.comments = comments;
 		for(Comment c : comments) {

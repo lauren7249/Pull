@@ -1,26 +1,29 @@
-package com.Pull.pullapp;
+package com.Pull.pullapp.adapter;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+
+import com.Pull.pullapp.R;
+import com.Pull.pullapp.R.drawable;
+import com.Pull.pullapp.fragment.SignInFragment;
 import com.viewpagerindicator.IconPagerAdapter;
 
-class TestFragmentAdapter extends FragmentPagerAdapter implements IconPagerAdapter {
-    protected static final String[] CONTENT = new String[] { "Privately share your conversations", 
-    	"Delay and cancel your texts","Privately comment on your friends' messages"};
+public class SignInFragmentAdapter extends FragmentPagerAdapter implements IconPagerAdapter {
+    protected static final String[] CONTENT = new String[] { "SHARE CONVERSATIONS",};
     protected static final int[] ICONS = new int[] {
-            R.drawable.ic_launcher, R.drawable.ic_launcher, R.drawable.ic_launcher
-    };
+        R.drawable.conversations,
+};
 
     private int mCount = CONTENT.length;
 
-    public TestFragmentAdapter(FragmentManager fm) {
+    public SignInFragmentAdapter(FragmentManager fm) {
         super(fm);
     }
 
     @Override
     public Fragment getItem(int position) {
-        return TestFragment.newInstance(CONTENT[position % CONTENT.length]);
+        return SignInFragment.newInstance(CONTENT[position % CONTENT.length], getIconResId(position));
     }
 
     @Override
@@ -30,7 +33,7 @@ class TestFragmentAdapter extends FragmentPagerAdapter implements IconPagerAdapt
 
     @Override
     public CharSequence getPageTitle(int position) {
-      return TestFragmentAdapter.CONTENT[position % CONTENT.length];
+      return SignInFragmentAdapter.CONTENT[position % CONTENT.length];
     }
 
     @Override

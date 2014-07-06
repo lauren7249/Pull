@@ -1,4 +1,4 @@
-package com.Pull.pullapp.util;
+package com.Pull.pullapp.threads;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,7 +10,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.provider.Telephony.TextBasedSmsColumns;
@@ -20,6 +19,10 @@ import android.util.Log;
 
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
+import com.Pull.pullapp.util.Constants;
+import com.Pull.pullapp.util.ContentUtils;
+import com.Pull.pullapp.util.DatabaseHandler;
+import com.Pull.pullapp.util.SendUtils;
 import com.parse.FindCallback;
 import com.parse.ParseAnalytics;
 import com.parse.ParseException;
@@ -53,10 +56,8 @@ public class ShareTagAction extends Thread {
     	this.person_shared = ContentUtils.getContactDisplayNameByNumber(parent, 
     			mSharedConversation.getOriginalRecipient()); 
     	this.recipient = mSharedConversation.getConfidante();
-    	this.hashtags = mSharedConversation.getHashtags();
     	this.tmgr = (TelephonyManager)parent.getSystemService(Context.TELEPHONY_SERVICE);
-    	Map dimensions = new HashMap();
-    	//dimensions.put("user", ParseUser.getCurrentUser());  	
+    	Map dimensions = new HashMap(); 	
     	ParseAnalytics.trackEvent("Shared Conversation", dimensions);
     }
 
@@ -154,7 +155,8 @@ public class ShareTagAction extends Thread {
     	    	isPullUser = true;
     	    } else {
     	    	isPullUser = false;
-    	        shareViaSMS();
+    	        SendUtils.shareViaSMS(parent, person_shared, mSharedConversation.getConfidante(),
+    	        		mSharedConversation.getMessages());		
     	    }
     	  }
     	});
@@ -168,49 +170,13 @@ public class ShareTagAction extends Thread {
 		        	isPullUser = true;
 		        } else {
 	    	    	isPullUser = false;
-	    	        shareViaSMS();		        	
+	    	        SendUtils.shareViaSMS(parent, person_shared, mSharedConversation.getConfidante(),
+	    	        		mSharedConversation.getMessages());		        	
 		        }
 		    }
 		});	
 	}
-	protected void shareViaSMS() {
 
-        AlarmManager am = (AlarmManager) parent.getSystemService(Context.ALARM_SERVICE);   
-		DatabaseHandler db = new DatabaseHandler(parent);
-		if(!db.contains(mSharedConversation) ) {
-			app_plug = "Hey, check out my conversation with " + person_shared + ". " 
-					+ Constants.APP_PLUG_END;
-		}
-		else {
-			app_plug = "My conversation with " + person_shared + " continued.... " 
-					+ Constants.APP_PLUG_END;
-		}    	
-		
-		long currentDate = System.currentTimeMillis();
-        setSendAlarm(am, app_plug, 1, currentDate);
-        int i = 1;
-        for(SMSMessage m: mSharedConversation.getMessages()) {
-        	long longdate = m.getDate();
-    		String date = " [" + DateUtils.getRelativeDateTimeString(parent, 
-    				longdate, DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0) + "]: ";
-        	if(m.isSentByMe()) text =  "Me " + date + m.getMessage();
-        	else text = person_shared + date + m.getMessage();
-        	int elapse = (int) (currentDate + i*1000);
-        	setSendAlarm(am, text, (int) elapse, (long) elapse);
-        	i++;
-    	}
 
-		
-	}
-
-	public void setSendAlarm(AlarmManager am, String message, int id, long sendOn){
-        Intent intent = new Intent(Constants.ACTION_SHARE_TAG);
-        intent.putExtra(Constants.EXTRA_RECIPIENT, recipient);
-        intent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
-        PendingIntent sendMessage;
-        sendMessage = PendingIntent.getBroadcast(parent, id, 
-        		intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        am.set(AlarmManager.RTC, sendOn, sendMessage);         	
-    }
     
 }

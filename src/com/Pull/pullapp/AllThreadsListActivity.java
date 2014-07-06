@@ -1,8 +1,6 @@
 package com.Pull.pullapp;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.Telephony.TextBasedSmsColumns;
@@ -16,11 +14,13 @@ import android.widget.ListView;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.Pull.pullapp.adapter.ThreadItemsCursorAdapter;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
 import com.Pull.pullapp.util.RecipientsAdapter;
 import com.Pull.pullapp.util.RecipientsEditor;
+import com.Pull.pullapp.util.UserInfoStore;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
@@ -36,7 +36,6 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	private RadioGroup radioGroup;
     protected static final int CONTEXTMENU_DELETEITEM = 0;
     protected static final int CONTEXTMENU_CONTACTITEM = 1;	
-	private SharedPreferences prefs;
 	private String mPhoneNumber;
 	private TelephonyManager tMgr;
 	private int errorCode;
@@ -48,8 +47,6 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	private String mPassword;
 	private int currentTab, shareType;
 	private DatabaseHandler dbHandler;
-	private SharedPreferences mPrefs_recipientID_phoneNumber;
-	private SharedPreferences mPrefs_phoneNumber_Name;
     private RecipientsEditor mConfidantesEditor;
 	private RecipientsAdapter mRecipientsAdapter;
     private LinearLayout mBox;
@@ -60,13 +57,15 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	private String recipient;
 	private boolean visible;	
 	private Button hint;
-	
+	private UserInfoStore store;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 
 	    setContentView(R.layout.threads_listactivity);
 	    mContext = getApplicationContext();
+	    store = new UserInfoStore(mContext);
+	    
 	    ParseAnalytics.trackAppOpened(getIntent());
 	    dbHandler = new DatabaseHandler(mContext);
 	    mApp = (MainApplication) this.getApplication();
@@ -76,7 +75,7 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	    hint.setVisibility(View.VISIBLE);
 	    listview = getListView();
 	    
-	    currentTab = getIntent().getIntExtra(Constants.EXTRA_TAB_ID,R.id.shared_tab);
+	    currentTab = getIntent().getIntExtra(Constants.EXTRA_TAB_ID,R.id.my_conversation_tab);
 
 	    radioGroup  = (RadioGroup) findViewById(R.id.switch_buttons);   
 	    radioGroup.check(currentTab);	
@@ -88,12 +87,7 @@ public class AllThreadsListActivity extends SherlockListActivity {
 				populateList();
 			}
 		});
-		
-    	mPrefs_recipientID_phoneNumber = mContext.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
-    			+ "recipientId_phoneNumber",Context.MODE_PRIVATE);
-    	mPrefs_phoneNumber_Name = mContext.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
-    			+ "phoneNumber_Name",Context.MODE_PRIVATE);
-    	
+
 	    mBox = (LinearLayout)findViewById(R.id.confidantes_box);
 		mRecipientsAdapter = new RecipientsAdapter(this);
 		mConfidantesEditor = (RecipientsEditor)findViewById(R.id.confidantes_editor);
@@ -199,22 +193,17 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	  		boolean read = (!threads.getString(threads
 		  		      .getColumnIndex(ThreadsColumns.READ)).equals("0"));    	
 			String recipientId = threads.getString(threads
-				      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS));
+				      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS));		
 			threads.close();
-			String number = mPrefs_recipientID_phoneNumber.getString(recipientId, null);
+			String number = store.getPhoneNumber(recipientId);
 	    	if(number==null) {
 				number = ContentUtils.getAddressFromID(mContext, recipientId);
-				Editor editor = mPrefs_recipientID_phoneNumber.edit();
-				editor.putString(recipientId, number);
-				editor.commit();
+				store.setPhoneNumber(recipientId,number);
 	    	}				
-			String name = mPrefs_phoneNumber_Name.getString(number, null);
-	    	name = mPrefs_phoneNumber_Name.getString(number, null);
+			String name = store.getName(number);
 	    	if(name==null) {
 	    		name = ContentUtils.getContactDisplayNameByNumber(mContext, number);
-				Editor editor = mPrefs_phoneNumber_Name.edit();
-				editor.putString(number, name);
-				editor.commit();
+	    		store.setName(number, name);
 	    	}				
 
 	        intent.putExtra(Constants.EXTRA_NAME,name);

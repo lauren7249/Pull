@@ -1,16 +1,14 @@
-package com.Pull.pullapp.util;
+package com.Pull.pullapp.threads;
 
 import java.util.Calendar;
-
-import com.Pull.pullapp.util.Constants;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences.Editor;
-import android.net.TrafficStats;
 import android.util.Log;
+
+import com.Pull.pullapp.util.Constants;
 
 public class AlarmScheduler extends Thread {
     

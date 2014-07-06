@@ -22,9 +22,11 @@ import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.FacebookUser;
 import com.Pull.pullapp.model.Hashtag;
 import com.Pull.pullapp.model.SMSMessage;
+import com.Pull.pullapp.model.ShareEvent;
 import com.Pull.pullapp.model.ShareSuggestion;
 import com.Pull.pullapp.model.SharedConversation;
-import com.Pull.pullapp.util.AlarmScheduler;
+import com.Pull.pullapp.model.TwilioNumber;
+import com.Pull.pullapp.threads.AlarmScheduler;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.facebook.model.GraphUser;
@@ -32,6 +34,7 @@ import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.FindCallback;
 import com.parse.LogInCallback;
 import com.parse.Parse;
+import com.parse.ParseACL;
 import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
 import com.parse.ParseInstallation;
@@ -49,12 +52,11 @@ public class MainApplication extends Application {
 	private ParseUser currentUser;
 	private GraphUser mGraphUser;
 	private MixpanelAPI mixpanel;
-	
-	
+
 	@Override
 	public void onCreate() {
 		super.onCreate();
-
+		
 		prefs = getSharedPreferences(MainApplication.class.getSimpleName(), Context.MODE_PRIVATE);
 		editor = prefs.edit();
 		
@@ -65,9 +67,13 @@ public class MainApplication extends Application {
 		ParseObject.registerSubclass(FacebookUser.class);
 		ParseObject.registerSubclass(ShareSuggestion.class);
 		ParseObject.registerSubclass(Channels.class);
+		ParseObject.registerSubclass(ShareEvent.class);
+		ParseObject.registerSubclass(TwilioNumber.class);
 		
 		Parse.initialize(this, getString(R.string.parse_app_id), getString(R.string.parse_key));
 		ParseFacebookUtils.initialize(getString(R.string.facebook_app_id));	
+		
+		ParseACL.setDefaultACL(new ParseACL(), true);
 		
 		PushService.setDefaultPushCallback(this, ViewPagerSignIn.class); 	
 	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();		    
@@ -250,5 +256,5 @@ public class MainApplication extends Application {
 		mixpanel.track("saved installation",null);
 	       
 	}	
-	
+
 }

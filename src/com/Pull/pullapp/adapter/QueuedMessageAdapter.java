@@ -1,6 +1,7 @@
-package com.Pull.pullapp;
+package com.Pull.pullapp.adapter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -15,12 +16,17 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 
+import com.Pull.pullapp.R;
+import com.Pull.pullapp.R.drawable;
+import com.Pull.pullapp.R.id;
+import com.Pull.pullapp.R.layout;
 import com.Pull.pullapp.model.SMSMessage;
-import com.Pull.pullapp.util.SendMessages;
+import com.Pull.pullapp.util.SendUtils;
 /**
  * QueuedMessageAdapter is a Custom class to implement custom row in ListView
  * 
@@ -29,10 +35,12 @@ public class QueuedMessageAdapter extends BaseAdapter{
 	private Context mContext;
 	private ArrayList<SMSMessage> mMessages;
 	public boolean showCheckboxes;
+	public HashMap<Long,Integer> delayedMessages;
 	public QueuedMessageAdapter(Context context, ArrayList<SMSMessage> messages) {
 		super();
 		this.mContext = context;
 		this.mMessages = messages;
+		delayedMessages = new HashMap<Long,Integer>();
 	}
 	public int getCount() {
 		return mMessages.size();
@@ -55,8 +63,11 @@ public class QueuedMessageAdapter extends BaseAdapter{
 			holder.time = (TextView) convertView.findViewById(R.id.message_time);
 			holder.box = (CheckBox) convertView.findViewById(R.id.cbBox);
 			holder.edit = (Button) convertView.findViewById(R.id.edit_message_button);
+			holder.addPPl = (ImageView) convertView.findViewById(R.id.add_ppl);
 		}
 		else holder = (ViewHolder) convertView.getTag();
+		
+		holder.addPPl.setVisibility(View.GONE);
 		
 		convertView.setOnClickListener(new OnClickListener() {
 			
@@ -76,14 +87,7 @@ public class QueuedMessageAdapter extends BaseAdapter{
 			};
         });
         
-        holder.edit.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				
-				SendMessages.removeFromOutbox(mContext, message.getMessage(),
-						message.getRecipient(), message.launchedOn, true);
-			};
-        });        
+      
         if (message.box) holder.box.setChecked(true);
         else holder.box.setChecked(false);
 		if(showCheckboxes) holder.box.setVisibility(View.VISIBLE);
@@ -117,32 +121,35 @@ public class QueuedMessageAdapter extends BaseAdapter{
 			lp.gravity = Gravity.LEFT;
 		}
 		
-		if(message.isDelayed) {
-			holder.edit.setVisibility(View.VISIBLE);
-		    Date date = new Date(message.futureSendTime);
-		    
-		    CharSequence relativeTime;
-		    if(System.currentTimeMillis()-message.futureSendTime<DateUtils.MINUTE_IN_MILLIS){
-				relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.futureSendTime, DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
-			}else{
-				relativeTime = "Now";
-			}
-		    holder.time.setText(relativeTime);
-		} else {
-			CharSequence relativeTime;
-			if(System.currentTimeMillis()-message.getDate()>DateUtils.MINUTE_IN_MILLIS){
-				relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.getDate(), DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
-			}else{
-				relativeTime = "Just Now";
-			}
-			holder.time.setText(relativeTime);
-			holder.edit.setVisibility(View.GONE);
+
+		holder.edit.setVisibility(View.VISIBLE);
+	    Date date = new Date(message.getFutureSendTime());
+	    
+	    CharSequence relativeTime;
+	    if(System.currentTimeMillis()-message.getFutureSendTime()<DateUtils.MINUTE_IN_MILLIS){
+			relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.getFutureSendTime(), DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+		}else{
+			relativeTime = "Now";
 		}
+	    
+        holder.edit.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				
+				SendUtils.removeFromOutbox(mContext, message.getMessage(),
+						message.getAddress(), message.launchedOn, true);
+
+				
+			};
+        });  
+        
+	    holder.time.setText(relativeTime);
 		holder.messageBox.setLayoutParams(lp);
 		return convertView;
 	}
 	private static class ViewHolder
 	{
+		public ImageView addPPl;
 		public TextView time;
 		TextView message;
 		LinearLayout messageBox;

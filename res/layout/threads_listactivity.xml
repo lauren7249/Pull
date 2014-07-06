@@ -5,6 +5,7 @@
 		
     <include android:id="@+id/switch_buttons" 
         layout="@layout/navigation_tabbar"
+        android:visibility="gone"
         />
     <Button
         android:id="@+id/hint"

@@ -1,4 +1,5 @@
-package com.Pull.pullapp;
+package com.Pull.pullapp.fragment;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.Gravity;
@@ -9,20 +10,20 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 
-public final class TestFragment extends Fragment {
-    private static final String KEY_CONTENT = "TestFragment:Content";
+public final class SignInFragment extends Fragment {
+    private static final String KEY_CONTENT = "SignInFragment:Content";
 
-    public static TestFragment newInstance(String content) {
-        TestFragment fragment = new TestFragment();
+    public static SignInFragment newInstance(String content, int res) {
+        SignInFragment fragment = new SignInFragment();
 
-        StringBuilder builder = new StringBuilder();
-        builder.append(content);
-        fragment.mContent = builder.toString();
-
+        fragment.mContent = content;
+        fragment.mDrawable = res;
+        
         return fragment;
     }
 
     private String mContent = "???";
+	private int mDrawable;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -38,14 +39,15 @@ public final class TestFragment extends Fragment {
         TextView text = new TextView(getActivity());
         text.setGravity(Gravity.CENTER);
         text.setText(mContent);
-        text.setTextSize(20 * getResources().getDisplayMetrics().density);
-        text.setPadding(20, 20, 20, 20);
+        text.setTextSize(20);
+        text.setTextColor(Color.WHITE);
+        text.setPadding(15, 15, 15, 15);
 
         LinearLayout layout = new LinearLayout(getActivity());
         layout.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
-        layout.setGravity(Gravity.CENTER);
+        layout.setGravity(Gravity.TOP | Gravity.CENTER);
         layout.addView(text);
-
+        layout.setBackgroundResource(mDrawable);
         return layout;
     }
 

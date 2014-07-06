@@ -111,14 +111,14 @@
         <LinearLayout
             android:id="@+id/bottom_share_box"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="fill_parent"
             android:background="@drawable/share_box_background"
             android:orientation="horizontal" >
 
             <LinearLayout
                 android:id="@+id/LinearLayout02"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="fill_parent"
                 android:layout_marginTop="15dp"
                 android:layout_weight="0.96"
                 android:orientation="vertical"
@@ -127,36 +127,24 @@
                 <com.Pull.pullapp.util.RecipientsEditor
                     android:id="@+id/confidantes_editor"
                     android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="fill_parent"
                     android:layout_weight="1"
                     android:completionThreshold="1"
                     android:hint="Share with"
                     android:isScrollContainer="true"
                     android:textSize="20sp" />
 
-                <MultiAutoCompleteTextView
-                    android:id="@+id/hashtags"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:completionThreshold="1"
-                    android:hint="#Hashtag"
-                    android:imeOptions="actionNext"
-                    android:isScrollContainer="true"
-                    android:textSize="20sp" 
-                    android:visibility="gone"/>
-
             </LinearLayout>
 
             <Button
                 android:id="@+id/share_button"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
+                android:layout_width="90dp"
+                android:layout_height="90dp"
                 android:layout_gravity="center"
                 android:layout_marginLeft="10dp"
                 android:layout_marginRight="10dp"
                 android:layout_marginTop="7dp"
-                android:background="@drawable/send"
+                android:background="@drawable/share"
                 android:onClick="shareMessages" />
         </LinearLayout>
 

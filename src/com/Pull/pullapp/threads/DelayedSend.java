@@ -1,9 +1,11 @@
-package com.Pull.pullapp.util;
+package com.Pull.pullapp.threads;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.Pull.pullapp.util.Constants;
+import com.Pull.pullapp.util.SendUtils;
 import com.parse.ParseAnalytics;
 import com.parse.ParseUser;
 
@@ -42,7 +44,7 @@ public class DelayedSend extends Thread {
     }
     @Override
     public void run() {
-    	SendMessages.addMessageToOutbox(parent, recipient, message, launchedOn, sendOn);
+    	SendUtils.addMessageToOutbox(parent, recipient, message, launchedOn, sendOn);
         AlarmManager am = (AlarmManager) parent.getSystemService(Context.ALARM_SERVICE);   
         Intent intent = new Intent(Constants.ACTION_SEND_DELAYED_TEXT);
         intent.putExtra(Constants.EXTRA_RECIPIENT, recipient);

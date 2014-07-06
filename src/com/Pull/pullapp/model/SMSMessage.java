@@ -1,177 +1,112 @@
 
 package com.Pull.pullapp.model;
 
-import android.provider.Telephony.TextBasedSmsColumns;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.provider.Telephony.TextBasedSmsColumns;
+import android.util.Log;
+
+import com.Pull.pullapp.util.ContentUtils;
+import com.Pull.pullapp.util.UserInfoStore;
+import com.parse.FindCallback;
 import com.parse.ParseClassName;
+import com.parse.ParseException;
 import com.parse.ParseObject;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
 
 @ParseClassName("SMSMessage")
-public class SMSMessage extends ParseObject implements Comparable {
+public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 	
-	private int smsId;
-	private long smsDate;
-	private String smsSender, smsMessage, smsRecipient;
+	private long futureSendTime;
+	public long launchedOn;
+	private String composedBy;
     private boolean sentByMe;
     public boolean box, isDelayed;
-    private boolean isHashtag;
-	public long futureSendTime;
-	public long launchedOn;
 	private boolean event;
+	private UserInfoStore store;
 	
     // Constructors
     public SMSMessage() {
     }
 
-    public SMSMessage(String message, boolean sentByMe) {
-        this.smsMessage = message;
-        this.sentByMe = sentByMe;
-        put("smsMessage",smsMessage);
-        put("sentByMe",sentByMe);
-        put("isHashtag",isHashtag);
+    
+    public SMSMessage(long date, String message, String address, int type) { 
+        put("smsMessage",message);
+        put("address",ContentUtils.addCountryCode(address));    
+        put("smsDate",date);      
+        put("sentByMe",(type != TextBasedSmsColumns.MESSAGE_TYPE_INBOX));
+        put("isDelayed",(type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX));
     }
     
-    public SMSMessage(String message, String sender, boolean sentByMe) {
-        this.smsMessage = message;
-        this.smsSender = sender;
-        this.sentByMe = sentByMe;
-        put("sentByMe",sentByMe);
-        put("smsMessage",smsMessage);
-        put("smsSender",smsSender);
-        put("isHashtag",isHashtag);
+    public SMSMessage(long date, String message, String address, int type, UserInfoStore store) {
+        put("smsMessage",message);
+        put("address",ContentUtils.addCountryCode(address));    
+        put("smsDate",date);      
+        put("sentByMe",(type != TextBasedSmsColumns.MESSAGE_TYPE_INBOX));
+        put("isDelayed",(type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX));
+    	this.store = store;
     }    
-    public SMSMessage(String message, String sender, int type) {
-        this.smsMessage = message;
-        this.smsSender = sender;
-        this.sentByMe = (type != TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
-        this.isDelayed = (type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
-        put("smsMessage",smsMessage);
-        put("smsSender",smsSender); 
-        put("sentByMe",sentByMe);
-        put("isDelayed",isDelayed);
-        put("isHashtag",isHashtag);
-    }  
-    
-    public SMSMessage(int id, long date, String sender, String recipient, String message) {
-        this.smsId = id;
-        this.smsDate = date;
-        this.smsSender = sender;
-        this.smsRecipient = recipient;
-        this.smsMessage = message;
-        put("smsId",smsId);
-        put("smsMessage",smsMessage);
-        put("smsSender",smsSender);    
-        put("smsDate",smsDate);
-        put("smsRecipient",smsRecipient);            
-        put("isHashtag",isHashtag);
-    }
+    public void setType(int type) {
+    	if(type == TextBasedSmsColumns.MESSAGE_TYPE_SENT || type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX )
+    			sentByMe = true;
+    	else sentByMe = false;
+    	if(type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX ) isDelayed = true;
+    	put("sentByMe",sentByMe);
+    	put("isDelayed",isDelayed);
 
-    public SMSMessage(long date, String message, String sender, int type) {
-    	this.smsDate = date;
-        this.smsSender = sender;
-        this.smsMessage = message;
-        this.sentByMe = (type != TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
-        this.isDelayed = (type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
-        put("smsMessage",smsMessage);
-        put("smsSender",smsSender);    
-        put("smsDate",smsDate);      
-        put("sentByMe",sentByMe);
-        put("isDelayed",isDelayed);
-        put("isHashtag",isHashtag);
     }
-
-    // Id
-    public int getId() {
-        //return this.smsId;
-    	return getInt("smsId");
-    }
-
-    public void setId(int id) {
-        this.smsId = id;
-        put("smsId",smsId);
-    }
-
     // Date
     public long getDate() {
-    	//return this.smsDate;
     	return getLong("smsDate");
     }
 
     public void setDate(long date) {
-    	this.smsDate = date;
-    	put("smsDate",smsDate);        
+    	put("smsDate",date);        
 	}
 
     // Sender
     public String getSender() {
-        //return this.smsSender;
     	return getString("smsSender");
     }
      
-    public void setSender(String sender){
-        this.smsSender = sender;
-        put("smsSender",smsSender);        
-    }
-    // Sender
-    public String getRecipient() {
-        //return this.smsRecipient;
-    	return getString("smsRecipient");
-    }
      
-    public void setRecipient(String recipient){
-        this.smsRecipient = recipient;
-        put("smsRecipient",smsRecipient); 
-    }
     // Message text
     public String getMessage(){
-        //return this.smsMessage;
     	return getString("smsMessage");
     }
 
     public void setMessage(String message){
-        this.smsMessage = message;
-        put("smsMessage",smsMessage); 
+        put("smsMessage",message); 
     }
     
-	public void setHashtag() {
-		put("isHashtag",true); 
-	}
-
-	public boolean isHashtag() {
-		return getBoolean("isHashtag");
-	}
 	public boolean isSentByMe() {
 		return getBoolean("sentByMe");
 	}
 	public void setSentByMe(boolean s) {
-		this.sentByMe = s;
-		put("sentByMe",sentByMe);
+		put("sentByMe",s);
 	}
 	
     @Override
     public int hashCode() {
-        return (Long.toBinaryString(smsDate)+smsSender+smsRecipient+smsMessage).hashCode();
+        return (Long.toBinaryString(getDate())+getMessage()+isSentByMe()+getAddress()).hashCode();
     }	
     
     
-    @Override
+    public String getAddress() {
+    	return getString("address");
+	}
+
+
+	@Override
     public boolean equals(Object obj) {
     	SMSMessage m=(SMSMessage)obj;
     	if(m == null) return false;
-    	if((m.smsSender == null) != (this.smsSender == null)) return false;
-    	if((m.smsRecipient == null) != (this.smsRecipient == null)) return false;
-    	if((m.smsMessage == null) != (this.smsMessage == null)) return false;
-    	if(m.smsSender!=null && this.smsSender!=null) {
-    		if(!m.smsSender.equals(this.smsSender)) return false;
-    	}
-    	if(m.smsRecipient!=null && this.smsRecipient!=null) {
-    		if(!m.smsRecipient.equals(this.smsRecipient)) return false;
-    	}
-    	if(m.smsMessage!=null && this.smsMessage!=null) {
-    		if(!m.smsMessage.equals(this.smsMessage)) return false;
-    	}
-    	if(m.smsDate != this.smsDate) return false;
-		return true;
+    	return (this.hashCode()==m.hashCode());
     }
 
 	public void setEvent(boolean b) {
@@ -184,9 +119,41 @@ public class SMSMessage extends ParseObject implements Comparable {
 		return this.event;
 	}
 
+	
+	public void addConfidante(String to) {
+		String number = ContentUtils.addCountryCode(to);	
+		store.addSharedWith(number, this);
+		ShareEvent e = new ShareEvent(number,System.currentTimeMillis(), this);
+		e.saveInBackground();	
+	}
+	
+	public void schedule(long date) {
+		this.futureSendTime = date;
+		put("isDelayed", true);
+		put("futureSendTime", futureSendTime);
+	}
+	
+	public long getFutureSendTime() {
+		return getLong("futureSendTime");
+	}
+	
+	public void saveToParse() {
+		put("user", ParseUser.getCurrentUser());
+		put("hashCode", this.hashCode());
+		put("username", ParseUser.getCurrentUser().get("username"));
+		this.saveInBackground();
+	}
+
+
+	public Set<String> getConfidantes() {
+		return store.getSharedWith(this);
+	}
+
+
 	@Override
-	public int compareTo(Object another) {
-		SMSMessage obj = (SMSMessage) another;
-		return ((Long) this.smsDate).compareTo(obj.getDate());
-	}    
+	public int compareTo(SMSMessage another) {
+		return ((Long) getDate()).compareTo((Long)another.getDate());
+	}
+
+
 }
