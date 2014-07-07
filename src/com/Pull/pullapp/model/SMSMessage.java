@@ -22,7 +22,6 @@ import com.parse.ParseUser;
 @ParseClassName("SMSMessage")
 public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 	
-	private long futureSendTime;
 	public long launchedOn;
 	private String composedBy;
     private boolean sentByMe;
@@ -128,9 +127,8 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 	}
 	
 	public void schedule(long date) {
-		this.futureSendTime = date;
 		put("isDelayed", true);
-		put("futureSendTime", futureSendTime);
+		put("futureSendTime", date);
 	}
 	
 	public long getFutureSendTime() {

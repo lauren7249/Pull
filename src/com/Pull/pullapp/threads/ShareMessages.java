@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -17,9 +18,7 @@ import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.SendUtils;
 import com.parse.FindCallback;
-import com.parse.FunctionCallback;
 import com.parse.ParseAnalytics;
-import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParsePush;
@@ -62,7 +61,8 @@ public class ShareMessages extends Thread {
 		        if (e==null && list.size()>0) {
 
 		        } else {
-		    		Log.i("about to search numbers","in sharemessages");
+		        	SendUtils.shareViaSMS(parent, person_shared, confidante, messages);
+		    	/**	Log.i("about to search numbers","in sharemessages");
 		    		HashMap<String, Object> params = new HashMap<String, Object>();
 		    		params.put("to", confidante);
 		    		params.put("from", ParseUser.getCurrentUser().get("username"));
@@ -72,10 +72,10 @@ public class ShareMessages extends Thread {
 		    		    	   Log.i("found number",num);
 		    		       } else {
 		    		    	   Log.i("no numbers","no numbers");
-		    		    	   SendUtils.shareViaSMS(parent, person_shared, confidante, messages);
+		    		    	   
 		    		       }
 		    		   }
-		    		});          	
+		    		});  **/        	
 		        }
 		    }
 		});		
@@ -85,12 +85,17 @@ public class ShareMessages extends Thread {
 
 	private void shareViaParse() {
 		JSONObject data = new JSONObject();
+		JSONArray arr = new JSONArray();
 		String channel = ContentUtils.setChannel(tmgr,confidante);
 		try {
 			data.put("action", Constants.ACTION_RECEIVE_SHARED_MESSAGES);
 			data.put("person_shared", person_shared);
 			data.put("address",address);
-			data.put("from", ContentUtils.addCountryCode(tmgr.getLine1Number()));
+			data.put("from", ParseUser.getCurrentUser().get("username"));
+			for(SMSMessage m: messages) {
+				arr.put(m.hashCode());
+			}
+			data.put("messageIDs", arr);
 			ParsePush push = new ParsePush();
 			push.setChannel(channel);
 			push.setData(data);

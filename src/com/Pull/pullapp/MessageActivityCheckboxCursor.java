@@ -128,6 +128,8 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	private MixpanelAPI mixpanel;
 	private String shared_address;
 	private String shared_sender;
+	private String shared_convoID;
+	private DatabaseHandler dh;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -183,6 +185,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			thread_id = getIntent().getStringExtra(Constants.EXTRA_THREAD_ID); 
 			shared_address = getIntent().getStringExtra(Constants.EXTRA_SHARED_ADDRESS); 
 			shared_sender = getIntent().getStringExtra(Constants.EXTRA_SHARED_SENDER); 
+			shared_convoID = getIntent().getStringExtra(Constants.EXTRA_SHARED_CONVERSATION_ID); 
 			
 			if(number!=null && name!=null) {
 				populateMessages();
@@ -190,7 +193,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 				if(Constants.DEBUG==false) this.setTitle(name);
 				setupComposeBox();
 			} else if(shared_address!=null && shared_sender!=null){
-				populateSharedMessages();
+				populateSharedMessages(shared_convoID);
 				 
 			}
 			else {
@@ -378,11 +381,6 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	}
 	
 
-	private void populateSharedMessages() {
-		/*GetSharedMessages g = new GetSharedMessages();
-		g.execute();*/
-		
-	}
 
 
 	private void setupComposeBox() {
@@ -477,12 +475,21 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		loader.execute(); 
 		isPopulated = true;
 		Cursor messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
-		messages_adapter = new MessageCursorAdapter(mContext, messages_cursor, number, this);
+		messages_adapter = new MessageCursorAdapter(mContext, messages_cursor, number, this, true);
 		merge_adapter.addAdapter(messages_adapter);
 		merge_adapter.addAdapter(queue_adapter);
 		merge_adapter.addAdapter(comments_adapter);
 		setListAdapter(merge_adapter);	
 		mListView.setSelection(merge_adapter.getCount()-1);				
+	}
+	private void populateSharedMessages(String shared_convoID) {
+		dh = new DatabaseHandler(mContext);
+		Cursor c = dh.getSharedMessagesCursor(shared_convoID);
+		messages_adapter = new MessageCursorAdapter(mContext, c, shared_address, this, false);
+		merge_adapter.addAdapter(messages_adapter);
+		setListAdapter(merge_adapter);	
+		mListView.setSelection(merge_adapter.getCount()-1);		
+		viewSwitcher.setVisibility(View.GONE);
 	}
 
 	private void updateTime(){
@@ -711,7 +718,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		editor.commit();	
 		showSharingMessage(confidantes[0], currentTime);
 	}
-**/
+
 
 	private void showSharingMessage(String sharedWith, long date) {
 		SMSMessage c = new SMSMessage(date, "Started sharing with " + ContentUtils
@@ -719,7 +726,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		c.setEvent(true);
 		addNewMessage(c, false);
 	}
-
+**/
 
 	protected void shareConvo(TreeSet<SMSMessage> check_hash) {
 		mSharedConversation.setMessages(check_hash);
@@ -762,17 +769,18 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		}		
 		
         share.setClickable(false);		
-        
-		for(String confidante : confidantes) {
-			new ShareMessages(mContext, confidante, 
-					name, number, messages_adapter.check_hash).start();	  
-		}		
-		for(SMSMessage m : messages_adapter.check_hash) {
+        TreeSet<SMSMessage> messagesHash = (TreeSet<SMSMessage>) messages_adapter.check_hash.clone();
+		for(SMSMessage m : messagesHash) {
 			for(String confidante : confidantes) {
 				m.addConfidante(confidante);
 			}
 			m.saveToParse();
 		}	
+		for(String confidante : confidantes) {
+			new ShareMessages(mContext, confidante, 
+					name, number,  messagesHash).start();	  
+		}	
+        
 		messages_adapter.check_hash.clear();
 		messages_adapter.showCheckboxes = false;	
 		messages_adapter.notifyDataSetChanged();

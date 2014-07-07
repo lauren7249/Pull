@@ -44,9 +44,11 @@ public class MessageCursorAdapter extends CursorAdapter {
 	private String facebookID;
 	private Activity activity;
 	private UserInfoStore store;
+	private boolean isMine;
 	
     @SuppressWarnings("deprecation")
-	public MessageCursorAdapter(Context context, Cursor cursor, String number, Activity activity) {
+	public MessageCursorAdapter(Context context, Cursor cursor, String number, Activity activity, 
+			boolean isMine) {
     	super(context, cursor);
     	check_hash = new TreeSet<SMSMessage>();
     	delayedMessages = new HashMap<Long,Integer>();
@@ -55,22 +57,120 @@ public class MessageCursorAdapter extends CursorAdapter {
     	other_person_name = store.getName(other_person);
 		facebookID = store.getFacebookID(other_person);
 		this.activity = activity;
+		this.isMine = isMine;
    	    	
     }
 
 	@Override
 	public void bindView(View v, Context context, Cursor c) {
-		populate(context, c, v, false);
+		if(isMine) populateMine(context, c, v, false);
+		else populateTheirs(context, c, v, false);
 	}
 
 	@Override
 	public View newView(Context context, Cursor c, ViewGroup parent) {
 		final LayoutInflater inflater = LayoutInflater.from(context);
 		View v = inflater.inflate(R.layout.sms_row, parent, false);
-		populate(context, c, v, true);
+		if(isMine) populateMine(context, c, v, true);
+		else populateTheirs(context, c, v, true);
 		return v;
 	}
-	private void populate(final Context context, Cursor c, View v, boolean isnew) {
+	private void populateTheirs(Context context, Cursor c, View v, boolean isnew) {
+		String body="";
+		final String address;
+		long date;
+		final SMSMessage message;
+		final int position = c.getPosition();
+
+		int type = Integer.parseInt(c.getString(1).toString());
+		if(type==TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return;
+		body = c.getString(2).toString();
+    	address = c.getString(4).toString();
+    	date = c.getLong(6);
+    	
+       	message = new SMSMessage(date, body, address, type, store);
+
+		final ViewHolder holder; 
+		if(isnew) holder = new ViewHolder();
+		else holder = (ViewHolder) v.getTag();
+		
+		holder.messageBox = (LinearLayout) v.findViewById(R.id.message_box);
+		holder.message = (TextView) v.findViewById(R.id.message_text);
+		holder.time = (TextView) v.findViewById(R.id.message_time);
+		holder.box = (CheckBox) v.findViewById(R.id.cbBox);
+		holder.edit = (Button) v.findViewById(R.id.edit_message_button);	
+		holder.pic = (ProfilePictureView) v.findViewById(R.id.contact_image);
+		holder.sharedWith = (LinearLayout) v.findViewById(R.id.shared_with);
+		holder.shared_with_text = (TextView) v.findViewById(R.id.shared_with_text);
+		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);
+		
+		//int id = Resources.getSystem().getIdentifier("btn_check_holo_light", "drawable", "android");
+		//holder.box.setButtonDrawable(id);
+		holder.sharedWith.setVisibility(View.GONE);
+		holder.shared_with_text.setVisibility(View.GONE);
+		holder.addPPl.setVisibility(View.GONE);
+    	
+    	holder.box.setChecked(false);
+    	holder.box.setVisibility(View.GONE);
+    	
+    	LayoutParams layoutParams=(LayoutParams) holder.addPPl.getLayoutParams();
+		if(message.isSentByMe()) {
+			holder.messageBox.setBackgroundResource(R.drawable.outgoing);
+			layoutParams.gravity = Gravity.LEFT;
+			holder.message.setGravity(Gravity.RIGHT);
+			holder.time.setGravity(Gravity.RIGHT);				
+		}else {
+			holder.messageBox.setBackgroundResource(R.drawable.incoming);  
+			layoutParams.gravity = Gravity.RIGHT;
+			holder.message.setGravity(Gravity.LEFT);
+			holder.time.setGravity(Gravity.LEFT);					
+		}		
+		v.setTag(holder);		
+		holder.message.setText(message.getMessage());	
+		LayoutParams lp = (LayoutParams) holder.messageBox.getLayoutParams();
+
+		if(message.isSentByMe())
+		{
+			holder.pic.setVisibility(View.GONE);	
+			lp.gravity = Gravity.RIGHT;
+			
+		}
+		//If not mine then it is from sender to show yellow background and align to left
+		else
+		{
+	    	if(facebookID!=null && facebookID.length()>0) {
+	    		holder.pic.setProfileId(facebookID);
+	    		holder.pic.setVisibility(View.VISIBLE);
+	    	}
+	    	else holder.pic.setVisibility(View.GONE);			
+			lp.gravity = Gravity.LEFT;
+		}
+		
+		if(message.isDelayed) {
+			holder.edit.setVisibility(View.VISIBLE);
+
+		    CharSequence relativeTime;
+		    if(System.currentTimeMillis()-message.getFutureSendTime()<DateUtils.MINUTE_IN_MILLIS){
+				relativeTime = DateUtils.getRelativeDateTimeString(context, message.getFutureSendTime(), DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+			}else{
+				relativeTime = "Now";
+			}
+		    holder.time.setText(relativeTime);
+		} else {
+			CharSequence relativeTime;
+			if(System.currentTimeMillis()-message.getDate()>DateUtils.MINUTE_IN_MILLIS){
+				relativeTime = DateUtils.getRelativeDateTimeString(context, message.getDate(), 
+						DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+			}else{
+				relativeTime = "Just Now";
+			}
+			holder.time.setText(relativeTime);
+			holder.edit.setVisibility(View.GONE);
+		}
+		holder.messageBox.setLayoutParams(lp);		
+	}
+
+	private void populateMine(final Context context, Cursor c, View v, boolean isnew) {
 		String body="";
 		final String address;
 		long date;
@@ -161,10 +261,11 @@ public class MessageCursorAdapter extends CursorAdapter {
 					tv.setText(name);
 					tv.setHint(confidante);
 					//tv.setLayoutParams(holder.shared_with_text.getLayoutParams());
-					tv.setBackgroundResource(R.drawable.sms);
+					//if(message.isSentByMe()) tv.setBackgroundResource(R.drawable.outgoing);
+					//else tv.setBackgroundResource(R.drawable.incoming);
 					tv.setTextColor(R.color.textColor);
-					tv.setPadding(15, 15, 15, 15);
-					tv.setGravity(Gravity.CENTER);
+					//tv.setPadding(15, 15, 15, 15);
+					tv.setGravity(Gravity.LEFT|Gravity.TOP);
 					tv.setLayoutParams(params);
 					if(!store.isFriend(confidante)) tv.setOnClickListener(new OnClickListener() {
 						@Override
@@ -217,14 +318,14 @@ public class MessageCursorAdapter extends CursorAdapter {
         	LayoutParams layoutParams=(LayoutParams) holder.addPPl.getLayoutParams();
 			if(message.isSentByMe()) {
 				holder.messageBox.setBackgroundResource(R.drawable.outgoing);
-				holder.message.setPadding(35, 5, 5, 5);
+				holder.message.setPadding(40, 0, 0, 0);
 				layoutParams.gravity = Gravity.LEFT;
 				//layoutParams.leftMargin = -40;
 				holder.message.setGravity(Gravity.RIGHT);
 				holder.time.setGravity(Gravity.RIGHT);				
 			}else {
 				holder.messageBox.setBackgroundResource(R.drawable.incoming);  
-				holder.message.setPadding(5, 5, 35, 5);
+				holder.message.setPadding(0, 0, 40, 0);
 				layoutParams.gravity = Gravity.RIGHT;
 				//layoutParams.rightMargin = -40;
 				holder.message.setGravity(Gravity.LEFT);

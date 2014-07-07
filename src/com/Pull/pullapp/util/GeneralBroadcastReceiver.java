@@ -155,10 +155,32 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         	Log.i("received broadcast","ACTION_RECEIVE_SHARED_MESSAGES");
             try {
                 JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
-                String sender = json.getString("from");
-                String person_shared = json.getString("person_shared");
-                String address = json.getString("address");
-                notifySharedMessages(sender,person_shared,address);
+                final String sender = json.getString("from");
+                final String person_shared = json.getString("person_shared");
+                final String address = json.getString("address");
+                JSONArray arr = json.getJSONArray("messageIDs");
+                ArrayList<Integer> hashcodes = new ArrayList<Integer>();
+                final TreeSet<SMSMessage> messages;
+                for(int i=0; i<arr.length(); i++){
+                	hashcodes.add(arr.getInt(i));
+                }
+                Log.i("hashcodes", ""+hashcodes.toString());
+            	ParseQuery<SMSMessage> query = ParseQuery.getQuery("SMSMessage");
+            	query.whereContainedIn("hashCode", hashcodes);
+            	query.whereEqualTo("username", sender);  
+            	query.whereEqualTo("address", address);
+            	query.findInBackground(new FindCallback<SMSMessage>(){
+					@Override
+					public void done(List<SMSMessage> objects, ParseException e) {
+						if(e==null) {
+							notifySharedMessages(sender,person_shared,address, objects);
+						}
+						
+					}
+            		
+            	});
+                
+                
               } catch (JSONException e) {
             	  Log.i("exception",e.getMessage());
               }
@@ -248,7 +270,14 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 
 
 	private void notifySharedMessages(String sender, String person_shared,
-			String address) {
+			String address, List<SMSMessage> objects) {
+		Log.i("number of objects",""+objects.size());
+		String convoID = sender+address;
+		  db = new DatabaseHandler(mContext);
+		  for(SMSMessage m: new TreeSet<SMSMessage>(objects)) {
+			  db.addSharedMessage(convoID, m);
+		  }
+		  db.close();		
 		String from = store.getName(sender);
 		NotificationManager mNotificationManager = (NotificationManager) mContext
 				.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -263,8 +292,9 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 		Intent ni = new Intent(mContext, MessageActivityCheckboxCursor.class);
 		ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);		
+		ni.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
+		ni.putExtra(Constants.EXTRA_SHARED_ADDRESS, address);
 		ni.putExtra(Constants.EXTRA_SHARED_SENDER, sender);
-		ni.putExtra(Constants.EXTRA_SHARED_ADDRESS, sender);
 		PendingIntent pi = PendingIntent.getActivity(mContext, 0,
 				ni, PendingIntent.FLAG_CANCEL_CURRENT);
 		mBuilder.setContentIntent(pi);

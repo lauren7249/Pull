@@ -73,7 +73,9 @@ public class MainApplication extends Application {
 		Parse.initialize(this, getString(R.string.parse_app_id), getString(R.string.parse_key));
 		ParseFacebookUtils.initialize(getString(R.string.facebook_app_id));	
 		
-		ParseACL.setDefaultACL(new ParseACL(), true);
+		ParseACL acl = new ParseACL();
+		acl.setPublicReadAccess(false);
+		ParseACL.setDefaultACL(acl, true);
 		
 		PushService.setDefaultPushCallback(this, ViewPagerSignIn.class); 	
 	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();		    
@@ -83,6 +85,18 @@ public class MainApplication extends Application {
 		mixpanel.track("ViewPagerSignIn created", null);
 		
 	    new AlarmScheduler(getBaseContext(), false).start();
+	    
+   /** 	ParseQuery<SMSMessage> query = ParseQuery.getQuery("SMSMessage");
+    	query.whereEqualTo("hashCode", -848485378);
+    	query.findInBackground(new FindCallback<SMSMessage>() {
+    	  public void done(List<SMSMessage> objects, ParseException e) {
+    	    if (e == null && objects.size()>0) {
+    	    	Log.i("number of messages i can see", "messages " + objects.size());
+    	    } else {;
+    	    	Log.i("cant see any messages!", e.getMessage());
+    	    }
+    	  }
+    	});		**/    
 	}
 	
 	public void setSignedIn(boolean signedIn, String Name, String Password) {
