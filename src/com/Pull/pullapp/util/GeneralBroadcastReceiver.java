@@ -296,6 +296,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 		ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);		
 		ni.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
 		ni.putExtra(Constants.EXTRA_SHARED_ADDRESS, address);
+		ni.putExtra(Constants.EXTRA_SHARED_NAME, person_shared);
 		ni.putExtra(Constants.EXTRA_SHARED_SENDER, sender);
 		PendingIntent pi = PendingIntent.getActivity(mContext, 0,
 				ni, PendingIntent.FLAG_CANCEL_CURRENT);

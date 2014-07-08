@@ -127,6 +127,7 @@ public class Constants {
 	public static final String ACTION_INVITE_FRIEND = PACKAGE_NAME + ".util.ACTION_INVITE_FRIEND";
 	public static final String  ACTION_CONFIRM_FRIEND= PACKAGE_NAME + ".util.ACTION_CONFIRM_FRIEND";
 	public static final String EXTRA_USER_ID = PACKAGE_NAME + "EXTRA_USER_ID";
+	public static final String EXTRA_SHARED_NAME = PACKAGE_NAME + "EXTRA_SHARED_NAME";
 	
 	
 	

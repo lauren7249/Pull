@@ -64,6 +64,7 @@ import com.Pull.pullapp.util.DatabaseHandler;
 import com.Pull.pullapp.util.RecipientList.Recipient;
 import com.Pull.pullapp.util.RecipientsAdapter;
 import com.Pull.pullapp.util.RecipientsEditor;
+import com.Pull.pullapp.util.UserInfoStore;
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
@@ -132,6 +133,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	private String shared_sender;
 	private String shared_convoID;
 	private DatabaseHandler dh;
+	private UserInfoStore store;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -141,6 +143,8 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		mContext = getApplicationContext();
 		tmgr = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
 		mPrefs = mContext.getSharedPreferences(Constants.PREFERENCE_TIME_DELAY_PROMPT, Context.MODE_PRIVATE);
+		
+		store = new UserInfoStore(mContext);
 		
 		mListView = getListView();
 		mListView.setFocusable(true);
@@ -188,6 +192,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			shared_address = getIntent().getStringExtra(Constants.EXTRA_SHARED_ADDRESS); 
 			shared_sender = getIntent().getStringExtra(Constants.EXTRA_SHARED_SENDER); 
 			shared_convoID = getIntent().getStringExtra(Constants.EXTRA_SHARED_CONVERSATION_ID); 
+			person_shared = getIntent().getStringExtra(Constants.EXTRA_SHARED_NAME); 
 			
 			if(number!=null && name!=null) {
 				populateMessages();
@@ -196,7 +201,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 				setupComposeBox();
 			} else if(shared_address!=null && shared_sender!=null){
 				populateSharedMessages(shared_convoID);
-				 
+				setTitle(person_shared + "|" + store.getName(shared_sender));
 			}
 			else {
 				
