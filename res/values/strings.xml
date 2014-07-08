@@ -14,14 +14,13 @@
     <string name="announce">Announcement</string>
 	
     <string name="facebook_app_id">609671019119718</string>
-   
-    <string name="aws_access_key_id">AKIAJCCNLR3ZM3G6QCPQ</string>
-    <string name="aws_secret_key">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</string>
     
     <string name="parse_key">ccQmmMwIY3wTRaBayFecdfZc4N0EIpYR30R5KdeH</string>    
     <string name="parse_app_id">V78CyTgjJqFRP1nOiUclf9siu8Bcja3D65i1UG34</string>
-    <string name="parse_key">ccQmmMwIY3wTRaBayFecdfZc4N0EIpYR30R5KdeH</string>
 
+    <string name="aws_access_key_id">  </string>
+    <string name="aws_secret_key">  </string>
+    
     <string name="cancelled">Cancelled</string>
     <string name="permission_not_granted">Unable to perform selected action because permissions were not granted.</string>
     <string name="ok">OK</string>

@@ -155,25 +155,27 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         	Log.i("received broadcast","ACTION_RECEIVE_SHARED_MESSAGES");
             try {
                 JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
-                final String sender = json.getString("from");
+                final String sender = ContentUtils.addCountryCode(json.getString("from"));
                 final String person_shared = json.getString("person_shared");
-                final String address = json.getString("address");
-                JSONArray arr = json.getJSONArray("messageIDs");
+                final String address = ContentUtils.addCountryCode(json.getString("address"));
+                /*JSONArray arr = json.getJSONArray("messageIDs");
                 ArrayList<Integer> hashcodes = new ArrayList<Integer>();
                 final TreeSet<SMSMessage> messages;
                 for(int i=0; i<arr.length(); i++){
                 	hashcodes.add(arr.getInt(i));
                 }
-                Log.i("hashcodes", ""+hashcodes.toString());
+                Log.i("hashcodes", ""+hashcodes.toString());*/
             	ParseQuery<SMSMessage> query = ParseQuery.getQuery("SMSMessage");
-            	query.whereContainedIn("hashCode", hashcodes);
+            	//query.whereContainedIn("hashCode", hashcodes);
             	query.whereEqualTo("username", sender);  
             	query.whereEqualTo("address", address);
             	query.findInBackground(new FindCallback<SMSMessage>(){
 					@Override
 					public void done(List<SMSMessage> objects, ParseException e) {
-						if(e==null) {
+						if(e==null && objects.size()>0) {
 							notifySharedMessages(sender,person_shared,address, objects);
+						} else {
+
 						}
 						
 					}

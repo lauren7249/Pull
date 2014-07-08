@@ -52,7 +52,7 @@ public class ShareMessages extends Thread {
 	@Override
     public void run() {
 		
-		shareViaParse();
+		//shareViaParse();
 		ParseQuery<ParseObject> query = ParseQuery.getQuery("Channels");
 		Log.i("searching channell", ContentUtils.setChannel(confidante));
 		query.whereEqualTo("channel", ContentUtils.setChannel(confidante));

@@ -156,6 +156,7 @@ public class ContentUtils {
 	    public static String addCountryCode(String number) {
 	    	if(number == null) return number;
 	    	if(number.length() == 0) return number;
+	    	number = PhoneNumberUtils.stripSeparators(number);
 	    	if(number.substring(0,1).equals("+")) return number.substring(1);
 	    	if(number.trim().length()==10) return "1"+number;
 	    	return number;

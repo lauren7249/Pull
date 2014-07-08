@@ -1,23 +1,22 @@
 
 package com.Pull.pullapp.model;
 
-import java.util.HashSet;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Set;
 
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
+import org.json.JSONException;
+
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.util.Log;
 
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.UserInfoStore;
-import com.parse.FindCallback;
+import com.parse.ParseACL;
 import com.parse.ParseClassName;
 import com.parse.ParseException;
 import com.parse.ParseObject;
-import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 @ParseClassName("SMSMessage")
 public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
@@ -28,6 +27,7 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
     public boolean box, isDelayed;
 	private boolean event;
 	private UserInfoStore store;
+	private ParseACL acl = new ParseACL();
 	
     // Constructors
     public SMSMessage() {
@@ -48,6 +48,7 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
         put("smsDate",date);      
         put("sentByMe",(type != TextBasedSmsColumns.MESSAGE_TYPE_INBOX));
         put("isDelayed",(type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX));
+        put("person", store.getName(address));
     	this.store = store;
     }    
     public void setType(int type) {
@@ -122,6 +123,9 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 	public void addConfidante(String to) {
 		String number = ContentUtils.addCountryCode(to);	
 		store.addSharedWith(number, this);
+		String userid = store.getUserID(number);
+		//also gotta do this on the backend if we don't know the userid because they are not friends
+		//if(userid!=null && !userid.isEmpty()) acl.setReadAccess(userid, true);
 		ShareEvent e = new ShareEvent(number,System.currentTimeMillis(), this);
 		e.saveInBackground();	
 	}
@@ -135,11 +139,20 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 		return getLong("futureSendTime");
 	}
 	
-	public void saveToParse() {
+	public void saveToParse() throws JSONException {
 		put("user", ParseUser.getCurrentUser());
 		put("hashCode", this.hashCode());
 		put("username", ParseUser.getCurrentUser().get("username"));
-		this.saveInBackground();
+		put("confidantes",new ArrayList<String>(getConfidantes()));
+		this.setACL(acl);
+		this.saveInBackground(new SaveCallback() {
+			   public void done(ParseException e) {
+				     if (e == null) {
+				     } else {
+				       Log.i("error", e.getMessage());
+				     }
+			   }
+		});
 	}
 
 

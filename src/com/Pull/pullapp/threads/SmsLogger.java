@@ -48,7 +48,7 @@ public class SmsLogger extends Thread {
         tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         roaming = prefs.getBoolean(Constants.KEY_ROAMING_STATE, tm.isNetworkRoaming());
 		
-        AWSCredentials credentials = new BasicAWSCredentials( 
+        AWSCredentials  credentials = new BasicAWSCredentials( 
         		context.getString(R.string.aws_access_key_id), 
         		context.getString(R.string.aws_secret_key) );
         this.sdbClient = new AmazonSimpleDBClient( credentials);  

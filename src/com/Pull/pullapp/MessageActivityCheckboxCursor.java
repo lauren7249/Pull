@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
 
+import org.json.JSONException;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -739,7 +741,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		
 	}
 
-	public void shareMessages(View v) 
+	public void shareMessages(View v) throws JSONException 
 	{
 		final long date = System.currentTimeMillis();
 		
