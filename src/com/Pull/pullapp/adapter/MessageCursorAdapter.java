@@ -11,10 +11,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.widget.CursorAdapter;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,7 +46,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 	private String facebookID;
 	private Activity activity;
 	private UserInfoStore store;
-	private boolean isMine;
+	private boolean isMyConversation;
 	
     @SuppressWarnings("deprecation")
 	public MessageCursorAdapter(Context context, Cursor cursor, String number, Activity activity, 
@@ -57,13 +59,23 @@ public class MessageCursorAdapter extends CursorAdapter {
     	other_person_name = store.getName(other_person);
 		facebookID = store.getFacebookID(other_person);
 		this.activity = activity;
-		this.isMine = isMine;
+		this.isMyConversation = isMine;
    	    	
     }
-
+	public MessageCursorAdapter(Context context, Cursor cursor, Activity activity, 
+			boolean isMyConversation) {
+    	super(context, cursor);
+    	check_hash = new TreeSet<SMSMessage>();
+    	delayedMessages = new HashMap<Long,Integer>();
+    	store = new UserInfoStore(context);
+		this.activity = activity;
+		this.isMyConversation = isMyConversation;
+   	    	
+    }
+	
 	@Override
 	public void bindView(View v, Context context, Cursor c) {
-		if(isMine) populateMine(context, c, v, false);
+		if(isMyConversation) populateMine(context, c, v, false);
 		else populateTheirs(context, c, v, false);
 	}
 
@@ -71,7 +83,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 	public View newView(Context context, Cursor c, ViewGroup parent) {
 		final LayoutInflater inflater = LayoutInflater.from(context);
 		View v = inflater.inflate(R.layout.sms_row, parent, false);
-		if(isMine) populateMine(context, c, v, true);
+		if(isMyConversation) populateMine(context, c, v, true);
 		else populateTheirs(context, c, v, true);
 		return v;
 	}
@@ -81,8 +93,11 @@ public class MessageCursorAdapter extends CursorAdapter {
 		long date;
 		final SMSMessage message;
 		final int position = c.getPosition();
-
-		int type = Integer.parseInt(c.getString(1).toString());
+		
+		for(int i=0; i<c.getColumnCount(); i++) {
+			//Log.i("column ", c.getColumnName(i) + ": " + c.getString(i));
+		}
+		int type = Integer.parseInt(c.getString(c.getColumnIndex(TextBasedSmsColumns.TYPE)).toString());
 		if(type==TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return;
 		body = c.getString(2).toString();
     	address = c.getString(4).toString();
@@ -115,12 +130,20 @@ public class MessageCursorAdapter extends CursorAdapter {
     	
     	LayoutParams layoutParams=(LayoutParams) holder.addPPl.getLayoutParams();
 		if(message.isSentByMe()) {
-			holder.messageBox.setBackgroundResource(R.drawable.outgoing);
+			if(type == Constants.MESSAGE_TYPE_SENT_COMMENT) {
+				holder.messageBox.setBackgroundResource(R.drawable.blank_outgoing);
+				holder.message.setTypeface(Typeface.SANS_SERIF, Typeface.ITALIC);
+			} else
+				holder.messageBox.setBackgroundResource(R.drawable.outgoing);
 			layoutParams.gravity = Gravity.LEFT;
 			holder.message.setGravity(Gravity.RIGHT);
 			holder.time.setGravity(Gravity.RIGHT);				
 		}else {
-			holder.messageBox.setBackgroundResource(R.drawable.incoming);  
+			if(type == Constants.MESSAGE_TYPE_RECEIVED_COMMENT) {
+				holder.messageBox.setBackgroundResource(R.drawable.blank_incoming);
+				holder.message.setTypeface(Typeface.SANS_SERIF, Typeface.ITALIC);
+			}else
+				holder.messageBox.setBackgroundResource(R.drawable.incoming);
 			layoutParams.gravity = Gravity.RIGHT;
 			holder.message.setGravity(Gravity.LEFT);
 			holder.time.setGravity(Gravity.LEFT);					
@@ -138,11 +161,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		//If not mine then it is from sender to show yellow background and align to left
 		else
 		{
-	    	if(facebookID!=null && facebookID.length()>0) {
-	    		holder.pic.setProfileId(facebookID);
-	    		holder.pic.setVisibility(View.VISIBLE);
-	    	}
-	    	else holder.pic.setVisibility(View.GONE);			
+	    	holder.pic.setVisibility(View.GONE);			
 			lp.gravity = Gravity.LEFT;
 		}
 		
@@ -257,7 +276,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 					final TextView tv = new TextView(mContext);
 					LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT,
 							LayoutParams.MATCH_PARENT);
-					params.setMargins(0, 0, 0, 0);
+					//params.setMargins(0, 0, 0, 0);
 					tv.setText(name);
 					tv.setHint(confidante);
 					//tv.setLayoutParams(holder.shared_with_text.getLayoutParams());
@@ -318,14 +337,16 @@ public class MessageCursorAdapter extends CursorAdapter {
         	LayoutParams layoutParams=(LayoutParams) holder.addPPl.getLayoutParams();
 			if(message.isSentByMe()) {
 				holder.messageBox.setBackgroundResource(R.drawable.outgoing);
-				holder.message.setPadding(40, 0, 0, 0);
+				holder.message.setPadding(40, 0, 10, 0);
+				holder.time.setPadding(40, 0, 10, 0);
 				layoutParams.gravity = Gravity.LEFT;
 				//layoutParams.leftMargin = -40;
 				holder.message.setGravity(Gravity.RIGHT);
 				holder.time.setGravity(Gravity.RIGHT);				
 			}else {
 				holder.messageBox.setBackgroundResource(R.drawable.incoming);  
-				holder.message.setPadding(0, 0, 40, 0);
+				holder.message.setPadding(10, 0, 40, 0);
+				holder.time.setPadding(10, 0, 40, 0);
 				layoutParams.gravity = Gravity.RIGHT;
 				//layoutParams.rightMargin = -40;
 				holder.message.setGravity(Gravity.LEFT);

@@ -24,12 +24,12 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.app.NavUtils;
-import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.view.WindowManager;
@@ -41,7 +41,6 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.MultiAutoCompleteTextView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
@@ -89,18 +88,16 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	private final Calendar calendar = Calendar.getInstance();
 	private Button pickDelay, send, share;
 	private GetMessages loader;
-	private boolean checkBoxesAreShowing, isPopulated;
+	private boolean isPopulated;
 	private CustomDateTimePicker customDateTimePicker;
 	private Date sendDate;
 	private ViewSwitcher viewSwitcher;
 	private RecipientsEditor mRecipientEditor, mConfidantesEditor;
 	private RecipientsAdapter mRecipientsAdapter;
 	private String[] recipients;
-	private ListView mListView, pListView;
+	private ListView mListView;
 	private RelativeLayout mLayout;
 	private BroadcastReceiver mBroadcastReceiver;
-	private MultiAutoCompleteTextView hashtag;
-	private String hashtags_string;
 	private String person_shared;
 	private SharedConversation mSharedConversation;
 	private int n_characters;
@@ -114,12 +111,10 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	private SharedPreferences.Editor editor;
 	private MainApplication mApp;
 	private String thread_id;
-	private TelephonyManager tmgr;
 	protected String convoID;
-	private int shareType, scrollState;
+	private int shareType;
 	protected int itemInView;
 	protected boolean startedScrolling;
-	private Cursor messages_cursor;
 	private QueuedMessageAdapter queue_adapter;
 	private MergeAdapter merge_adapter;
 	private String share_with;
@@ -129,11 +124,13 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	private CommentListAdapter comments_adapter;
 	private ArrayList<Comment> comments;
 	private MixpanelAPI mixpanel;
-	private String shared_address;
 	private String shared_sender;
 	private String shared_convoID;
 	private DatabaseHandler dh;
 	private UserInfoStore store;
+	private String shared_confidante;
+	private String shared_address;
+	private String confidante_name;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -141,7 +138,6 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		setContentView(R.layout.message_thread);
 		
 		mContext = getApplicationContext();
-		tmgr = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
 		mPrefs = mContext.getSharedPreferences(Constants.PREFERENCE_TIME_DELAY_PROMPT, Context.MODE_PRIVATE);
 		
 		store = new UserInfoStore(mContext);
@@ -161,7 +157,6 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			}
 		});		
 		
-		checkBoxesAreShowing = false;
 		delayPressed = false;
 		loader = new GetMessages();
 		
@@ -183,23 +178,27 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		pickDelay = (Button) this.findViewById(R.id.time_delay_button);
 		viewSwitcher = (ViewSwitcher) this.findViewById(R.id.viewSwitcher);
 		text = (EditText) this.findViewById(R.id.text);
+		mTextIndicatorButton = (ImageButton) findViewById(R.id.textIndicatorButton);
 		
 		if(getIntent() != null && !isPopulated) {
 			
 			number =  getIntent().getStringExtra(Constants.EXTRA_NUMBER); 
 			name =  getIntent().getStringExtra(Constants.EXTRA_NAME); 
 			thread_id = getIntent().getStringExtra(Constants.EXTRA_THREAD_ID); 
-			shared_address = getIntent().getStringExtra(Constants.EXTRA_SHARED_ADDRESS); 
+			
+			//right now only for received ones
+			//shared_confidante = getIntent().getStringExtra(Constants.EXTRA_SHARED_CONFIDANTE); 
 			shared_sender = getIntent().getStringExtra(Constants.EXTRA_SHARED_SENDER); 
 			shared_convoID = getIntent().getStringExtra(Constants.EXTRA_SHARED_CONVERSATION_ID); 
 			person_shared = getIntent().getStringExtra(Constants.EXTRA_SHARED_NAME); 
+			shared_address = getIntent().getStringExtra(Constants.EXTRA_SHARED_ADDRESS); 
 			
 			if(number!=null && name!=null) {
 				populateMessages();
 				
 				if(Constants.DEBUG==false) this.setTitle(name);
 				setupComposeBox();
-			} else if(shared_address!=null && shared_sender!=null){
+			} else if(person_shared!=null && shared_sender!=null){
 				populateSharedMessages(shared_convoID);
 				setTitle(person_shared + "|" + store.getName(shared_sender));
 			}
@@ -391,7 +390,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 
 
 	private void setupComposeBox() {
-		mTextIndicatorButton = (ImageButton) findViewById(R.id.textIndicatorButton);
+		
 		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -489,15 +488,69 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		setListAdapter(merge_adapter);	
 		mListView.setSelection(merge_adapter.getCount()-1);				
 	}
-	private void populateSharedMessages(String shared_convoID) {
+	private void populateSharedMessages(final String shared_convoID) {
 		dh = new DatabaseHandler(mContext);
 		Cursor c = dh.getSharedMessagesCursor(shared_convoID);
-		messages_adapter = new MessageCursorAdapter(mContext, c, shared_address, this, false);
+		messages_adapter = new MessageCursorAdapter(mContext, c, this, false);
 		merge_adapter.addAdapter(messages_adapter);
 		setListAdapter(merge_adapter);	
 		mListView.setSelection(merge_adapter.getCount()-1);		
-		viewSwitcher.setVisibility(View.GONE);
+		viewSwitcher.setDisplayedChild(0);
+		text.setHint("Write a comment to " + store.getName(shared_sender));
+		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.comment_indicator));
+		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				popup = new SimplePopupWindow(v);
+				popup.showLikePopDownMenu();
+				popup.setMessage("Your comments are only visible to " + store.getName(shared_sender));
+			}
+		});		
+		pickDelay.setVisibility(View.GONE);
+		send.setOnClickListener(new OnClickListener(){
+
+			@Override
+			public void onClick(View v) {
+				try {
+					sendComment(shared_sender, shared_address, text.getText().toString());
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				
+			}
+			
+		});
 	}
+
+	protected void sendComment(String shared_sender, String shared_address,
+			String commentText) throws JSONException {
+/*		Toast.makeText(mContext, commentText + " to " + shared_sender + " for " + shared_address, 
+				Toast.LENGTH_LONG).show();
+*/
+		SMSMessage comment = new SMSMessage(System.currentTimeMillis(), commentText, 
+				shared_address, Constants.MESSAGE_TYPE_SENT_COMMENT, store);
+		//assume this is a conversation that was shared with us
+		comment.addConfidante(shared_sender);
+		dh = new DatabaseHandler(mContext);
+		
+		dh.addSharedMessage(shared_convoID, comment, TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
+		dh = new DatabaseHandler(mContext);
+		Cursor c = dh.getSharedMessagesCursor(shared_convoID);
+		//dh.close();
+		messages_adapter.swapCursor(c);
+		messages_adapter.notifyDataSetChanged();
+		merge_adapter.notifyDataSetChanged();
+		text.setText("");
+		hideKeyboard();
+		mListView.setSelection(mListView.getCount()-1);
+		comment.saveToParse();
+		
+	}
+
+
+
 
 	private void updateTime(){
 		//Log.i("time", "Updated Time");
@@ -779,11 +832,15 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
         TreeSet<SMSMessage> messagesHash = (TreeSet<SMSMessage>) messages_adapter.check_hash.clone();
 		for(SMSMessage m : messagesHash) {
 			for(String confidante : confidantes) {
+				
 				m.addConfidante(confidante);
 			}
 			m.saveToParse();
 		}	
 		for(String confidante : confidantes) {
+	    	confidante_name = ContentUtils.getContactDisplayNameByNumber(mContext, confidante);
+	    	store.setName(confidante, confidante_name);
+			
 			new ShareMessages(mContext, confidante, 
 					name, number,  messagesHash).start();	  
 		}	
@@ -851,42 +908,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 
 	}
 	
-/**	private class GetSharedMessages extends AsyncTask<Void,SMSMessage,Void> {
 
-	  	SMSMessage m;
-
-		@Override
-		protected Void doInBackground(Void... params) {
-	  		ParseQuery query = ParseQuery.getQuery("SMSMessage");
-	  		query.whereEqualTo("address", shared_address);
-	  		query.whereEqualTo("username", shared_sender);
-	  		query.findInBackground(callback)
-	        dh = new DatabaseHandler(mContext);
-	        messages_cursor = dh.getPendingMessagesCursor(number);    
-	     //   Log.i("messages_cursor","number is " + number);
-	       // Log.i("messages_cursor","size is " + messages_cursor.getCount());
-	        if(messages_cursor.moveToFirst()) {
-	        	m = getNextOutboxMessage(messages_cursor);
-	        	publishProgress(m);	
-	        	while(messages_cursor.moveToNext()) {
-	        		m = getNextOutboxMessage(messages_cursor);
-	        		publishProgress(m);	
-	        		if (isCancelled()) break;
-	        	}	     
-	        }	  
-			return null;
-		}
-		@Override
-	    protected void onProgressUpdate(SMSMessage... t) {
-			addNewMessage(t[0],true);
-	    }				
-		
-		@Override
-	    protected void onPostExecute(Void result) {
-			super.onPostExecute(result);
-	    }			
-
-  }			**/
 	private class GetMessages extends AsyncTask<Void,SMSMessage,Void> {
 		DatabaseHandler dh;
 	  	Cursor messages_cursor;

@@ -32,12 +32,14 @@ import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.threads.AlarmScheduler;
 import com.Pull.pullapp.threads.DailyShareSuggestion;
+import com.Pull.pullapp.threads.DownloadFriendPhoto;
 import com.Pull.pullapp.threads.SmsLogger;
 import com.parse.FindCallback;
 import com.parse.ParseACL;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 
 public class GeneralBroadcastReceiver extends BroadcastReceiver {
@@ -75,18 +77,26 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         if (action.equals(Constants.ACTION_CONFIRM_FRIEND)) {
             try {
                 JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
-                String sender_userid = json.getString("sender_userid");
+                final String sender_userid = json.getString("sender_userid");
                 String receiver_userid = json.getString("receiver_userid");
-                String number = json.getString("number");
+                final String number = json.getString("number");
                 if(receiver_userid.equals(ParseUser.getCurrentUser().getObjectId()) 
                 		&& store.wasInvited(number)) {
-                	store.saveFriend(number, sender_userid);
             		ParseUser me = ParseUser.getCurrentUser();
             		ParseACL acl = new ParseACL();
             		acl.setReadAccess(sender_userid, true);
             		me.setACL(acl);
-            		me.saveInBackground();                	
-                	String name = store.getName(number);
+            		me.saveInBackground(new SaveCallback(){
+						@Override
+						public void done(ParseException e) {
+		                	if(e==null && store.getFriendBitmap(number) == null){
+		                		store.saveFriend(number, sender_userid);
+		                		new DownloadFriendPhoto(sender_userid, mContext, number, store).start();
+		                	}
+						}
+            			
+            		});                	
+            		String name = store.getName(number);
                 	notifyFriendConfirmed(name);
                 }
                 
@@ -124,7 +134,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
             return;
         }          
         
-        if (action.equals(Constants.ACTION_RECEIVE_SHARE_TAG)) {
+        /**if (action.equals(Constants.ACTION_RECEIVE_SHARE_TAG)) {
         	Log.i("received broadcast","ACTION_RECEIVE_SHARE_TAG");
             try {
                 JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
@@ -150,14 +160,22 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
             	  Log.i("exception",e.getMessage());
               }
             return;
-        }   
+        }   **/
+        
+        //CURRENT METHOD FORE RECEIVING EVERYTHING. COMES FROM CLOUD PUSH NOTIFICATION
         if (action.equals(Constants.ACTION_RECEIVE_SHARED_MESSAGES)) {
+        	
         	Log.i("received broadcast","ACTION_RECEIVE_SHARED_MESSAGES");
             try {
                 JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
                 final String sender = ContentUtils.addCountryCode(json.getString("from"));
                 final String person_shared = json.getString("person_shared");
                 final String address = ContentUtils.addCountryCode(json.getString("address"));
+                final int type;
+              /*  if(sender.equals(ParseUser.getCurrentUser().getUsername())) 
+                	type = TextBasedSmsColumns.MESSAGE_TYPE_SENT;
+                else */
+                	type = TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
                 /*JSONArray arr = json.getJSONArray("messageIDs");
                 ArrayList<Integer> hashcodes = new ArrayList<Integer>();
                 final TreeSet<SMSMessage> messages;
@@ -173,7 +191,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 					@Override
 					public void done(List<SMSMessage> objects, ParseException e) {
 						if(e==null && objects.size()>0) {
-							notifySharedMessages(sender,person_shared,address, objects);
+							notifySharedMessages(sender,person_shared,address, objects, type);
 						} else {
 
 						}
@@ -188,7 +206,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
               }
             return;
         }           
-        if (action.equals(Constants.ACTION_RECEIVE_COMMENT)) {
+  /**      if (action.equals(Constants.ACTION_RECEIVE_COMMENT)) {
         	Log.i("received broadcast","ACTION_RECEIVE_COMMENT");
             try {
                 JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
@@ -200,7 +218,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
             	  Log.i("exception",e.getMessage());
               }
             return;
-        }           
+        }           **/
         
         if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
             // avoid starting the alarm scheduler if the app hasn't even been run yet
@@ -272,45 +290,55 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 
 
 	private void notifySharedMessages(String sender, String person_shared,
-			String address, List<SMSMessage> objects) {
-		Log.i("number of objects",""+objects.size());
-		String convoID = sender+address;
+			String address, List<SMSMessage> objects, int convoType) {
+		  Log.i("number of objects",""+objects.size());
+		  String convoID = sender+address;
 		  db = new DatabaseHandler(mContext);
+		  
 		  for(SMSMessage m: new TreeSet<SMSMessage>(objects)) {
-			  db.addSharedMessage(convoID, m);
+			  if(m.getType()==Constants.MESSAGE_TYPE_SENT_COMMENT)
+				  m.setType(Constants.MESSAGE_TYPE_RECEIVED_COMMENT);
+			  db.addSharedMessage(convoID, m, convoType);
 		  }
-		  db.close();		
-		String from = store.getName(sender);
+		  String from = store.getName(sender);
+		  db.addSharedConversation(convoID, ParseUser.getCurrentUser().getUsername(), person_shared,
+					address, sender, convoType);		  	
+		  if(convoType == TextBasedSmsColumns.MESSAGE_TYPE_INBOX) {
+				Intent ni = new Intent(mContext, MessageActivityCheckboxCursor.class);
+				ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);		
+				ni.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
+				ni.putExtra(Constants.EXTRA_SHARED_ADDRESS, address);
+				ni.putExtra(Constants.EXTRA_SHARED_NAME, person_shared);
+				ni.putExtra(Constants.EXTRA_SHARED_SENDER, sender);
+				ni.putExtra(Constants.EXTRA_SHARED_CONFIDANTE, ParseUser.getCurrentUser().getUsername());
+				PendingIntent pi = PendingIntent.getActivity(mContext, 0,
+						ni, PendingIntent.FLAG_CANCEL_CURRENT);			  
+			 sendNotification(from + "'s messages", "with " + person_shared, pi);
+		  }
+		  db.close();
+	}
+
+	private void sendNotification(CharSequence title, CharSequence content, PendingIntent pendingIntent) {
+
 		NotificationManager mNotificationManager = (NotificationManager) mContext
 				.getSystemService(Context.NOTIFICATION_SERVICE);
 		int icon;
 		icon = R.drawable.explosion;
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
-				mContext).setSmallIcon(icon).setContentTitle(from + "'s messages")
-				.setContentText("with " + person_shared)
+				mContext).setSmallIcon(icon).setContentTitle(title)
+				.setContentText(content)
 				.setPriority(NotificationCompat.PRIORITY_LOW)
 				.setOnlyAlertOnce(true);
 		// TODO: Optional light notification.
-		Intent ni = new Intent(mContext, MessageActivityCheckboxCursor.class);
-		ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);		
-		ni.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
-		ni.putExtra(Constants.EXTRA_SHARED_ADDRESS, address);
-		ni.putExtra(Constants.EXTRA_SHARED_NAME, person_shared);
-		ni.putExtra(Constants.EXTRA_SHARED_SENDER, sender);
-		PendingIntent pi = PendingIntent.getActivity(mContext, 0,
-				ni, PendingIntent.FLAG_CANCEL_CURRENT);
-		mBuilder.setContentIntent(pi);
+		mBuilder.setContentIntent(pendingIntent);
 		mBuilder.setAutoCancel(true);
 		Notification notification = mBuilder.build();
 		notification.sound = Uri.parse("android.resource://" + mContext.getPackageName() + "/" + R.raw.jackie_sound_1);
 		notification.defaults|= Notification.DEFAULT_LIGHTS;
 		notification.defaults|= Notification.DEFAULT_VIBRATE;		
-		mNotificationManager.notify(777, notification);
-		
+		mNotificationManager.notify(777, notification);		
 	}
-
-
 	private void getCommentFromParse(final String convoID, final String commentID) {
     	ParseQuery<Comment> comments = ParseQuery.getQuery(Comment.class);
     	comments.whereEqualTo("objectId", commentID);
@@ -352,7 +380,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
     		  if(exception == null && message_list.size()>0) {
     			  Log.i("got it","found messages from existing conversation " + message_list.size());
     			  db = new DatabaseHandler(mContext);
-    			  db.addSharedMessages(convoID, message_list);
+    			  db.addSharedMessages(convoID, message_list, TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
     			  db.close();
     		  }
     	  }
@@ -361,7 +389,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	}
 	private void getNewConvoFromParse(String convoID) {
     	ParseQuery<SharedConversation> convo = ParseQuery.getQuery(SharedConversation.class);
-    	convo.whereEqualTo("objectId", convoID);
+    	convo.whereEqualTo("objectId", convoID);   
     	convo.findInBackground(new FindCallback<SharedConversation>() {
     	  public void done(List<SharedConversation> conversations, ParseException exception) {
     		  if(exception == null && conversations.size()>0) {

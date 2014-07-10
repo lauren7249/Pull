@@ -7,6 +7,7 @@ import android.provider.Telephony.TextBasedSmsColumns;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -121,7 +122,8 @@ public class AllThreadsListActivity extends SherlockListActivity {
 				", " + DatabaseHandler.KEY_CONVERSATION_FROM_NAME +
 				", " + DatabaseHandler.KEY_SHARER +
 				", " + DatabaseHandler.KEY_ID + " as _id" +
-				", " + TextBasedSmsColumns.TYPE ;
+				", " + DatabaseHandler.KEY_CONVO_TYPE +
+				", " + DatabaseHandler.KEY_CONVERSATION_FROM;
 		switch(currentTab) {
 		case R.id.shared_tab:
 			shareType = TextBasedSmsColumns.MESSAGE_TYPE_SENT;
@@ -212,10 +214,16 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	        startActivity(intent);   
 	        return;
 		default:
-			String convoID = threads.getString(threads
-				      .getColumnIndex("_id"));
-			intent = new Intent(mContext, SharedConversationActivity.class);
-	        intent.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
+			String convoID = threads.getString(threads.getColumnIndex("_id"));
+			intent = new Intent(mContext, MessageActivityCheckboxCursor.class);
+			intent.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
+			intent.putExtra(Constants.EXTRA_SHARED_NAME, 
+					threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_CONVERSATION_FROM_NAME)));
+			intent.putExtra(Constants.EXTRA_SHARED_SENDER, 
+					threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_SHARER)));
+			intent.putExtra(Constants.EXTRA_SHARED_ADDRESS, 
+					threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_CONVERSATION_FROM)));
+			//Log.i(Constants.EXTRA_SHARED_ADDRESS, threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_CONVERSATION_FROM)));
 	        startActivity(intent);	
 	        return;
 		}    	

@@ -83,29 +83,6 @@ public class ShareMessages extends Thread {
       
     }
 
-	private void shareViaParse() {
-		JSONObject data = new JSONObject();
-		JSONArray arr = new JSONArray();
-		String channel = ContentUtils.setChannel(tmgr,confidante);
-		try {
-			data.put("action", Constants.ACTION_RECEIVE_SHARED_MESSAGES);
-			data.put("person_shared", person_shared);
-			data.put("address",address);
-			data.put("from", ParseUser.getCurrentUser().get("username"));
-			for(SMSMessage m: messages) {
-				arr.put(m.hashCode());
-			}
-			data.put("messageIDs", arr);
-			ParsePush push = new ParsePush();
-			push.setChannel(channel);
-			push.setData(data);
-			push.sendInBackground();
-			//Log.i("push sent","to channel " + channel);
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-	}
-
 
 
 }

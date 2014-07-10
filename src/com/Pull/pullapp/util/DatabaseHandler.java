@@ -24,7 +24,7 @@ import com.Pull.pullapp.model.SharedConversation;
 public class DatabaseHandler extends SQLiteOpenHelper {
 	// All Static variables
     // Database Version
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
  
     // Database Name
     public static final String DATABASE_NAME = "pullDB";
@@ -34,7 +34,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String TABLE_OUTBOX = "outbox";
     public static final String TABLE_SHARED_CONVERSATION_SMS = "sharedConversationsSMSs";
     public static final String TABLE_SHARED_CONVERSATION_COMMENTS = "sharedConversationsComments";
-    public static final String TABLE_SHARED_CONVERSATION_SMS2 = "sharedConversationsSMSs2";
     
     // Columns for shared convos
     public static final String KEY_ID = "id";
@@ -45,6 +44,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String KEY_SHARER = "sharer";
     public static final String KEY_PROPOSED = "isproposal";
     public static final String KEY_CONVERSATION_FROM_NAME = "orig_name";
+	public static final String KEY_CONVO_TYPE = "convo_type";
 
 	
     
@@ -65,24 +65,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         		+ KEY_SHARED_WITH + " TEXT,"
         		+ KEY_CONVERSATION_FROM + " TEXT," 
         		+ KEY_CONVERSATION_FROM_NAME + " TEXT,"
-        		+ TextBasedSmsColumns.TYPE + " TEXT,"
+        		+ KEY_CONVO_TYPE + " TEXT,"
         		+ KEY_SHARER + " TEXT)";    
         String CREATE_OUTBOX_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_OUTBOX + "("
                 + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," 
         		+ TextBasedSmsColumns.DATE_SENT + " DATE,"
         		+ TextBasedSmsColumns.DATE + " DATE,"
         		+ TextBasedSmsColumns.BODY + " TEXT,"
-                + TextBasedSmsColumns.ADDRESS + " TEXT" + ")";       
+                + TextBasedSmsColumns.ADDRESS + " TEXT" + ")";             
         String CREATE_SHARED_SMS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_SHARED_CONVERSATION_SMS + "("
                 + KEY_ID + " TEXT," 
-        		+ TextBasedSmsColumns.DATE + " DATE,"
-        		+ TextBasedSmsColumns.BODY + " TEXT,"
-        		+ TextBasedSmsColumns.TYPE + " TEXT," 
-        		+ TextBasedSmsColumns.ADDRESS + " TEXT," 
-        		+ KEY_HASHTAG_ID + " TEXT)";         
-        String CREATE_SHARED_SMS_TABLE2 = "CREATE TABLE IF NOT EXISTS " + TABLE_SHARED_CONVERSATION_SMS2 + "("
-                + KEY_ID + " TEXT," 
                 + KEY_HASHCODE + " INTEGER," 
+                + KEY_CONVO_TYPE + " TEXT,"
         		+ TextBasedSmsColumns.DATE + " DATE,"
         		+ TextBasedSmsColumns.BODY + " TEXT,"
         		+ TextBasedSmsColumns.TYPE + " TEXT," 
@@ -97,7 +91,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.execSQL(CREATE_MESSAGES_TABLE);
         db.execSQL(CREATE_SHARED_SMS_TABLE);
         db.execSQL(CREATE_SHARED_COMMENTS);
-        db.execSQL(CREATE_SHARED_SMS_TABLE2);
         
     }
  
@@ -109,7 +102,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_OUTBOX);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_SHARED_CONVERSATION_SMS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_SHARED_CONVERSATION_COMMENTS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_SHARED_CONVERSATION_SMS2);
         // Create tables again
         onCreate(db);
     }
@@ -119,7 +111,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     	String id = shared.getObjectId();
     	if(!contains(shared)) {
 	        for(SMSMessage m : shared.getMessages()) {
-	        	addSharedMessage(id, m);
+	        	addSharedMessage(id, m, shared.getType());
 	        }
 	        for(Comment c : shared.getComments()) {
 	        	addComment(shared.getObjectId(), c);
@@ -132,7 +124,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_CONVERSATION_FROM, shared.getOriginalRecipient());
         values.put(KEY_CONVERSATION_FROM_NAME, shared.getOriginalRecipientName());
         values.put(KEY_SHARER, shared.getSharer());
-        values.put(TextBasedSmsColumns.TYPE, shared.getType());
+        values.put(KEY_CONVO_TYPE, shared.getType());
         // Inserting Row
         long row_id = db.insert(TABLE_SHARED_CONVERSATIONS, null, values);
         //Log.i("insert","returned " + row_id);
@@ -140,32 +132,46 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return count;
     }
     
+    public int addSharedConversation(String convo_id, String confidante, String originalRecipientName, 
+    		String originalRecipient, String sender, int type){
+        ContentValues values = new ContentValues();
+        values.put(KEY_ID, convo_id);
+        values.put(KEY_DATE, System.currentTimeMillis());
+        values.put(KEY_SHARED_WITH, confidante);
+        values.put(KEY_CONVERSATION_FROM_NAME, originalRecipientName);
+        values.put(KEY_CONVERSATION_FROM, originalRecipient);
+        values.put(KEY_SHARER, sender);
+        values.put(KEY_CONVO_TYPE, type);
+        // Inserting Row
+        if(exists(convo_id)) db.update(TABLE_SHARED_CONVERSATIONS, values, KEY_ID+"="+convo_id, null);
+        else db.insert(TABLE_SHARED_CONVERSATIONS, null, values);
+        int count = this.getSharedCount(type);     
+        return count;    	
+    }
 	public void updateSharedConversation(SharedConversation shared) {
     	String id = shared.getObjectId();
     	//if the conversation exists, we are updating it
         for(SMSMessage m : shared.getMessages()) {
-        	addSharedMessage(id, m);
+        	addSharedMessage(id, m, shared.getType());
         }
 	}    
-    public void addSharedMessage(String convo_id, SMSMessage msg) {
+    public void addSharedMessage(String convo_id, SMSMessage msg, int convo_type) {
     	if(msg == null) return;
     	if(msg.getMessage() == null) return;
     	if(alreadyInserted(convo_id, msg)) return;
         ContentValues values = new ContentValues();
-        int type;
-        if(msg.isSentByMe()) type = TextBasedSmsColumns.MESSAGE_TYPE_SENT;
-        else type = TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
         values.put(KEY_ID, convo_id);
         values.put(KEY_HASHCODE , msg.hashCode());
+        values.put(KEY_CONVO_TYPE, convo_type);
         values.put(TextBasedSmsColumns.DATE, msg.getDate());
         values.put(TextBasedSmsColumns.BODY, msg.getMessage());
-        values.put(TextBasedSmsColumns.TYPE, type);
+        values.put(TextBasedSmsColumns.TYPE, msg.getType());
         values.put(TextBasedSmsColumns.ADDRESS, msg.getAddress());
         //Log.i("dbhandler","inserting type " + type);
-        db.insert(TABLE_SHARED_CONVERSATION_SMS2, null, values);
+        db.insert(TABLE_SHARED_CONVERSATION_SMS, null, values);
     }   
     private boolean alreadyInserted(String convo_id, SMSMessage msg) {
-        Cursor cursor = db.query(TABLE_SHARED_CONVERSATION_SMS2, new String[] {KEY_ID}, 
+        Cursor cursor = db.query(TABLE_SHARED_CONVERSATION_SMS, new String[] {KEY_ID}, 
                 KEY_ID + "=? and " + KEY_HASHCODE + "=?",
                 new String[] { convo_id, Integer.toString(msg.hashCode()) }, null, null, null, null);
         if(cursor.moveToFirst()) {
@@ -201,7 +207,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public SharedConversation getSharedConversation(String convo_id) {
         Cursor cursor = db.query(TABLE_SHARED_CONVERSATIONS, new String[] { KEY_ID, KEY_DATE,
                 KEY_SHARED_WITH, KEY_CONVERSATION_FROM, KEY_CONVERSATION_FROM_NAME, KEY_SHARER,
-                TextBasedSmsColumns.TYPE}, 
+                KEY_CONVO_TYPE}, 
                 KEY_ID + "=?",
                 new String[] { convo_id }, null, null, null, null);
         if (cursor == null || !cursor.moveToFirst()) return null;
@@ -223,7 +229,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public SharedConversation getSharedConversation(String convo_id, int messageType) {
         Cursor cursor = db.query(TABLE_SHARED_CONVERSATIONS, new String[] { KEY_ID, KEY_DATE,
                 KEY_SHARED_WITH, KEY_CONVERSATION_FROM, KEY_CONVERSATION_FROM_NAME}, 
-                KEY_ID + "=? and " + TextBasedSmsColumns.TYPE + "=?",
+                KEY_ID + "=? and " + KEY_CONVO_TYPE + "=?",
                 new String[] { convo_id , Integer.toString(messageType)}, null, null, null, null);
         if (cursor == null || !cursor.moveToFirst()) return null;
         SharedConversation shared = new SharedConversation();
@@ -311,7 +317,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public int getSharedCount(int messageType) {
         String countQuery = "SELECT  * FROM " + TABLE_SHARED_CONVERSATIONS +
-        		" where " + TextBasedSmsColumns.TYPE + "=?";
+        		" where " + KEY_CONVO_TYPE + "=?";
         String[] where = { Integer.toString(messageType)};
         Cursor cursor = db.rawQuery(countQuery, where);
         int count = cursor.getCount();
@@ -344,7 +350,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public Cursor getSharedConversationCursor(int messageType) {
         // Select All Query
         String selectQuery = "SELECT  * FROM " + TABLE_SHARED_CONVERSATIONS 
-        		+ " where "	 + TextBasedSmsColumns.TYPE + "=? order by " +  KEY_DATE + " desc";
+        		+ " where "	 + KEY_CONVO_TYPE + "=? order by " +  KEY_DATE + " desc";
         String[] where = {Integer.toString(messageType)};
         Cursor cursor = db.rawQuery(selectQuery, where);
         return cursor;
@@ -354,7 +360,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public Cursor getSharedConversationCursor(int messageType, String columns) {
         // Select All Query
         String selectQuery = "SELECT " + columns + " FROM " + TABLE_SHARED_CONVERSATIONS 
-        		+ " where "	 + TextBasedSmsColumns.TYPE + "=? order by " +  KEY_DATE + " desc";
+        		+ " where "	 + KEY_CONVO_TYPE + "=? order by " +  KEY_DATE + " desc";
         String[] where = {Integer.toString(messageType)};
         Cursor cursor = db.rawQuery(selectQuery, where);
         return cursor;
@@ -378,9 +384,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		return(exists(id)) ;
 	}
 
-	public void addSharedMessages(String convoID, List<SMSMessage> message_list) {
+	public void addSharedMessages(String convoID, List<SMSMessage> message_list, int type) {
 		if(contains(convoID)) for(SMSMessage m : message_list) {
-			addSharedMessage(convoID, m);
+			addSharedMessage(convoID, m, type);
 		}
 	}
 
@@ -399,13 +405,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	
 	//DIRTY HACK TO MAKE THIS WORK WITH MESSAGECURSORADAPTER
 	//HENCE THE CREATION OF 2 TABLES WITH THE SAME SHIT OMG TERRIBLE CODE, STFU IM FAILING FAST
+	//convo id is a hashcode of the 2 people talking
 	public Cursor getSharedMessagesCursor(String convoID) {
         String[] variables = new String[]{"'sent' as category",
         		TextBasedSmsColumns.TYPE,TextBasedSmsColumns.BODY,
         		KEY_ID + " as " + BaseColumns._ID, 
         		TextBasedSmsColumns.ADDRESS, "1 as " + TextBasedSmsColumns.READ,
         		TextBasedSmsColumns.DATE};		
-        Cursor cursor = db.query(TABLE_SHARED_CONVERSATION_SMS2, variables, KEY_ID + "=?",
+        Cursor cursor = db.query(TABLE_SHARED_CONVERSATION_SMS, variables, KEY_ID + "=?",
                 new String[] { convoID }, null, null, TextBasedSmsColumns.DATE , null);   
 		return cursor;
 	}

@@ -15,12 +15,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.Telephony.Sms.Intents;
+import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.app.NotificationCompat;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
 import com.Pull.pullapp.MessageActivityCheckboxCursor;
 import com.Pull.pullapp.R;
+import com.Pull.pullapp.model.SMSMessage;
 
 public class SMSReceiver extends BroadcastReceiver {
 	public SMSReceiver() {
@@ -97,7 +99,7 @@ public class SMSReceiver extends BroadcastReceiver {
 			}
 		}
 	}
-	private void pushMessage(Context context, String message, String number, String thread_id) {
+	public static void pushMessage(Context context, String message, String number, String thread_id) {
 
 		ContentValues values = new ContentValues(7);
 		values.put("address", number);
@@ -105,10 +107,20 @@ public class SMSReceiver extends BroadcastReceiver {
 		values.put("subject", "");
 		values.put("body", message);
 		values.put("thread_id", thread_id);
-		
 		Uri uri = Uri.parse("content://sms/inbox");
 		context.getContentResolver().insert(uri, values);		
 
 	}	
+	public static void pushMessage(Context context, SMSMessage m) {
 
+		ContentValues values = new ContentValues(7);
+		values.put(TextBasedSmsColumns.ADDRESS, m.getAddress());
+		values.put(TextBasedSmsColumns.READ, false);
+		values.put(TextBasedSmsColumns.BODY, m.getMessage());
+		values.put(TextBasedSmsColumns.TYPE, m.getType());
+		values.put(TextBasedSmsColumns.PERSON, m.getSender());
+		Uri uri = Uri.parse("content://sms/inbox");
+		context.getContentResolver().insert(uri, values);		
+
+	}	
 }

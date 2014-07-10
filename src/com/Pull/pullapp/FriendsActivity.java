@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.Pull.pullapp.threads.DownloadFriendPhoto;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.SendUtils;
 import com.Pull.pullapp.util.UserInfoStore;
@@ -49,6 +50,8 @@ public class FriendsActivity extends SherlockListActivity {
 		               {
 
 		            	   store.saveFriend(number, userID);
+		            	   if(store.getFriendBitmap(number) == null)
+		            		   new DownloadFriendPhoto(userID, mContext, number, store).start();
 		            	   SendUtils.confirmFriend(number, userID);
 		            	   Intent i = new Intent(mContext, AllThreadsListActivity.class);
 		            	   startActivity(i);

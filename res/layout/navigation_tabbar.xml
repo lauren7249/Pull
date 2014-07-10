@@ -7,6 +7,13 @@
         android:orientation="horizontal" >
 
         <RadioButton
+            android:id="@+id/my_conversation_tab"
+            style="@style/RadioButtonStyle.Pull"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="TEXTS" />        
+        <RadioButton
             android:id="@+id/shared_tab"
             style="@style/RadioButtonStyle.Pull"
             android:layout_width="fill_parent"
@@ -21,12 +28,5 @@
             android:layout_weight="1"
             android:visibility="gone"
             android:text="FRIENDS' SHARED TEXTS" />
-        <RadioButton
-            android:id="@+id/my_conversation_tab"
-            style="@style/RadioButtonStyle.Pull"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:text="TEXTS" />
 
     </RadioGroup>

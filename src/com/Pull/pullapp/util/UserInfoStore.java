@@ -6,6 +6,9 @@ import java.util.Set;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.util.Log;
 
 import com.Pull.pullapp.MainApplication;
 import com.Pull.pullapp.adapter.ThreadItemsCursorAdapter;
@@ -17,9 +20,9 @@ public class UserInfoStore {
 	private SharedPreferences mPrefs_recipientID_phoneNumber;
 	private SharedPreferences mPrefs_phoneNumber_Name;
 	private SharedPreferences phoneNumber_objectID;
-	private SharedPreferences prefs;
 	private SharedPreferences mPrefs_phoneNumber_FacebookID;
 	private SharedPreferences mPrefs_sms_sharedWith;
+	private SharedPreferences phoneNumber_photoPath;
 	public UserInfoStore(Context context) {
 		this.mContext = context;
     	mPrefs_recipientID_phoneNumber = mContext.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
@@ -28,6 +31,8 @@ public class UserInfoStore {
     			+ "phoneNumber_Name",Context.MODE_PRIVATE);		
 		phoneNumber_objectID = mContext.getSharedPreferences(MainApplication.class.getSimpleName() 
 				+ "phoneNumber_objectID",Context.MODE_PRIVATE);    	
+		phoneNumber_photoPath = mContext.getSharedPreferences(MainApplication.class.getSimpleName() 
+				+ "phoneNumber_photoPath",Context.MODE_PRIVATE);  		
     	mPrefs_phoneNumber_FacebookID = context
     			.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
     			+ "phoneNumber_FacebookID",Context.MODE_PRIVATE); 	
@@ -52,6 +57,7 @@ public class UserInfoStore {
 	public void setName(String number, String name) {
 		Editor editor = mPrefs_phoneNumber_Name.edit();
 		editor.putString(ContentUtils.addCountryCode(number), name);
+		editor.putString(number, name);
 		editor.commit();
 		
 	}
@@ -93,6 +99,32 @@ public class UserInfoStore {
 		Editor editor = phoneNumber_objectID.edit();
 		editor.putString(ContentUtils.addCountryCode(number), userID);	
 		editor.commit();				
+	}
+	public void savePhotoPath(String number, String photoPath) {
+		Editor editor = phoneNumber_photoPath.edit();
+		editor.putString(ContentUtils.addCountryCode(number), photoPath);	
+		Log.i("phone number", ContentUtils.addCountryCode(number));
+		Log.i("path of photo", photoPath);
+		editor.commit();	
+	}
+	public Bitmap getFriendBitmap(String number) {
+		
+		String path = phoneNumber_photoPath.getString(ContentUtils.addCountryCode(number), null);
+		if(path == null) {
+		//	Log.i("path is null", "getfriendbitmap path is null");
+			return null;
+		}
+		return ContentUtils.getBitmapFromPath(path);
+	}
+	public void saveFacebookID(String number, String id) {
+		Editor editor = mPrefs_phoneNumber_FacebookID.edit();
+		editor.putString(ContentUtils.addCountryCode(number), id);	
+		editor.commit();	
+		
+	}
+	public String getPhotoPath(String number) {
+		// TODO Auto-generated method stub
+		return phoneNumber_photoPath.getString(ContentUtils.addCountryCode(number), null);
 	}
 	
 }

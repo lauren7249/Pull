@@ -1,15 +1,21 @@
 package com.Pull.pullapp.util;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Environment;
 import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
@@ -23,20 +29,23 @@ import android.util.Log;
 public class ContentUtils {
 
 	public static String getContactDisplayNameByNumber(Context context, String number) {
-		if(number == null) return null;
+		if(number == null || number.length()==0) return null;
 		//Log.i("getContactDisplayNameByNumber number",  ": " + number);
 		Uri uri = Uri.withAppendedPath(
 				ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
 				Uri.encode(number));
 		String name = number;
 		ContentResolver contentResolver = context.getContentResolver();
-		Cursor contactLookup = contentResolver.query(uri, new String[] {
-				BaseColumns._ID, ContactsContract.PhoneLookup.DISPLAY_NAME },
-				null, null, null);
-		try {
-			if (contactLookup != null && contactLookup.getCount() > 0) {
+		Cursor contactLookup = null;
+		if(uri!=null) try {
+			contactLookup = contentResolver.query(uri, new String[] {
+					BaseColumns._ID, ContactsContract.PhoneLookup.DISPLAY_NAME },
+					null, null, null);			
+			if (contactLookup != null && contactLookup.getCount() >0) {
 				contactLookup.moveToNext();
-				name = contactLookup.getString(contactLookup
+				if(contactLookup.getColumnCount()>
+				contactLookup.getColumnIndex(ContactsContract.Data.DISPLAY_NAME))
+					name = contactLookup.getString(contactLookup
 						.getColumnIndex(ContactsContract.Data.DISPLAY_NAME));
 			}
 		} finally {
@@ -155,8 +164,8 @@ public class ContentUtils {
 	    
 	    public static String addCountryCode(String number) {
 	    	if(number == null) return number;
-	    	if(number.length() == 0) return number;
 	    	number = PhoneNumberUtils.stripSeparators(number);
+	    	if(number.length() == 0) return number;
 	    	if(number.substring(0,1).equals("+")) return number.substring(1);
 	    	if(number.trim().length()==10) return "1"+number;
 	    	return number;
@@ -245,30 +254,79 @@ public class ContentUtils {
 			Log.i("messages_cursor size", " " + messages_cursor.getCount());
 	        return messages_cursor;
 		}		
-		/** Create a File for saving an image or video */
-		public static  File getOutputMediaFile(Context context){
-		    // To be safe, you should check that the SDCard is mounted
-		    // using Environment.getExternalStorageState() before doing this. 
-		    File mediaStorageDir = new File(Environment.getExternalStorageDirectory()
-		            + "/Android/data/"
-		            + context.getPackageName()
-		            + "/Files"); 
+		public static String saveToInternalStorage(Context mContext, Bitmap bitmapImage, String name){
+	        ContextWrapper cw = new ContextWrapper(mContext);
+	         // path to /data/data/yourapp/app_data/imageDir
+	        File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
+	        // Create imageDir
+	        File mypath=new File(directory,name+"_.png");
 
-		    // This location works best if you want the created images to be shared
-		    // between applications and persist after your app has been uninstalled.
+	        FileOutputStream fos = null;
+	        try {           
 
-		    // Create the storage directory if it does not exist
-		    if (! mediaStorageDir.exists()){
-		        if (! mediaStorageDir.mkdirs()){
-		            return null;
-		        }
-		    } 
-		    // Create a media file name
-		    String timeStamp = new SimpleDateFormat("ddMMyyyy_HHmm").format(new Date());
-		    File mediaFile;
-		        String mImageName="MI_"+ timeStamp +".jpg";
-		        mediaFile = new File(mediaStorageDir.getPath() + File.separator + mImageName);  
-		    return mediaFile;
-		} 		
- 
+	            fos = new FileOutputStream(mypath);
+
+	       // Use the compress method on the BitMap object to write image to the OutputStream
+	            bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fos);
+	            fos.close();
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	        return mypath.getAbsolutePath();
+	    }
+		public static String getInternalStoragePath(Context mContext, String name){
+	        ContextWrapper cw = new ContextWrapper(mContext);
+	         // path to /data/data/yourapp/app_data/imageDir
+	        File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
+	        // Create imageDir
+	        File mypath=new File(directory,name+"_.png");
+
+	        return mypath.getAbsolutePath();
+	    }		
+		public static Bitmap getBitmapFromRedirectingURL(String src) {
+		    try {
+		        URL url = new URL(src);
+		        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+		        connection.connect();
+		        connection.getInputStream();
+		        URL redirectedURL = connection.getURL();
+		        Bitmap myBitmap = getBitmapFromURL(redirectedURL);
+		        return myBitmap;
+		    } catch (IOException e) {
+		        e.printStackTrace();
+		        return null;
+		    }
+		}
+		private static Bitmap getBitmapFromURL(URL redirectedURL) {
+		    try {
+		        HttpURLConnection connection = (HttpURLConnection) redirectedURL.openConnection();
+		        connection.setDoInput(true);
+		        connection.connect();
+		        InputStream input = connection.getInputStream();
+		        Bitmap myBitmap = BitmapFactory.decodeStream(input);
+		        return myBitmap;
+		    } catch (IOException e) {
+		        e.printStackTrace();
+		        return null;
+		    }
+		}
+		public static String getFacebookPath(String facebookID) {
+			return "http://graph.facebook.com/"+facebookID+"/picture?type=large";
+		}
+		public static Bitmap getBitmapFromPath(String path) {
+			File imgFile = new  File(path);
+			if(imgFile.exists()){
+
+			    Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+			    return myBitmap;
+
+			}
+			return null;
+		}
+		public static byte[] getByteArray(Bitmap bmp) {
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			bmp.compress(Bitmap.CompressFormat.PNG, 100, stream);
+			byte[] byteArray = stream.toByteArray();
+			return byteArray;
+		}		
 }

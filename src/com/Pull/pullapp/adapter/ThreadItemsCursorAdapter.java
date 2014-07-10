@@ -1,6 +1,5 @@
 package com.Pull.pullapp.adapter;
 
-import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 
 import android.app.Activity;
@@ -8,13 +7,10 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.widget.CursorAdapter;
-import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -82,7 +78,8 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 		TextView snippet_view = (TextView) v.findViewById(R.id.txt_message_info);
 		ImageView read_indicator = (ImageView) v.findViewById(R.id.indicator);
 		ImageView share = (ImageView) v.findViewById(R.id.share_button);
-		
+	    final ImageView other_pic_mine = 
+	    		(ImageView) v.findViewById(R.id.other_pic_mine);
 	    final ProfilePictureView their_pic = 
 	    		(ProfilePictureView) v.findViewById(R.id.profile_pic);
 	    final ImageView other_pic = 
@@ -113,9 +110,9 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     		store.setName(number, name);
     	}	
     	
-    	final String friend_name = name;
+    	//final String friend_name = name;
     	
-		name_view.setText(name);
+		name_view.setText(store.getName(number));
 		snippet_view.setText(snippet);
 		if(!read) {
 			read_indicator.setVisibility(View.VISIBLE);
@@ -123,52 +120,52 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 			read_indicator.setVisibility(View.GONE);
 		}  
 
-    	String facebookID = store.getFacebookID(number);
-
-    	if(facebookID!=null && facebookID.length()>0) {
-    		their_pic.setProfileId(facebookID);
-    		their_pic.setVisibility(View.VISIBLE);
-    		other_pic.setVisibility(View.GONE);
+    	other_pic_mine.setVisibility(View.GONE);
+		other_pic.setVisibility(View.VISIBLE);
+		
+		their_pic.setVisibility(View.GONE);
+		
+    	if(!store.isFriend(number)) {
+    		other_pic.setBackgroundResource(R.drawable.add_ppl);
+    		other_pic.setOnClickListener(new OnClickListener(){
+	
+				@Override
+				public void onClick(View v) {
+					Log.i("number", number);
+					View addFriendView = View.inflate(mContext, R.layout.add_friend, null);
+					AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+				    builder.setTitle("Invite Friend");
+				    builder.setMessage("Invite " + store.getName(number) + " to be your friend on Pull?")
+				           .setCancelable(true)
+				           .setView(addFriendView)
+				           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+				               public void onClick(DialogInterface dialog, int id)
+				               {
+	
+				            	   SendUtils.inviteFriend(number, mContext, activity);
+	
+				               	}
+				           }) 
+				           .setNegativeButton("No", new DialogInterface.OnClickListener() {
+				               public void onClick(DialogInterface dialog, int id) 
+				               {
+				                    dialog.cancel();
+				               }
+				           }).show();		
+	
+				}
+    		});
+    	} else {
+    		other_pic.setOnClickListener(null);
+    		other_pic.setImageDrawable(Drawable.createFromPath(store.getPhotoPath(number)));
     	}
-    	else {
-    		other_pic.setVisibility(View.VISIBLE);
-    		their_pic.setVisibility(View.GONE);
-    	}
-    	if(!store.isFriend(number)) other_pic.setOnClickListener(new OnClickListener(){
-
-			@Override
-			public void onClick(View v) {
-				View addFriendView = View.inflate(mContext, R.layout.add_friend, null);
-				AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-			    builder.setTitle("Invite Friend");
-			    builder.setMessage("Invite " + friend_name + " to be your friend on Pull?")
-			           .setCancelable(true)
-			           .setView(addFriendView)
-			           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-			               public void onClick(DialogInterface dialog, int id)
-			               {
-
-			            	   SendUtils.inviteFriend(number, mContext, activity);
-
-			               	}
-			           }) 
-			           .setNegativeButton("No", new DialogInterface.OnClickListener() {
-			               public void onClick(DialogInterface dialog, int id) 
-			               {
-			                    dialog.cancel();
-			               }
-			           }).show();		
-
-			}
-    		
-    	});
     	share.setOnClickListener(new OnClickListener(){
 
 			@Override
 			public void onClick(View v) {
 				Intent ni = new Intent(mContext, MessageActivityCheckboxCursor.class);
 				ni.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				ni.putExtra(Constants.EXTRA_NAME,friend_name);
+				ni.putExtra(Constants.EXTRA_NAME,store.getName(number));
 				ni.putExtra(Constants.EXTRA_NUMBER,number);	
 				ni.putExtra(Constants.EXTRA_SHARE_TO_NUMBER,"");	
 				mContext.startActivity(ni);				
@@ -185,12 +182,15 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 		TextView name_view = (TextView) v.findViewById(R.id.txt_title);
 		TextView snippet_view = (TextView) v.findViewById(R.id.txt_message_info);
 		ImageView read_indicator = (ImageView) v.findViewById(R.id.indicator);
+		ImageView share = (ImageView) v.findViewById(R.id.share_button);
 	    final ProfilePictureView their_pic = 
 	    		(ProfilePictureView) v.findViewById(R.id.profile_pic);
 	    final ProfilePictureView my_pic = 
 	    		(ProfilePictureView) v.findViewById(R.id.profile_pic_mine);
 	    final ImageView other_pic = 
 	    		(ImageView) v.findViewById(R.id.other_pic);
+	    final ImageView other_pic_mine = 
+	    		(ImageView) v.findViewById(R.id.other_pic_mine);
 	    
 	    final String number, friend_name;
 		String name="", facebookID="";
@@ -199,12 +199,15 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	String sharer = threads.getString(2);	
     	int type = Integer.valueOf(threads.getString(4));
     	
-    	
+    	their_pic.setVisibility(View.GONE);
+    	my_pic.setVisibility(View.GONE);
+    	share.setVisibility(View.GONE);
+    	snippet_view.setVisibility(View.VISIBLE);
     	if(type == TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
     		number = confidante;
     		friend_name = ContentUtils.getContactDisplayNameByNumber(context, number);
-    		their_pic.setVisibility(View.GONE);
-    		my_pic.setVisibility(View.VISIBLE);
+    		other_pic.setVisibility(View.GONE);
+    		other_pic_mine.setVisibility(View.VISIBLE);
     		row.setGravity(Gravity.RIGHT);
     		name_view.setGravity(Gravity.RIGHT);
     		snippet_view.setGravity(Gravity.RIGHT);
@@ -213,8 +216,8 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	} else {
     		number = sharer;
     		friend_name = ContentUtils.getContactDisplayNameByNumber(context, number);
-    		my_pic.setVisibility(View.GONE);
-    		their_pic.setVisibility(View.VISIBLE);  
+    		other_pic_mine.setVisibility(View.GONE);
+    		other_pic.setVisibility(View.VISIBLE);
     		name_view.setGravity(Gravity.LEFT);
     		snippet_view.setGravity(Gravity.LEFT);    		
     		snippet_view.setText(originalRecipientName + " doesn't know " 
@@ -231,69 +234,44 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	
     	name_view.setText(name);
     	
-    	facebookID = store.getFacebookID(number);
-
-    	if(type == TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
-	    	if(facebookID!=null && facebookID.length()>0) my_pic.setProfileId(facebookID);
-	    	else my_pic.setProfileId("0");
+    	if(!store.isFriend(number)) {
+    		other_pic.setBackgroundResource(R.drawable.add_ppl);
+    		other_pic.setOnClickListener(new OnClickListener(){
+	
+				@Override
+				public void onClick(View v) {
+					View addFriendView = View.inflate(mContext, R.layout.add_friend, null);
+					AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+				    builder.setTitle("Invite Friend");
+				    builder.setMessage("Invite " + store.getName(number) + " to be your friend on Pull?")
+				           .setCancelable(true)
+				           .setView(addFriendView)
+				           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+				               public void onClick(DialogInterface dialog, int id)
+				               {
+	
+				            	   SendUtils.inviteFriend(number, mContext, activity);
+	
+				               	}
+				           }) 
+				           .setNegativeButton("No", new DialogInterface.OnClickListener() {
+				               public void onClick(DialogInterface dialog, int id) 
+				               {
+				                    dialog.cancel();
+				               }
+				           }).show();		
+	
+				}
+    		});
     	} else {
-	    	if(facebookID!=null && facebookID.length()>0) {
-	    		their_pic.setProfileId(facebookID);
-	    		their_pic.setVisibility(View.VISIBLE);
-	    		other_pic.setVisibility(View.GONE);	    		
-	    	}
-	    	else {
-	    		their_pic.setVisibility(View.GONE);
-	    		other_pic.setVisibility(View.VISIBLE); 		
-	    		other_pic.setBackgroundResource(R.color.pullDark);
-	    	}
+    		other_pic.setOnClickListener(null);
+    		other_pic.setImageDrawable(Drawable.createFromPath(store.getPhotoPath(number)));
     	}
-    	
-    	other_pic.setOnClickListener(new OnClickListener(){
-
-			@Override
-			public void onClick(View v) {
-				View addFriendView = View.inflate(mContext, R.layout.add_friend, null);
-				AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-			    builder.setTitle("Invite Friend");
-			    builder.setMessage("Invite " + friend_name + " to be your friend on Pull? ")
-			           .setCancelable(true)
-			           .setView(addFriendView)
-			           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-			               public void onClick(DialogInterface dialog, int id)
-			               {
-			            	
-			            	   SendUtils.inviteFriend(number, mContext, activity);
-			            	 
-			               	}
-			           }) 
-			           .setNegativeButton("No", new DialogInterface.OnClickListener() {
-			               public void onClick(DialogInterface dialog, int id) 
-			               {
-			                    dialog.cancel();
-			               }
-			           }).show();		
-				
-			}
-    		
-    	});    	
+    	   	
     	
     	//TODO: ADD DATA TO SHOW IF IT IS READ OR NOT
     	read_indicator.setVisibility(View.GONE);
     	
 	}
-/**	private void cacheImage(ProfilePictureView p, String number) {
-		ImageView fbImage = ( ( ImageView)p.getChildAt( 0));
-		Bitmap    bitmap  = ( ( BitmapDrawable) fbImage.getDrawable()).getBitmap();  
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);   
-		byte[] b = baos.toByteArray();      
-		String encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
-		Editor editor = mPrefs_phoneNumber_picturePath.edit();
-		editor.putString(number, encodedImage);
-		editor.commit();   
-        Log.d("tag",
-                "saved bitmap for " + number);// e.getMessage());
-		
-	}	**/
+
 }

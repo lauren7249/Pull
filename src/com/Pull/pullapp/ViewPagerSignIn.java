@@ -43,10 +43,11 @@ import android.widget.TableLayout.LayoutParams;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.Pull.pullapp.adapter.SignInFragmentAdapter;
 import com.Pull.pullapp.model.FacebookUser;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
-import com.Pull.pullapp.adapter.*;
+import com.Pull.pullapp.util.UserInfoStore;
 import com.facebook.FacebookRequestError;
 import com.facebook.Request;
 import com.facebook.Response;
@@ -89,7 +90,9 @@ public class ViewPagerSignIn extends BaseActivity {
 	private MixpanelAPI mixpanel;
 	protected boolean showdialog;
 	private JSONObject jsonUser;
-	private static final Class nextActivity = AllThreadsListActivity.class;
+	private IntentFilter intentFilter;
+	private static final Class nextActivity = ImagePickerActivity.class;
+	private UserInfoStore store;
 	
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,6 +109,9 @@ public class ViewPagerSignIn extends BaseActivity {
         mIndicator.setViewPager(mPager);
         
         mContext = getApplicationContext();
+        
+        store = new UserInfoStore(mContext);
+        
         mSignInButton = (Button) findViewById(R.id.sign_in);
         mGenericSignInButton = (Button) findViewById(R.id.generic_sign_in);
         mUserID = (EditText) findViewById(R.id.mobileNumber);
@@ -121,6 +127,38 @@ public class ViewPagerSignIn extends BaseActivity {
 	    mSerialNumber = tMgr.getSimSerialNumber();
 	    mApp = (MainApplication) this.getApplication();   
 	    
+		mBroadcastReceiver = 
+		new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				String action = intent.getAction();
+				
+				if(action.equals(Constants.ACTION_COMPLETE_SIGNUP)) {
+					if(ParseUser.getCurrentUser()!=null
+							&& ParseUser.getCurrentUser().isAuthenticated()) {
+						if(ParseUser.getCurrentUser().get("profilePhoto") ==null) openPhotoPicker();
+						else openThreads();
+					} else {
+						if(ParseUser.getCurrentUser()!=null) {
+							mixpanel.track("Error signing in, user is null", jsonUser);
+							Toast.makeText(mContext, "Error signing in, user is null", Toast.LENGTH_LONG).show();
+						}
+						else {
+							mixpanel.track("Error signing in, not authenticated", jsonUser);
+							Toast.makeText(mContext, "Error signing in, not authenticated", Toast.LENGTH_LONG).show();
+						}
+					}					
+					//progressDialog.dismiss();
+					return;
+				}				
+				
+
+			}
+		};				
+		intentFilter = new IntentFilter();	
+		intentFilter.addAction(Constants.ACTION_COMPLETE_SIGNUP);		
+		registerReceiver(mBroadcastReceiver, intentFilter);		
+		
 	    jsonUser = new JSONObject();
 	    try {
 	    	jsonUser.put("mPhoneNumber", mPhoneNumber);
@@ -135,7 +173,7 @@ public class ViewPagerSignIn extends BaseActivity {
 		mixpanel.track("ViewPagerSignIn created", jsonUser);
 
 	    mUserID.setText(mPhoneNumber);
-
+		
 	 // Find the user's profile picture custom view
 	    profilePictureView = (ProfilePictureView) findViewById(R.id.selection_profile_pic);
 	    profilePictureView.setCropped(true);
@@ -162,11 +200,27 @@ public class ViewPagerSignIn extends BaseActivity {
 	    
 	    	mKeyHashBox.setText(keyhashes);
 	    	mKeyHashBox.setVisibility(View.VISIBLE);
-	    }
+	    }  
 		mParseUser = ParseUser.getCurrentUser();
-		if (mApp.isSignedIn() && mParseUser.isAuthenticated()) {
+		if (mParseUser!=null && mParseUser.isDataAvailable() && mParseUser.isAuthenticated()) {
 			mixpanel.track("Authenticated & signed in", jsonUser);
-			openThreads();
+			Log.i("isDataAvailable",""+mParseUser.isDataAvailable());
+			try {
+				mPasswordString = MainApplication.generateStrongPasswordHash(mPhoneNumber,mSerialNumber);
+				ParseUser.logIn(mParseUser.getUsername(), mPasswordString);
+				if(mParseUser.get("profilePhoto")==null) openPhotoPicker();
+				else openThreads();				
+			} catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvalidKeySpecException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 	    }
 
 	    // Dirty Hack to detect keyboard
@@ -191,45 +245,44 @@ public class ViewPagerSignIn extends BaseActivity {
 	    	displayAlternateLoginOption();
 	    }		
 	    
-		mBroadcastReceiver = 
-		new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				String action = intent.getAction();
-				
-				if(action.equals(Constants.ACTION_COMPLETE_SIGNUP)) {
-					if(mApp.getUserName() != null && ParseUser.getCurrentUser()!=null
-							&& ParseUser.getCurrentUser().isAuthenticated()) {
-						openThreads();
-					} else {
-						if(mApp.getUserName() != null && ParseUser.getCurrentUser()!=null) {
-							mixpanel.track("Error signing in, user is null", jsonUser);
-							Toast.makeText(mContext, "Error signing in, user is null", Toast.LENGTH_LONG).show();
-						}
-						else {
-							mixpanel.track("Error signing in, not authenticated", jsonUser);
-							Toast.makeText(mContext, "Error signing in, not authenticated", Toast.LENGTH_LONG).show();
-						}
-					}					
-					progressDialog.dismiss();
-					return;
-				}				
-				
-
-			}
-		};				
-		IntentFilter intentFilter = new IntentFilter();	
-		intentFilter.addAction(Constants.ACTION_COMPLETE_SIGNUP);		
-		registerReceiver(mBroadcastReceiver, intentFilter);			
+	
     }
 
 
-	private void openThreads() {
-		if(progressDialog!=null && progressDialog.isShowing()) progressDialog.dismiss();
-	    Intent mIntent = new Intent(mContext, nextActivity);
+	private void openPhotoPicker() {
+	    Intent mIntent = new Intent(mContext, ImagePickerActivity.class);
+	    
+	    //together this means that when you press the back button in the new task you will not go back
+	    //to the original task, but rather close out of the app
+	    mIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+	    mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     	startActivity(mIntent); 	
 		
 	}
+
+
+	private void openThreads() {
+	    Intent mIntent = new Intent(mContext, AllThreadsListActivity.class);
+	    
+	    //together this means that when you press the back button in the new task you will not go back
+	    //to the original task, but rather close out of the app
+	    mIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+	    mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    	startActivity(mIntent); 	
+		
+	}
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
+		if(mBroadcastReceiver!=null) unregisterReceiver(mBroadcastReceiver);
+		if(progressDialog!=null && progressDialog.isShowing()) progressDialog.dismiss();
+	}	
+	
+	protected void onResume() {
+		super.onResume();
+		if(mBroadcastReceiver!=null) registerReceiver(mBroadcastReceiver, intentFilter);
+	}		
 
 	/**
 	 * pulls up the facebook login screen
@@ -381,6 +434,7 @@ public class ViewPagerSignIn extends BaseActivity {
 					@Override
 					public void onCompleted(GraphUser user, Response response) {
 						showdialog = false;
+						store.saveFacebookID(mPhoneNumber, user.getId());
 						mixpanel.track("makeMeRequest completed", jsonUser);
 						anonymousLogin(v);	
 						if (user != null) {

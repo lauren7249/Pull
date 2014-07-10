@@ -5,6 +5,7 @@
     android:orientation="horizontal"
     android:gravity="center"
     android:padding="5dp"
+    android:layout_margin="5dp"
    	android:clipChildren="false" >
     
     <CheckBox
@@ -38,8 +39,8 @@
              android:layout_width="fill_parent"
              android:layout_height="wrap_content"
              android:gravity="right"
-             android:padding="5dp"
-             android:layout_margin="5dp"
+             android:paddingRight="10dp"
+             android:paddingLeft="10dp"
              android:fontFamily="sans-serif-light"
              android:text="Message Content"
              android:textColor="@color/textColor"
@@ -50,7 +51,10 @@
              android:layout_width="fill_parent"
              android:layout_height="wrap_content"
              android:gravity="right"
-             android:padding="5dp"
+             android:paddingRight="10dp"
+             android:paddingLeft="10dp"             
+			 android:layout_marginBottom="7dp"
+			 android:layout_marginTop="7dp"
              android:text="Message Time"
              android:textSize="12sp"
              android:textStyle="bold" 
@@ -85,9 +89,10 @@
          <Button
              android:id="@+id/edit_message_button"
              android:layout_width="match_parent"
-             android:layout_height="wrap_content"
+             android:layout_height="30dp"
              android:background="@drawable/cancel_transparent"
              android:text="Edit/cancel"
+			 android:padding="5dp"         
              android:textColor="@color/cheeryBlossm"
              android:textSize="12sp" />
           

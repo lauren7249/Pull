@@ -9,6 +9,7 @@ import org.json.JSONException;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.util.Log;
 
+import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.UserInfoStore;
 import com.parse.ParseACL;
@@ -32,13 +33,29 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
     // Constructors
     public SMSMessage() {
     }
-
+    
+    /**
+     * 
+     * @param smsDate - date sent
+     * @param smsMessage - body
+     * @param address - the other persons phone number
+     * 		  person - the other persons name
+     * @param type - integer indicating whether it is an outgoing/incoming message/comment/etc
+     * 		  sentbyme - contextual, used for rendering
+     * 		  isdelayed - whether the message has actually been sent or is in queue
+     * confidantes - people who have access to this record
+     * username - person who created the record
+     */
     
     public SMSMessage(long date, String message, String address, int type) { 
         put("smsMessage",message);
         put("address",ContentUtils.addCountryCode(address));    
         put("smsDate",date);      
-        put("sentByMe",(type != TextBasedSmsColumns.MESSAGE_TYPE_INBOX));
+        put("type",type);
+        put("sentByMe",(
+        		type == TextBasedSmsColumns.MESSAGE_TYPE_SENT) || 
+        		type == Constants.MESSAGE_TYPE_SENT_COMMENT ||
+        		type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX );
         put("isDelayed",(type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX));
     }
     
@@ -46,16 +63,23 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
         put("smsMessage",message);
         put("address",ContentUtils.addCountryCode(address));    
         put("smsDate",date);      
-        put("sentByMe",(type != TextBasedSmsColumns.MESSAGE_TYPE_INBOX));
+        put("type",type);
+        put("sentByMe",(
+        		type == TextBasedSmsColumns.MESSAGE_TYPE_SENT) || 
+        		type == Constants.MESSAGE_TYPE_SENT_COMMENT ||
+        		type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX );
         put("isDelayed",(type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX));
         put("person", store.getName(address));
     	this.store = store;
     }    
     public void setType(int type) {
-    	if(type == TextBasedSmsColumns.MESSAGE_TYPE_SENT || type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX )
+    	if(type == TextBasedSmsColumns.MESSAGE_TYPE_SENT 
+    			|| type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX
+    			|| type == Constants.MESSAGE_TYPE_SENT_COMMENT  )
     			sentByMe = true;
     	else sentByMe = false;
     	if(type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX ) isDelayed = true;
+    	put("type",type);
     	put("sentByMe",sentByMe);
     	put("isDelayed",isDelayed);
 
@@ -69,12 +93,6 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
     	put("smsDate",date);        
 	}
 
-    // Sender
-    public String getSender() {
-    	return getString("smsSender");
-    }
-     
-     
     // Message text
     public String getMessage(){
     	return getString("smsMessage");
@@ -123,7 +141,7 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 	public void addConfidante(String to) {
 		String number = ContentUtils.addCountryCode(to);	
 		store.addSharedWith(number, this);
-		String userid = store.getUserID(number);
+		//String userid = store.getUserID(number);
 		//also gotta do this on the backend if we don't know the userid because they are not friends
 		//if(userid!=null && !userid.isEmpty()) acl.setReadAccess(userid, true);
 		ShareEvent e = new ShareEvent(number,System.currentTimeMillis(), this);
@@ -142,7 +160,7 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 	public void saveToParse() throws JSONException {
 		put("user", ParseUser.getCurrentUser());
 		put("hashCode", this.hashCode());
-		put("username", ParseUser.getCurrentUser().get("username"));
+		put("username", ParseUser.getCurrentUser().getUsername());
 		put("confidantes",new ArrayList<String>(getConfidantes()));
 		this.setACL(acl);
 		this.saveInBackground(new SaveCallback() {
@@ -164,6 +182,16 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 	@Override
 	public int compareTo(SMSMessage another) {
 		return ((Long) getDate()).compareTo((Long)another.getDate());
+	}
+
+
+	public int getType() {
+		return getInt("type");
+	}
+
+	public String getSender() {
+		// TODO Auto-generated method stub
+		return getString("username");
 	}
 
 

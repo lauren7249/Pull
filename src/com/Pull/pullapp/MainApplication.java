@@ -5,7 +5,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -27,19 +28,21 @@ import com.Pull.pullapp.model.ShareSuggestion;
 import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.model.TwilioNumber;
 import com.Pull.pullapp.threads.AlarmScheduler;
+import com.Pull.pullapp.threads.UploadMyPhoto;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
+import com.Pull.pullapp.util.UserInfoStore;
 import com.facebook.model.GraphUser;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
-import com.parse.FindCallback;
+import com.parse.FunctionCallback;
 import com.parse.LogInCallback;
 import com.parse.Parse;
 import com.parse.ParseACL;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
 import com.parse.ParseInstallation;
 import com.parse.ParseObject;
-import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.PushService;
 import com.parse.SignUpCallback;
@@ -52,6 +55,8 @@ public class MainApplication extends Application {
 	private ParseUser currentUser;
 	private GraphUser mGraphUser;
 	private MixpanelAPI mixpanel;
+	private Context mContext;
+	private UserInfoStore store;
 
 	@Override
 	public void onCreate() {
@@ -79,26 +84,43 @@ public class MainApplication extends Application {
 		
 		PushService.setDefaultPushCallback(this, ViewPagerSignIn.class); 	
 	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();		    
+	    mContext = getBaseContext();
 	    
 		mixpanel = MixpanelAPI.getInstance(getBaseContext(), Constants.MIXEDPANEL_TOKEN);
 		mixpanel.identify(ParseInstallation.getCurrentInstallation().getObjectId());
 		mixpanel.track("ViewPagerSignIn created", null);
 		
-	    new AlarmScheduler(getBaseContext(), false).start();
+	    new AlarmScheduler(mContext, false).start();
 	    
-   /** 	ParseQuery<SMSMessage> query = ParseQuery.getQuery("SMSMessage");
-    	query.whereEqualTo("hashCode", -848485378);
-    	query.findInBackground(new FindCallback<SMSMessage>() {
-    	  public void done(List<SMSMessage> objects, ParseException e) {
-    	    if (e == null && objects.size()>0) {
-    	    	Log.i("number of messages i can see", "messages " + objects.size());
-    	    } else {;
-    	    	Log.i("cant see any messages!", e.getMessage());
-    	    }
-    	  }
-    	});		**/    
+	    store = new UserInfoStore(mContext);
+	    
+	    
+	    if (ParseUser.getCurrentUser()!=null) uploadPhoto(ParseUser.getCurrentUser());
 	}
 	
+	public void uploadPhoto(final ParseUser user) {
+	    if(store.getFacebookID(mPhoneNumber) == null) {
+	    	String userID = store.getUserID(mPhoneNumber);
+    		Map<String, Object> params = new HashMap<String, Object>();
+    		params.put("userID", userID);	  
+    		params.put("phoneNumber",ContentUtils.addCountryCode(mPhoneNumber));
+	    	ParseCloud.callFunctionInBackground("getFacebookID", params, new FunctionCallback<String>(){
+
+				@Override
+				public void done(String result, ParseException e) {
+					if(result !=null && e==null) {
+						store.saveFacebookID(mPhoneNumber, result);
+						new UploadMyPhoto(mContext,result,user ).start();
+					}
+					
+				}
+	    		
+	    		
+	    	});
+	    }
+	    else if(store.getFacebookID(mPhoneNumber)!=null)
+	    	new UploadMyPhoto(mContext, store.getFacebookID(mPhoneNumber),user).start();		
+	}
 	public void setSignedIn(boolean signedIn, String Name, String Password) {
 		editor = prefs.edit();
 		editor.putBoolean(Constants.IS_SIGNED_IN, signedIn);
@@ -177,41 +199,24 @@ public class MainApplication extends Application {
     }		
 	public void saveUserInfo(final String username, final String password) {
 		mixpanel.track("saveUserInfo started running", null);
-    	ParseQuery<ParseUser> query = ParseUser.getQuery();
-    	query.whereEqualTo("username", ContentUtils.addCountryCode(mPhoneNumber));
-    	query.findInBackground(new FindCallback<ParseUser>() {
-    	  public void done(List<ParseUser> objects, ParseException e) {
-    	    if (e==null && objects.size()>0) {
-    	    	currentUser = objects.get(0);
-    	    	//Log.i("found a user","found a user");
-    	    	mixpanel.track("saveUserInfo found a user", null);
-    	    	finishSavingUser(username,password);
-    	    } else {
-    	    	mixpanel.track("saveUserInfo did not find a user", null);
-    	    	signUp(username, password);
-    	    }
-    	  }
-    	});		
-		
-	}	
-	protected void finishSavingUser(final String username, final String password) {
-		mixpanel.track("finishSavingUser started running", null);
 		ParseUser.logInInBackground(username, password, new LogInCallback(){
 			@Override
 			public void done(ParseUser user, ParseException e) {
 				if(e==null && user!=null) {
-					mixpanel.track("finishSavingUser found user", null);
+					mixpanel.track("saveUserInfo found user", null);
+					setSignedIn(true, username, password);	
+					uploadPhoto(ParseUser.getCurrentUser());
 					saveInstallation();
-					setSignedIn(true, username, password);							
 				}
-				sendResult();
+				else {
+	    	    	mixpanel.track("saveUserInfo did not find a user", null);
+	    	    	signUp(username, password);					
+				}
 				
 			}
 			
-		});
-
-		
-	}	
+		});		
+	}
 	private void sendResult() {
 		Intent broadcastIntent = new Intent();
 		broadcastIntent.setAction(Constants.ACTION_COMPLETE_SIGNUP);
@@ -228,7 +233,8 @@ public class MainApplication extends Application {
         	  public void done(ParseException e) {   
         		  if(e == null) {
         			  mixpanel.track("mapp.signUp succeeded", null);
-        			  checkUser(username, password);
+        			  uploadPhoto(ParseUser.getCurrentUser());
+        			  saveInstallation();
         		  }
         		  else {
         			  mixpanel.track("mapp.signUp failed " + e.getMessage(), null);
@@ -238,37 +244,17 @@ public class MainApplication extends Application {
         	  }
         	});	
 	}	
-	
-	protected void checkUser(final String username, final String password) {
-    	ParseQuery<ParseUser> query = ParseUser.getQuery();
-    	query.whereEqualTo("username", ContentUtils.addCountryCode(mPhoneNumber));
-    	query.findInBackground(new FindCallback<ParseUser>() {
-    	  public void done(List<ParseUser> objects, ParseException e) {
-    	    if (e == null && objects.size()>0) {
-    	    	currentUser = objects.get(0);
-	    	    mixpanel.track("checkUser found a user",null);
-    	    	//Log.i("found a user","found a user");
-    	    	finishSavingUser(username, password);
-    	    } else {;
-    	    	mixpanel.track("checkUser did not find a user " + e.getMessage(),null);
-    	    	//Log.i("error checking user",e.getMessage());
-    	    	sendResult();
-    	    }
-    	  }
-    	});	
-	}	
-	
 
 	private void saveInstallation(){
 		Channels c = new Channels(ContentUtils.setChannel(mPhoneNumber));
-		if(currentUser.getObjectId()!=null) c.put("user", currentUser);
+		if(ParseUser.getCurrentUser().getObjectId()!=null) c.put("user", ParseUser.getCurrentUser());
 		c.saveInBackground();
 		ParseInstallation installation = ParseInstallation.getCurrentInstallation();
-		if(currentUser.getObjectId()!=null) installation.put("user", currentUser);
+		if(ParseUser.getCurrentUser().getObjectId()!=null) installation.put("user", ParseUser.getCurrentUser());
 		installation.addAllUnique("channels", Arrays.asList(ContentUtils.setChannel(mPhoneNumber)));
 		installation.saveInBackground();		
 		mixpanel.track("saved installation",null);
-	       
+		sendResult();
 	}	
 
 }

@@ -115,7 +115,7 @@ public class SmsLogger extends Thread {
 	public void addMessage( SMSMessage msg ) {
 		
 		long date = msg.getDate();
-		String from = msg.getSender();
+		String from = "";
 		String to = msg.getAddress();
 		String body = msg.getMessage();
 		int id = msg.hashCode();
