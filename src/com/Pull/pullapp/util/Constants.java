@@ -100,6 +100,7 @@ public class Constants {
 			"#flake","#player","#socute","#icanteven","#entitled","look who stopped responding",
 			"make this person go away","#dyinginside"};
 	public static List<String> ALL_HASHTAGS_LIST = Arrays.asList(ALL_HASHTAGS);
+	public static String EXTRA_SHARED_CONVO_TYPE = PACKAGE_NAME + "EXTRA_SHARED_CONVO_TYPE";
 	
 	public static final String GOOGLE_PLAY_LINK = "https://play.google.com/store/apps/details?id=com.Pull.pullapp";
 	public static final String APP_PLUG_END = "Download the app at Google play: " + GOOGLE_PLAY_LINK;

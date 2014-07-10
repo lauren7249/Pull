@@ -5,23 +5,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.content.Context;
+import android.provider.Telephony.TextBasedSmsColumns;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.Pull.pullapp.model.SMSMessage;
-import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
+import com.Pull.pullapp.util.DatabaseHandler;
 import com.Pull.pullapp.util.SendUtils;
 import com.parse.FindCallback;
+import com.parse.FunctionCallback;
 import com.parse.ParseAnalytics;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseObject;
-import com.parse.ParsePush;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
@@ -34,6 +32,7 @@ public class ShareMessages extends Thread {
 	private String confidante;
 	private String person_shared;
 	private String address;
+	private DatabaseHandler db;
     
 
     public ShareMessages(Context mContext, String confidante,
@@ -49,36 +48,33 @@ public class ShareMessages extends Thread {
     	ParseAnalytics.trackEvent("Shared Conversation", dimensions);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
     public void run() {
-		
-		//shareViaParse();
-		ParseQuery<ParseObject> query = ParseQuery.getQuery("Channels");
-		Log.i("searching channell", ContentUtils.setChannel(confidante));
-		query.whereEqualTo("channel", ContentUtils.setChannel(confidante));
-		query.findInBackground(new FindCallback<ParseObject>() {
-		    public void done(List<ParseObject> list, ParseException e) {
-		        if (e==null && list.size()>0) {
+		  String sender = ParseUser.getCurrentUser().getUsername();
+		  String convoID = sender+address;
+		  db = new DatabaseHandler(parent);
+		  
+		  for(SMSMessage m: messages) {
+			  db.addSharedMessage(convoID, m, TextBasedSmsColumns.MESSAGE_TYPE_SENT);
+		  }
 
-		        } else {
-		        	SendUtils.shareViaSMS(parent, person_shared, confidante, messages);
-		    	/**	Log.i("about to search numbers","in sharemessages");
-		    		HashMap<String, Object> params = new HashMap<String, Object>();
-		    		params.put("to", confidante);
-		    		params.put("from", ParseUser.getCurrentUser().get("username"));
-		    		ParseCloud.callFunctionInBackground("getTwilioNumber", params, new FunctionCallback<String>() {
-		    		   public void done(String num, ParseException e) {
-		    		       if (e == null) {
-		    		    	   Log.i("found number",num);
-		    		       } else {
-		    		    	   Log.i("no numbers","no numbers");
-		    		    	   
-		    		       }
-		    		   }
-		    		});  **/        	
-		        }
-		    }
-		});		
+		  db.addSharedConversation(convoID, confidante, person_shared,
+					address, sender, TextBasedSmsColumns.MESSAGE_TYPE_SENT);	
+		  db.close();
+		  
+		  HashMap<String, Object> params = new HashMap<String, Object>();
+		  params.put("phoneNumber", ContentUtils.addCountryCode(confidante));
+		  ParseCloud.callFunctionInBackground("findUser", params, new FunctionCallback() {
+			@Override
+			public void done(Object arg0, ParseException e) {
+		         if (e != null) {
+		        	 	Log.i("nothing found", "going to send a text " + ContentUtils.addCountryCode(confidante));
+			            SendUtils.shareViaSMS(parent, person_shared, confidante, messages);     
+			         }
+			}
+		  });		  
+
 			
       
     }

@@ -247,7 +247,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 				ImageView p = new ImageView(mContext);
 				
 				final String path = store.getPhotoPath(confidante);
-				if(!path.isEmpty()) {
+				if(path!=null && !path.isEmpty()) {
 					p.setImageDrawable(Drawable.createFromPath(path));
 					p.setOnClickListener(new OnClickListener() {
 						@Override

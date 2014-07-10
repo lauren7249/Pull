@@ -180,10 +180,11 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 		ImageView read_indicator = (ImageView) v.findViewById(R.id.indicator);
 		ImageView share = (ImageView) v.findViewById(R.id.share_button);
 
-	    final ImageView other_pic = 
+	    final ImageView other_pic_theirs = 
 	    		(ImageView) v.findViewById(R.id.other_pic);
 	    final ImageView other_pic_mine = 
 	    		(ImageView) v.findViewById(R.id.other_pic_mine);
+	    final ImageView other_pic;
 	    
 	    final String number, friend_name;
 		String name="", facebookID="";
@@ -196,9 +197,10 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	snippet_view.setVisibility(View.VISIBLE);
     	if(type == TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
     		number = confidante;
+    		other_pic = other_pic_mine;
     		friend_name = ContentUtils.getContactDisplayNameByNumber(context, number);
-    		other_pic.setVisibility(View.GONE);
-    		other_pic_mine.setVisibility(View.VISIBLE);
+    		other_pic_theirs.setVisibility(View.GONE);
+    		other_pic.setVisibility(View.VISIBLE);
     		row.setGravity(Gravity.RIGHT);
     		name_view.setGravity(Gravity.RIGHT);
     		snippet_view.setGravity(Gravity.RIGHT);
@@ -206,6 +208,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     		
     	} else {
     		number = sharer;
+    		other_pic = other_pic_theirs;
     		friend_name = ContentUtils.getContactDisplayNameByNumber(context, number);
     		other_pic_mine.setVisibility(View.GONE);
     		other_pic.setVisibility(View.VISIBLE);

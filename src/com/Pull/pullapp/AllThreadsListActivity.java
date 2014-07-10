@@ -223,6 +223,10 @@ public class AllThreadsListActivity extends SherlockListActivity {
 					threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_SHARER)));
 			intent.putExtra(Constants.EXTRA_SHARED_ADDRESS, 
 					threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_CONVERSATION_FROM)));
+			intent.putExtra(Constants.EXTRA_SHARED_CONFIDANTE, 
+					threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_SHARED_WITH)));		
+			intent.putExtra(Constants.EXTRA_SHARED_CONVO_TYPE, 
+					threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_CONVO_TYPE)));			
 			//Log.i(Constants.EXTRA_SHARED_ADDRESS, threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_CONVERSATION_FROM)));
 	        startActivity(intent);	
 	        return;

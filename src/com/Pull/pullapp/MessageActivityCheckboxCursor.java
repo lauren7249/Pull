@@ -68,6 +68,7 @@ import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+import com.bea.xml.stream.samples.Parse;
 import com.commonsware.cwac.merge.MergeAdapter;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.FindCallback;
@@ -131,6 +132,8 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	private String shared_confidante;
 	private String shared_address;
 	private String confidante_name;
+	private String shared_conversant;
+	private int shared_convo_type;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -187,11 +190,12 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			thread_id = getIntent().getStringExtra(Constants.EXTRA_THREAD_ID); 
 			
 			//right now only for received ones
-			//shared_confidante = getIntent().getStringExtra(Constants.EXTRA_SHARED_CONFIDANTE); 
+			shared_confidante = getIntent().getStringExtra(Constants.EXTRA_SHARED_CONFIDANTE); 
 			shared_sender = getIntent().getStringExtra(Constants.EXTRA_SHARED_SENDER); 
 			shared_convoID = getIntent().getStringExtra(Constants.EXTRA_SHARED_CONVERSATION_ID); 
 			person_shared = getIntent().getStringExtra(Constants.EXTRA_SHARED_NAME); 
-			shared_address = getIntent().getStringExtra(Constants.EXTRA_SHARED_ADDRESS); 
+			shared_address = getIntent().getStringExtra(Constants.EXTRA_SHARED_ADDRESS);
+			shared_convo_type = getIntent().getIntExtra(Constants.EXTRA_SHARED_CONVO_TYPE,-1);
 			
 			if(number!=null && name!=null) {
 				populateMessages();
@@ -496,14 +500,18 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		setListAdapter(merge_adapter);	
 		mListView.setSelection(merge_adapter.getCount()-1);		
 		viewSwitcher.setDisplayedChild(0);
-		text.setHint("Write a comment to " + store.getName(shared_sender));
+		if(shared_convo_type==TextBasedSmsColumns.MESSAGE_TYPE_INBOX) 
+			shared_conversant = shared_sender;
+		else 
+			shared_conversant = shared_confidante;
+		text.setHint("Write a comment to " + store.getName(shared_conversant));
 		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.comment_indicator));
 		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				popup = new SimplePopupWindow(v);
 				popup.showLikePopDownMenu();
-				popup.setMessage("Your comments are only visible to " + store.getName(shared_sender));
+				popup.setMessage("Your comments are only visible to " + store.getName(shared_conversant));
 			}
 		});		
 		pickDelay.setVisibility(View.GONE);
@@ -512,7 +520,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			@Override
 			public void onClick(View v) {
 				try {
-					sendComment(shared_sender, shared_address, text.getText().toString());
+					sendComment(shared_conversant, shared_address, text.getText().toString());
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
