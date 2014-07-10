@@ -36,7 +36,6 @@ import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.SendUtils;
 import com.Pull.pullapp.util.UserInfoStore;
-import com.facebook.widget.ProfilePictureView;
 
 public class MessageCursorAdapter extends CursorAdapter {
 	
@@ -44,7 +43,6 @@ public class MessageCursorAdapter extends CursorAdapter {
 	public TreeSet<SMSMessage> check_hash;
 	public HashMap<Long,Integer> delayedMessages;
 	private String other_person, other_person_name;
-	private String facebookID;
 	private Activity activity;
 	private UserInfoStore store;
 	private boolean isMyConversation;
@@ -58,7 +56,6 @@ public class MessageCursorAdapter extends CursorAdapter {
     	store = new UserInfoStore(context);
     	other_person = ContentUtils.addCountryCode(number);
     	other_person_name = store.getName(other_person);
-		facebookID = store.getFacebookID(other_person);
 		this.activity = activity;
 		this.isMyConversation = isMine;
    	    	
@@ -144,7 +141,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 				holder.messageBox.setBackgroundResource(R.drawable.blank_incoming);
 				holder.message.setTypeface(Typeface.SANS_SERIF, Typeface.ITALIC);
 			}else
-				//holder.messageBox.setBackgroundResource(R.drawable.incoming);
+				holder.messageBox.setBackgroundResource(R.drawable.incoming);
 			layoutParams.gravity = Gravity.RIGHT;
 			holder.message.setGravity(Gravity.LEFT);
 			holder.time.setGravity(Gravity.LEFT);					
@@ -245,20 +242,20 @@ public class MessageCursorAdapter extends CursorAdapter {
 				}
 				
 			});
-			for(String confidante : sharedWith) {
+			for(final String confidante : sharedWith) {
 				final String name = store.getName(confidante);
-				ProfilePictureView p = new ProfilePictureView(mContext);
-				p.setPresetSize(ProfilePictureView.SMALL);					
-				final String fbID = store.getFacebookID(confidante);
-				if(!fbID.isEmpty()) {
-					p.setProfileId(fbID);
+				ImageView p = new ImageView(mContext);
+				
+				final String path = store.getPhotoPath(confidante);
+				if(!path.isEmpty()) {
+					p.setImageDrawable(Drawable.createFromPath(path));
 					p.setOnClickListener(new OnClickListener() {
 						@Override
 						public void onClick(View v) {
 							View pullProfileView = View.inflate(mContext, R.layout.pull_profile, null);
-							ProfilePictureView pp = (ProfilePictureView) pullProfileView
+							ImageView pp = (ImageView) pullProfileView
 									.findViewById(R.id.contact_image);
-							pp.setProfileId(fbID);
+							pp.setImageDrawable(Drawable.createFromPath(path));
 							AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 							builder.setTitle(name);
 					        builder.setCancelable(true).setView(pullProfileView)	
@@ -278,9 +275,6 @@ public class MessageCursorAdapter extends CursorAdapter {
 					//params.setMargins(0, 0, 0, 0);
 					tv.setText(name);
 					tv.setHint(confidante);
-					//tv.setLayoutParams(holder.shared_with_text.getLayoutParams());
-					//if(message.isSentByMe()) tv.setBackgroundResource(R.drawable.outgoing);
-					//else tv.setBackgroundResource(R.drawable.incoming);
 					tv.setTextColor(R.color.textColor);
 					//tv.setPadding(15, 15, 15, 15);
 					tv.setGravity(Gravity.LEFT|Gravity.TOP);

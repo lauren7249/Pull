@@ -27,7 +27,6 @@ import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.SendUtils;
 import com.Pull.pullapp.util.UserInfoStore;
-import com.facebook.widget.ProfilePictureView;
 public class ThreadItemsCursorAdapter extends CursorAdapter {
 	
 	public HashMap<Integer,String> recipientID_hash;
@@ -80,8 +79,6 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 		ImageView share = (ImageView) v.findViewById(R.id.share_button);
 	    final ImageView other_pic_mine = 
 	    		(ImageView) v.findViewById(R.id.other_pic_mine);
-	    final ProfilePictureView their_pic = 
-	    		(ProfilePictureView) v.findViewById(R.id.profile_pic);
 	    final ImageView other_pic = 
 	    		(ImageView) v.findViewById(R.id.other_pic);
 
@@ -122,10 +119,9 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 
     	other_pic_mine.setVisibility(View.GONE);
 		other_pic.setVisibility(View.VISIBLE);
-		
-		their_pic.setVisibility(View.GONE);
-		
+
     	if(!store.isFriend(number)) {
+    		other_pic.setImageDrawable(null);
     		other_pic.setBackgroundResource(R.drawable.add_ppl);
     		other_pic.setOnClickListener(new OnClickListener(){
 	
@@ -183,10 +179,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 		TextView snippet_view = (TextView) v.findViewById(R.id.txt_message_info);
 		ImageView read_indicator = (ImageView) v.findViewById(R.id.indicator);
 		ImageView share = (ImageView) v.findViewById(R.id.share_button);
-	    final ProfilePictureView their_pic = 
-	    		(ProfilePictureView) v.findViewById(R.id.profile_pic);
-	    final ProfilePictureView my_pic = 
-	    		(ProfilePictureView) v.findViewById(R.id.profile_pic_mine);
+
 	    final ImageView other_pic = 
 	    		(ImageView) v.findViewById(R.id.other_pic);
 	    final ImageView other_pic_mine = 
@@ -199,8 +192,6 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	String sharer = threads.getString(2);	
     	int type = Integer.valueOf(threads.getString(4));
     	
-    	their_pic.setVisibility(View.GONE);
-    	my_pic.setVisibility(View.GONE);
     	share.setVisibility(View.GONE);
     	snippet_view.setVisibility(View.VISIBLE);
     	if(type == TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
@@ -235,6 +226,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	name_view.setText(name);
     	
     	if(!store.isFriend(number)) {
+    		other_pic.setImageDrawable(null);
     		other_pic.setBackgroundResource(R.drawable.add_ppl);
     		other_pic.setOnClickListener(new OnClickListener(){
 	
