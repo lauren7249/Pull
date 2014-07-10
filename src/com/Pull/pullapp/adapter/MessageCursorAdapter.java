@@ -12,6 +12,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.widget.CursorAdapter;
@@ -114,7 +115,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.time = (TextView) v.findViewById(R.id.message_time);
 		holder.box = (CheckBox) v.findViewById(R.id.cbBox);
 		holder.edit = (Button) v.findViewById(R.id.edit_message_button);	
-		holder.pic = (ProfilePictureView) v.findViewById(R.id.contact_image);
+		holder.pic = (ImageView) v.findViewById(R.id.contact_image);
 		holder.sharedWith = (LinearLayout) v.findViewById(R.id.shared_with);
 		holder.shared_with_text = (TextView) v.findViewById(R.id.shared_with_text);
 		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);
@@ -143,7 +144,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 				holder.messageBox.setBackgroundResource(R.drawable.blank_incoming);
 				holder.message.setTypeface(Typeface.SANS_SERIF, Typeface.ITALIC);
 			}else
-				holder.messageBox.setBackgroundResource(R.drawable.incoming);
+				//holder.messageBox.setBackgroundResource(R.drawable.incoming);
 			layoutParams.gravity = Gravity.RIGHT;
 			holder.message.setGravity(Gravity.LEFT);
 			holder.time.setGravity(Gravity.LEFT);					
@@ -222,13 +223,11 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.time = (TextView) v.findViewById(R.id.message_time);
 		holder.box = (CheckBox) v.findViewById(R.id.cbBox);
 		holder.edit = (Button) v.findViewById(R.id.edit_message_button);	
-		holder.pic = (ProfilePictureView) v.findViewById(R.id.contact_image);
+		holder.pic = (ImageView) v.findViewById(R.id.contact_image);
 		holder.sharedWith = (LinearLayout) v.findViewById(R.id.shared_with);
 		holder.shared_with_text = (TextView) v.findViewById(R.id.shared_with_text);
 		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);
 		
-		//int id = Resources.getSystem().getIdentifier("btn_check_holo_light", "drawable", "android");
-		//holder.box.setButtonDrawable(id);
 		holder.shared_with_text.setVisibility(View.GONE);
 		
 		Set<String> sharedWith = message.getConfidantes();
@@ -386,8 +385,8 @@ public class MessageCursorAdapter extends CursorAdapter {
 		//If not mine then it is from sender to show yellow background and align to left
 		else
 		{
-	    	if(facebookID!=null && facebookID.length()>0) {
-	    		holder.pic.setProfileId(facebookID);
+	    	if(store.getPhotoPath(address)!=null) {
+	    		holder.pic.setImageDrawable(Drawable.createFromPath(store.getPhotoPath(address)));
 	    		holder.pic.setVisibility(View.VISIBLE);
 	    	}
 	    	else holder.pic.setVisibility(View.GONE);			
@@ -424,7 +423,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		LinearLayout messageBox, sharedWith;
 		CheckBox box;
 		Button edit;
-		ProfilePictureView pic;
+		ImageView pic;
 		ImageView addPPl;
 	}
 	

@@ -37,7 +37,7 @@ public class DownloadFriendPhoto extends Thread {
 			@Override
 			public void done(ParseUser user, ParseException e1) {
 				if(e1==null && user !=null) {
-					ParseFile photo = (ParseFile) user.get("phofilePhoto");
+					ParseFile photo = (ParseFile) user.getParseFile("profilePhoto");
 					if(photo!=null) {
 						photo.getDataInBackground(new GetDataCallback() {
 					        public void done(byte[] data, ParseException e2) {
