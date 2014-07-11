@@ -141,11 +141,6 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 	public void addConfidante(String to) {
 		String number = ContentUtils.addCountryCode(to);	
 		store.addSharedWith(number, this);
-		//String userid = store.getUserID(number);
-		//also gotta do this on the backend if we don't know the userid because they are not friends
-		//if(userid!=null && !userid.isEmpty()) acl.setReadAccess(userid, true);
-		ShareEvent e = new ShareEvent(number,System.currentTimeMillis(), this);
-		e.saveInBackground();	
 	}
 	
 	public void schedule(long date) {

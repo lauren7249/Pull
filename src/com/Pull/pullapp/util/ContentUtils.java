@@ -251,7 +251,7 @@ public class ContentUtils {
 	        
 			Cursor messages_cursor = mContext.getContentResolver().query(Uri.parse("content://sms"),
 					variables,querystring ,null,TextBasedSmsColumns.DATE);	      
-			Log.i("messages_cursor size", " " + messages_cursor.getCount());
+			Log.i("pending_messages_cursor size", " " + messages_cursor.getCount());
 	        return messages_cursor;
 		}		
 		public static String saveToInternalStorage(Context mContext, Bitmap bitmapImage, String name){

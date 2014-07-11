@@ -234,7 +234,7 @@ public class SendUtils  {
 		
 		long currentDate = System.currentTimeMillis();
 		SendUtils.setSendAlarm(am, app_plug, 1, currentDate, confidante, parent);
-        int i = 1;
+        int i = messages.size();
         Log.i("messages size", " " + messages.size());
         for(SMSMessage m: messages) {
         	long longdate = m.getDate();
@@ -244,7 +244,7 @@ public class SendUtils  {
         	else text = person_shared + date + m.getMessage();
         	int elapse = (int) (currentDate + i*1000);
         	SendUtils.setSendAlarm(am, text, (int) elapse, (long) elapse, confidante, parent);
-        	i++;
+        	i--;
     	}
 		
 	}

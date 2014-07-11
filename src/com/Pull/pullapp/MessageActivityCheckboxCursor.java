@@ -134,6 +134,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	private String confidante_name;
 	private String shared_conversant;
 	private int shared_convo_type;
+	private Cursor messages_cursor;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -233,6 +234,14 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			public void onReceive(Context context, Intent intent) {
 				String action = intent.getAction();
 				
+				if(action.equals(Constants.ACTION_DATABASE_UPDATE)){
+					dh = new DatabaseHandler(mContext);
+					messages_cursor = dh.getSharedMessagesCursor(shared_convoID);
+					messages_adapter.swapCursor(messages_cursor);
+					messages_adapter.notifyDataSetChanged();
+					mListView.setSelection(mListView.getCount()-1);
+					return;
+				}
 				if(action.equals(Constants.ACTION_SHARE_STATE_CHANGED)) {
 					hideKeyboard();
 					if(messages_adapter.check_hash.size()==0) {
@@ -471,6 +480,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		intentFilter.addAction(Constants.ACTION_SMS_DELIVERED);		
 		intentFilter.addAction(Constants.ACTION_SHARE_COMPLETE);	
 		intentFilter.addAction(Constants.ACTION_SHARE_STATE_CHANGED);	
+		intentFilter.addAction(Constants.ACTION_DATABASE_UPDATE);
 		registerReceiver(mBroadcastReceiver, intentFilter);	
 		
 		calendar.get(Calendar.HOUR_OF_DAY);
@@ -484,7 +494,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	private void populateMessages(){
 		loader.execute(); 
 		isPopulated = true;
-		Cursor messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
+		messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
 		messages_adapter = new MessageCursorAdapter(mContext, messages_cursor, number, this, true);
 		merge_adapter.addAdapter(messages_adapter);
 		merge_adapter.addAdapter(queue_adapter);
@@ -494,11 +504,10 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	}
 	private void populateSharedMessages(final String shared_convoID) {
 		dh = new DatabaseHandler(mContext);
-		Cursor c = dh.getSharedMessagesCursor(shared_convoID);
-		messages_adapter = new MessageCursorAdapter(mContext, c, this, false);
-		merge_adapter.addAdapter(messages_adapter);
-		setListAdapter(merge_adapter);	
-		mListView.setSelection(merge_adapter.getCount()-1);		
+		messages_cursor = dh.getSharedMessagesCursor(shared_convoID);
+		messages_adapter = new MessageCursorAdapter(mContext, messages_cursor, this, false);
+		setListAdapter(messages_adapter);	
+		mListView.setSelection(messages_adapter.getCount()-1);		
 		viewSwitcher.setDisplayedChild(0);
 		if(shared_convo_type==TextBasedSmsColumns.MESSAGE_TYPE_INBOX) 
 			shared_conversant = shared_sender;
@@ -545,11 +554,10 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		
 		dh.addSharedMessage(shared_convoID, comment, TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
 		dh = new DatabaseHandler(mContext);
-		Cursor c = dh.getSharedMessagesCursor(shared_convoID);
+		messages_cursor = dh.getSharedMessagesCursor(shared_convoID);
 		//dh.close();
-		messages_adapter.swapCursor(c);
+		messages_adapter.swapCursor(messages_cursor);
 		messages_adapter.notifyDataSetChanged();
-		merge_adapter.notifyDataSetChanged();
 		text.setText("");
 		hideKeyboard();
 		mListView.setSelection(mListView.getCount()-1);
@@ -860,9 +868,10 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		confidantes = null;
 		mConfidantesEditor.setText("");						
 		viewSwitcher.setDisplayedChild(0);
-		mListView.setSelection(merge_adapter.getCount()-1);			
+		hideKeyboard();
+		mListView.setSelection(mListView.getCount()-1);			
 		share.setClickable(true);		
-
+		
 	}	    
 	
     
@@ -919,20 +928,20 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 
 	private class GetMessages extends AsyncTask<Void,SMSMessage,Void> {
 		DatabaseHandler dh;
-	  	Cursor messages_cursor;
+	  	Cursor pending_messages_cursor;
 	  	SMSMessage m;
 	  	@Override
 		protected Void doInBackground(Void... params) {
 				
 	        dh = new DatabaseHandler(mContext);
-	        messages_cursor = dh.getPendingMessagesCursor(number);    
-	     //   Log.i("messages_cursor","number is " + number);
-	       // Log.i("messages_cursor","size is " + messages_cursor.getCount());
-	        if(messages_cursor.moveToFirst()) {
-	        	m = getNextOutboxMessage(messages_cursor);
+	        pending_messages_cursor = dh.getPendingMessagesCursor(number);    
+	     //   Log.i("pending_messages_cursor","number is " + number);
+	       // Log.i("pending_messages_cursor","size is " + pending_messages_cursor.getCount());
+	        if(pending_messages_cursor.moveToFirst()) {
+	        	m = getNextOutboxMessage(pending_messages_cursor);
 	        	publishProgress(m);	
-	        	while(messages_cursor.moveToNext()) {
-	        		m = getNextOutboxMessage(messages_cursor);
+	        	while(pending_messages_cursor.moveToNext()) {
+	        		m = getNextOutboxMessage(pending_messages_cursor);
 	        		publishProgress(m);	
 	        		if (isCancelled()) break;
 	        	}	     
@@ -947,7 +956,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		@Override
 	    protected void onPostExecute(Void result) {
 			super.onPostExecute(result);
-			messages_cursor.close();
+			pending_messages_cursor.close();
 			dh.close();
 	    }			
 

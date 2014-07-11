@@ -172,17 +172,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
                 final String person_shared = json.getString("person_shared");
                 final String address = ContentUtils.addCountryCode(json.getString("address"));
                 final int type;
-              /*  if(sender.equals(ParseUser.getCurrentUser().getUsername())) 
-                	type = TextBasedSmsColumns.MESSAGE_TYPE_SENT;
-                else */
-                	type = TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
-                /*JSONArray arr = json.getJSONArray("messageIDs");
-                ArrayList<Integer> hashcodes = new ArrayList<Integer>();
-                final TreeSet<SMSMessage> messages;
-                for(int i=0; i<arr.length(); i++){
-                	hashcodes.add(arr.getInt(i));
-                }
-                Log.i("hashcodes", ""+hashcodes.toString());*/
+                type = TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
             	ParseQuery<SMSMessage> query = ParseQuery.getQuery("SMSMessage");
             	//query.whereContainedIn("hashCode", hashcodes);
             	query.whereEqualTo("username", sender);  

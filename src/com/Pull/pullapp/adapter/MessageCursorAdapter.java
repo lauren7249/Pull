@@ -50,7 +50,7 @@ public class MessageCursorAdapter extends CursorAdapter {
     @SuppressWarnings("deprecation")
 	public MessageCursorAdapter(Context context, Cursor cursor, String number, Activity activity, 
 			boolean isMine) {
-    	super(context, cursor);
+    	super(context, cursor, FLAG_REGISTER_CONTENT_OBSERVER);
     	check_hash = new TreeSet<SMSMessage>();
     	delayedMessages = new HashMap<Long,Integer>();
     	store = new UserInfoStore(context);
@@ -228,7 +228,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.shared_with_text.setVisibility(View.GONE);
 		
 		Set<String> sharedWith = message.getConfidantes();
-		holder.sharedWith.removeAllViews();
+		holder.sharedWith.removeAllViewsInLayout();
 		if(sharedWith.size()>0) {
 			holder.shared_with_text.setVisibility(View.VISIBLE);
 			holder.shared_with_text.setOnClickListener(new OnClickListener(){
@@ -244,10 +244,13 @@ public class MessageCursorAdapter extends CursorAdapter {
 			});
 			for(final String confidante : sharedWith) {
 				final String name = store.getName(confidante);
+				LayoutParams params = new LayoutParams(90,90);				
 				ImageView p = new ImageView(mContext);
 				
 				final String path = store.getPhotoPath(confidante);
 				if(path!=null && !path.isEmpty()) {
+					p.setLayoutParams(params);
+					p.setPadding(5, 5, 5, 5);
 					p.setImageDrawable(Drawable.createFromPath(path));
 					p.setOnClickListener(new OnClickListener() {
 						@Override
@@ -270,13 +273,12 @@ public class MessageCursorAdapter extends CursorAdapter {
 					holder.sharedWith.addView(p);
 				} else {
 					final TextView tv = new TextView(mContext);
-					LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT,
+					params = new LayoutParams(LayoutParams.WRAP_CONTENT,
 							LayoutParams.MATCH_PARENT);
-					//params.setMargins(0, 0, 0, 0);
+					tv.setPadding(5, 5, 5, 5);
 					tv.setText(name);
 					tv.setHint(confidante);
 					tv.setTextColor(R.color.textColor);
-					//tv.setPadding(15, 15, 15, 15);
 					tv.setGravity(Gravity.LEFT|Gravity.TOP);
 					tv.setLayoutParams(params);
 					if(!store.isFriend(confidante)) tv.setOnClickListener(new OnClickListener() {
@@ -330,16 +332,16 @@ public class MessageCursorAdapter extends CursorAdapter {
         	LayoutParams layoutParams=(LayoutParams) holder.addPPl.getLayoutParams();
 			if(message.isSentByMe()) {
 				holder.messageBox.setBackgroundResource(R.drawable.outgoing);
-				holder.message.setPadding(40, 0, 10, 0);
-				holder.time.setPadding(40, 0, 10, 0);
+				holder.message.setPadding(50, 0, 10, 0);
+				holder.time.setPadding(50, 0, 10, 0);
 				layoutParams.gravity = Gravity.LEFT;
 				//layoutParams.leftMargin = -40;
 				holder.message.setGravity(Gravity.RIGHT);
 				holder.time.setGravity(Gravity.RIGHT);				
 			}else {
 				holder.messageBox.setBackgroundResource(R.drawable.incoming);  
-				holder.message.setPadding(10, 0, 40, 0);
-				holder.time.setPadding(10, 0, 40, 0);
+				holder.message.setPadding(10, 0, 50, 0);
+				holder.time.setPadding(10, 0, 50, 0);
 				layoutParams.gravity = Gravity.RIGHT;
 				//layoutParams.rightMargin = -40;
 				holder.message.setGravity(Gravity.LEFT);

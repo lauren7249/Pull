@@ -133,6 +133,7 @@ public class Constants {
 	public static final int MESSAGE_TYPE_SENT_COMMENT = "sentcomment".hashCode();
 	public static final int MESSAGE_TYPE_RECEIVED_COMMENT = "receivedcomment".hashCode();
 	public static final String ACTION_FACEBOOK_PHOTO_OBTAINED =  PACKAGE_NAME + ".util.ACTION_FACEBOOK_PHOTO_OBTAINED";
+	public static final String ACTION_DATABASE_UPDATE = PACKAGE_NAME + ".util.ACTION_DATABASE_UPDATE";
 	
 	
 	

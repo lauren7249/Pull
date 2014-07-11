@@ -10,6 +10,7 @@ import java.util.TreeSet;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -51,9 +52,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private SQLiteDatabase db;
 
 	private String KEY_HASHCODE = "hashcode";
+
+	private Context mContext;
     public DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         db = this.getWritableDatabase();
+        mContext = context;
     }
  
     // Creating Tables
@@ -146,6 +150,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         if(exists(convo_id)) db.update(TABLE_SHARED_CONVERSATIONS, values, KEY_ID+"="+convo_id, null);
         else db.insert(TABLE_SHARED_CONVERSATIONS, null, values);
         int count = this.getSharedCount(type);     
+	    Intent intent = new Intent(Constants.ACTION_DATABASE_UPDATE);
+        mContext.sendBroadcast(intent);		        
         return count;    	
     }
 	public void updateSharedConversation(SharedConversation shared) {
