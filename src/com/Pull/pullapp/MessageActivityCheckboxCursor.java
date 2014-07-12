@@ -234,7 +234,9 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			public void onReceive(Context context, Intent intent) {
 				String action = intent.getAction();
 				
-				if(action.equals(Constants.ACTION_DATABASE_UPDATE)){
+				if(action.equals(Constants.ACTION_DATABASE_UPDATE) && shared_convoID!=null){
+					if(!intent.getStringExtra(Constants.EXTRA_SHARED_CONVERSATION_ID).equals(shared_convoID)) 
+						return;
 					dh = new DatabaseHandler(mContext);
 					messages_cursor = dh.getSharedMessagesCursor(shared_convoID);
 					messages_adapter.swapCursor(messages_cursor);
@@ -845,6 +847,10 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		}		
 		
         share.setClickable(false);		
+		mConfidantesEditor.setText("");						
+		viewSwitcher.setDisplayedChild(0);
+		hideKeyboard();
+		mListView.setSelection(mListView.getCount()-1);		        
         TreeSet<SMSMessage> messagesHash = (TreeSet<SMSMessage>) messages_adapter.check_hash.clone();
 		for(SMSMessage m : messagesHash) {
 			for(String confidante : confidantes) {
@@ -865,11 +871,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		messages_adapter.showCheckboxes = false;	
 		messages_adapter.notifyDataSetChanged();
 		mConfidantesEditor.setText("");
-		confidantes = null;
-		mConfidantesEditor.setText("");						
-		viewSwitcher.setDisplayedChild(0);
-		hideKeyboard();
-		mListView.setSelection(mListView.getCount()-1);			
+		confidantes = null;	
 		share.setClickable(true);		
 		
 	}	    
