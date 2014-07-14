@@ -135,7 +135,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	private String shared_address;
 	private String confidante_name;
 	private String shared_conversant;
-	private int shared_convo_type;
+	private String shared_convo_type;
 	private Cursor messages_cursor;
 
 	@Override
@@ -197,7 +197,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			shared_convoID = getIntent().getStringExtra(Constants.EXTRA_SHARED_CONVERSATION_ID); 
 			person_shared = getIntent().getStringExtra(Constants.EXTRA_SHARED_NAME); 
 			shared_address = getIntent().getStringExtra(Constants.EXTRA_SHARED_ADDRESS);
-			shared_convo_type = Integer.parseInt(getIntent().getStringExtra(Constants.EXTRA_SHARED_CONVO_TYPE));
+			shared_convo_type = getIntent().getStringExtra(Constants.EXTRA_SHARED_CONVO_TYPE);
 			Log.i("shared_convo_type",""+shared_convo_type );
 			if(number!=null && name!=null) {
 				populateMessages();
@@ -509,7 +509,8 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		setListAdapter(messages_adapter);	
 		mListView.setSelection(messages_adapter.getCount()-1);		
 		viewSwitcher.setDisplayedChild(0);
-		if(shared_convo_type==TextBasedSmsColumns.MESSAGE_TYPE_INBOX) 
+		if(shared_convo_type!=null && 
+				Integer.parseInt(shared_convo_type)==TextBasedSmsColumns.MESSAGE_TYPE_INBOX) 
 			shared_conversant = shared_sender;
 		else 
 			shared_conversant = shared_confidante;
