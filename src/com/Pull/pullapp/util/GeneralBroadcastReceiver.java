@@ -109,12 +109,14 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         if (action.equals(Constants.ACTION_SEND_DELAYED_TEXT)) {
             String recipient = intent.getStringExtra(Constants.EXTRA_RECIPIENT);
             String message = intent.getStringExtra(Constants.EXTRA_MESSAGE_BODY);
+            
             Log.i("new message",message);
             long launchedOn = intent.getLongExtra(Constants.EXTRA_TIME_LAUNCHED,0);
-            
-            //dont send if the user canceled (removed from outbox) or received a message since launching
+            long scheduledFor = intent.getLongExtra(Constants.EXTRA_TIME_SCHEDULED_FOR,0);
+			//dont send if the user canceled (removed from outbox) or received a message since launching
             if(!messagedAfterLaunch(context,recipient,launchedOn) &&  
-            		SendUtils.removeFromOutbox(context, message, recipient, launchedOn, false)>0) {
+            		SendUtils.removeFromOutbox(context, message, recipient, launchedOn, scheduledFor, false)>0) 
+            {
             	SendUtils.sendsms(context, recipient, message, launchedOn, true);
 
             }

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<integer-array name="TimesData">
+	    <item>0</item>
+	    <item>1</item>
+	</integer-array>
+	<string-array name="Times">
+	    <item>0 Seconds</item>
+	    <item>1 Second</item>
+	</string-array>    
+</resources>

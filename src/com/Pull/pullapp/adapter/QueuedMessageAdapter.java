@@ -137,8 +137,7 @@ public class QueuedMessageAdapter extends BaseAdapter{
 			public void onClick(View v) {
 				
 				SendUtils.removeFromOutbox(mContext, message.getMessage(),
-						message.getAddress(), message.launchedOn, true);
-
+						message.getAddress(), message.launchedOn, message.getFutureSendTime(), true);
 				
 			};
         });  
@@ -161,5 +160,6 @@ public class QueuedMessageAdapter extends BaseAdapter{
 		// TODO Auto-generated method stub
 		return 0;
 	}
+
  
 }

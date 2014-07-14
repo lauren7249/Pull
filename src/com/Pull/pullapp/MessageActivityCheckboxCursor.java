@@ -3,7 +3,10 @@ package com.Pull.pullapp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
 
 import org.json.JSONException;
@@ -68,7 +71,6 @@ import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
-import com.bea.xml.stream.samples.Parse;
 import com.commonsware.cwac.merge.MergeAdapter;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.FindCallback;
@@ -88,7 +90,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	private Context mContext;
 	private final Calendar calendar = Calendar.getInstance();
 	private Button pickDelay, send, share;
-	private GetMessages loader;
+	private GetOutboxMessages loader;
 	private boolean isPopulated;
 	private CustomDateTimePicker customDateTimePicker;
 	private Date sendDate;
@@ -162,7 +164,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		});		
 		
 		delayPressed = false;
-		loader = new GetMessages();
+		loader = new GetOutboxMessages();
 		
 		mRecipientsAdapter = new RecipientsAdapter(this);
 		mConfidantesEditor = (RecipientsEditor)findViewById(R.id.confidantes_editor);
@@ -190,14 +192,13 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			name =  getIntent().getStringExtra(Constants.EXTRA_NAME); 
 			thread_id = getIntent().getStringExtra(Constants.EXTRA_THREAD_ID); 
 			
-			//right now only for received ones
 			shared_confidante = getIntent().getStringExtra(Constants.EXTRA_SHARED_CONFIDANTE); 
 			shared_sender = getIntent().getStringExtra(Constants.EXTRA_SHARED_SENDER); 
 			shared_convoID = getIntent().getStringExtra(Constants.EXTRA_SHARED_CONVERSATION_ID); 
 			person_shared = getIntent().getStringExtra(Constants.EXTRA_SHARED_NAME); 
 			shared_address = getIntent().getStringExtra(Constants.EXTRA_SHARED_ADDRESS);
-			shared_convo_type = getIntent().getIntExtra(Constants.EXTRA_SHARED_CONVO_TYPE,-1);
-			
+			shared_convo_type = Integer.parseInt(getIntent().getStringExtra(Constants.EXTRA_SHARED_CONVO_TYPE));
+			Log.i("shared_convo_type",""+shared_convo_type );
 			if(number!=null && name!=null) {
 				populateMessages();
 				
@@ -286,6 +287,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 				if(!intent_number.equals(number)) return;
 
 				Long scheduledOn = intent.getLongExtra(Constants.EXTRA_TIME_LAUNCHED, 0);
+				Long scheduledFor = intent.getLongExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, 0);
 				String intent_message = intent.getStringExtra(Constants.EXTRA_MESSAGE_BODY);
 
 				if(action.equals(Constants.ACTION_SMS_DELIVERED)) {
@@ -293,9 +295,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 						case Activity.RESULT_OK: {
 								
 							if(queue_adapter.delayedMessages.containsKey(scheduledOn) && scheduledOn>0) {
-								int id = queue_adapter.delayedMessages.get(scheduledOn);
-								removeMessage(messages.size() - id - 1);
-								queue_adapter.delayedMessages.remove(scheduledOn);
+								removeMessage();
 							}
 							break;
 						}
@@ -306,20 +306,18 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 						}
 					}
 				} else if(action.equals(Constants.ACTION_SMS_OUTBOXED)) {
-					Long scheduledFor = intent.getLongExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, 0);
+					
 					queue_adapter.delayedMessages.put(scheduledOn, messages.size());
+					Log.i("tag","queue_adapter.delayedMessages.put " + messages.size());
 					SMSMessage m = new SMSMessage(scheduledFor, intent_message, intent_number, TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
 					m.schedule(scheduledFor);
 					m.launchedOn = scheduledOn;
 					addNewMessage(m, false);
 
 				} else if(action.equals(Constants.ACTION_SMS_UNOUTBOXED)) {
-					
-					int id = queue_adapter.delayedMessages.get(scheduledOn);
-					removeMessage(messages.size() - id - 1);
-					queue_adapter.delayedMessages.remove(id);
-					queue_adapter.notifyDataSetChanged();
-					merge_adapter.notifyDataSetChanged();
+					sendDate = new Date(scheduledFor);
+					updateDelayButton();
+					removeMessage();
 					text.setText(intent_message);
 					
 				} 
@@ -411,7 +409,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 			public void onClick(View v) {
 				popup = new SimplePopupWindow(v);
 				popup.showLikePopDownMenu();
-				popup.setMessage("You haven't said anything yet");
+				popup.setMessage("I don't think you wrote a message yet");
 			}
 		});
 		
@@ -436,7 +434,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	        			public void onClick(View v) {
 	        				popup = new SimplePopupWindow(v);
 	        				popup.showLikePopDownMenu();
-	        				popup.setMessage("This message looks great!");
+	        				popup.setMessage("Good length for this message");
 	        			}
 	        		});	        		
 	        		
@@ -449,7 +447,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	        			public void onClick(View v) {
 	        				popup = new SimplePopupWindow(v);
 	        				popup.showLikePopDownMenu();
-	        				popup.setMessage("This message is too long :/");
+	        				popup.setMessage("Your message might be too long");
 	        			}
 	        		});		        		
 	        		
@@ -462,7 +460,7 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 	        			public void onClick(View v) {
 	        				popup = new SimplePopupWindow(v);
 	        				popup.showLikePopDownMenu();
-	        				popup.setMessage("Write more! You haven't said enough");
+	        				popup.setMessage("This message is a bit short");
 	        			}
 	        		});
 	        	} 	 
@@ -688,6 +686,15 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		}
 		hideKeyboard();
 		text.clearFocus();
+		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.pendinh_indicator));
+		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				popup = new SimplePopupWindow(v);
+				popup.showLikePopDownMenu();
+				popup.setMessage("I don't think you wrote a message yet");
+			}
+		});			
 	}
 	
 	public void pickTime(View v) {
@@ -702,16 +709,17 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		else  {
 			messages.add(0, m);
 		}
+		
 		queue_adapter.notifyDataSetChanged();
 		merge_adapter.notifyDataSetChanged();
 		mListView.setSelection(merge_adapter.getCount()-1);
 	}
 	
-	public void removeMessage(int id) {
-		messages.remove(id);
-		Log.i("tag","removemessage removing message " + id);
-		queue_adapter.notifyDataSetChanged();
-		merge_adapter.notifyDataSetChanged();	
+	public void removeMessage() {
+		queue_adapter.delayedMessages.clear();
+		messages.clear();
+		loader = new GetOutboxMessages();
+		loader.execute(); 
 	}	
 
     public void getShareContent(View v) {
@@ -923,12 +931,12 @@ public class MessageActivityCheckboxCursor extends SherlockListActivity {
 		                    dialog.cancel();
 		                    sendMessage(send);
 		               }
-		           }).show();		
+		           });	
 
 	}
 	
 
-	private class GetMessages extends AsyncTask<Void,SMSMessage,Void> {
+	private class GetOutboxMessages extends AsyncTask<Void,SMSMessage,Void> {
 		DatabaseHandler dh;
 	  	Cursor pending_messages_cursor;
 	  	SMSMessage m;

@@ -1,5 +1,7 @@
 package com.Pull.pullapp;
 
+import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
  
@@ -10,7 +12,8 @@ public class UserSettings extends PreferenceActivity {
         super.onCreate(savedInstanceState);
  
         addPreferencesFromResource(R.layout.settings);
+   
  
     }
-    
+   
 }

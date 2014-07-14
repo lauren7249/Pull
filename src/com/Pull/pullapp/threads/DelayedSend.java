@@ -50,6 +50,7 @@ public class DelayedSend extends Thread {
         intent.putExtra(Constants.EXTRA_RECIPIENT, recipient);
         intent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
         intent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);
+        intent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, sendOn);
         PendingIntent sendMessage;
         sendMessage = PendingIntent.getBroadcast(parent, (int)launchedOn, 
         		intent, PendingIntent.FLAG_UPDATE_CURRENT);

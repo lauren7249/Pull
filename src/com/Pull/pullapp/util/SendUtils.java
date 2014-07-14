@@ -148,14 +148,12 @@ public class SendUtils  {
 	    intent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
 	    intent.putExtra(Constants.EXTRA_TIME_LAUNCHED, timeScheduled);
 	    intent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, scheduledFor);
-        PendingIntent outbox;
-        outbox = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);   
-        am.set(AlarmManager.RTC, System.currentTimeMillis(), outbox);     	    
+	    context.sendBroadcast(intent);	
 	}	
 	
 
-	public static int removeFromOutbox(Context context, String body, String recipient, long launchedOn, boolean clearFromScreen) {
+	public static int removeFromOutbox(Context context, String body, String recipient, 
+			long launchedOn, long scheduledFor, boolean clearFromScreen) {
 		DatabaseHandler db = new DatabaseHandler(context);
 		int rowsdeleted = db.deleteFromOutbox(launchedOn);
 		db.close();
@@ -164,6 +162,7 @@ public class SendUtils  {
 		    Intent intent = new Intent(Constants.ACTION_SMS_UNOUTBOXED);
 		    intent.putExtra(Constants.EXTRA_RECIPIENT, recipient);
 		    intent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);
+		    intent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, scheduledFor);
 		    intent.putExtra(Constants.EXTRA_MESSAGE_BODY, body);
 	        context.sendBroadcast(intent);		
 		}
