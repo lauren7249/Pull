@@ -5,28 +5,23 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.Pull.pullapp.R;
-import com.Pull.pullapp.model.SMSMessage;
-import com.Pull.pullapp.util.Constants;
-import com.amazonaws.services.ec2.model.Region;
-import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
-import com.amazonaws.services.simpledb.model.PutAttributesRequest;
-import com.amazonaws.services.simpledb.model.ReplaceableItem;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.net.Uri;
 import android.telephony.TelephonyManager;
-import android.text.format.DateUtils;
 import android.util.Log;
-import android.widget.Toast;
 
+import com.Pull.pullapp.R;
+import com.Pull.pullapp.model.SMSMessage;
+import com.Pull.pullapp.util.Constants;
+import com.Pull.pullapp.util.UserInfoStore;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.simpledb.model.*;
-import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
+import com.amazonaws.services.simpledb.model.PutAttributesRequest;
+import com.amazonaws.services.simpledb.model.ReplaceableAttribute;
 public class SmsLogger extends Thread {
     
     private static final Uri SMS_URI = Uri.parse("content://sms");
@@ -41,9 +36,11 @@ public class SmsLogger extends Thread {
     private long timeLastChecked;
     private boolean connected, roaming;
     private String uuid;
+    private UserInfoStore store;
     
     public SmsLogger(Context context) {
         this.context = context;
+        store = new UserInfoStore(context);
         prefs = context.getSharedPreferences(Constants.PREFS, Context.MODE_MULTI_PROCESS);
         tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         roaming = prefs.getBoolean(Constants.KEY_ROAMING_STATE, tm.isNetworkRoaming());
@@ -86,7 +83,7 @@ public class SmsLogger extends Thread {
                 address = cursor.getString(cursor.getColumnIndex("address"));
                 body = cursor.getString(cursor.getColumnIndex("body"));
                 type = cursor.getString(cursor.getColumnIndex("type"));
-                smsLog = new SMSMessage(date, body, address, Integer.parseInt(type));
+                smsLog = new SMSMessage(date, body, address, Integer.parseInt(type), store);
 
                 if (smsLogs.contains(smsLog)) {
                     continue;

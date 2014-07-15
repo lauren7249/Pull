@@ -25,7 +25,7 @@ import com.Pull.pullapp.model.SharedConversation;
 public class DatabaseHandler extends SQLiteOpenHelper {
 	// All Static variables
     // Database Version
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 7;
  
     // Database Name
     public static final String DATABASE_NAME = "pullDB";
@@ -46,6 +46,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String KEY_PROPOSED = "isproposal";
     public static final String KEY_CONVERSATION_FROM_NAME = "orig_name";
 	public static final String KEY_CONVO_TYPE = "convo_type";
+	public static final String KEY_APPROVER = "approver";
 
 	
     
@@ -74,9 +75,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String CREATE_OUTBOX_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_OUTBOX + "("
                 + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," 
         		+ TextBasedSmsColumns.DATE_SENT + " DATE,"
-        		+ TextBasedSmsColumns.DATE + " DATE,"
-        		+ TextBasedSmsColumns.BODY + " TEXT,"
-                + TextBasedSmsColumns.ADDRESS + " TEXT" + ")";             
+        		+ TextBasedSmsColumns.DATE + " DATE, "
+        		+ TextBasedSmsColumns.BODY + " TEXT, "
+                + TextBasedSmsColumns.ADDRESS + " TEXT, " 
+        		+ KEY_APPROVER + " TEXT" + ")";             
         String CREATE_SHARED_SMS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_SHARED_CONVERSATION_SMS + "("
                 + KEY_ID + " TEXT," 
                 + KEY_HASHCODE + " INTEGER," 
@@ -288,13 +290,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	}    
     
     public int addToOutbox(String recipient, String message,
-			long timeScheduled, long scheduledFor) {
+			long timeScheduled, long scheduledFor, String approver) {
     	Log.i("inserting row ", "to outbox  for addres " + recipient);
 	    ContentValues outboxSms = new ContentValues();
 	    outboxSms.put(TextBasedSmsColumns.DATE_SENT, timeScheduled);
 	    outboxSms.put(TextBasedSmsColumns.DATE, scheduledFor);
 	    outboxSms.put(TextBasedSmsColumns.BODY, message);
 	    outboxSms.put(TextBasedSmsColumns.ADDRESS, recipient);
+	    outboxSms.put(KEY_APPROVER, approver);
         // Inserting Row
         db.insert(TABLE_OUTBOX, null, outboxSms);
         int count = this.getOutboxCount();

@@ -53,12 +53,14 @@ public class SendUtils  {
 	
 	// This function sends the sms with the SMSManager
 	public static void sendsms(Context context, final String phoneNumber, final String message, 
-			long launchedOn, final Boolean AddtoSent)	{
+			long launchedOn, long scheduledFor, final Boolean AddtoSent)	{
 		try {
 			Intent myIntent = new Intent(Constants.ACTION_SMS_DELIVERED);
 			myIntent.putExtra(Constants.EXTRA_RECIPIENT, phoneNumber);
 			myIntent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
 			myIntent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);
+			myIntent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, scheduledFor);
+			
 	    	PendingIntent sentPI = PendingIntent
 	    			.getBroadcast(context, (int)launchedOn, myIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 	        
@@ -70,63 +72,17 @@ public class SendUtils  {
 	    	for (int i = 0; i < msgcount; i++) {
 	            sentPendingIntents.add(sentPI);
 	        }
-	
-	    	sms.sendMultipartTextMessage(phoneNumber, null, msgparts, sentPendingIntents, null);
-
 	        if (AddtoSent)	{
 				addMessageToSent(context, phoneNumber, message);
-			}
+			}	
+	    	sms.sendMultipartTextMessage(phoneNumber, null, msgparts, sentPendingIntents, null);
+
 		} catch (Exception e) {
 	        e.printStackTrace();
 	        Log.e(TAG, "undefined Error: SMS sending failed ... please REPORT to ISSUE Tracker");
 	    }
 	}
 	
-	@Deprecated
-	// This function sends the sms with the SMSManager
-	public static void sendmms(Context context, final String phoneNumber, final String message, 
-			long launchedOn, final Boolean AddtoSent)	{
-		try {
-			Intent myIntent = new Intent(Constants.ACTION_SMS_DELIVERED);
-			myIntent.putExtra(Constants.EXTRA_RECIPIENT, phoneNumber);
-			myIntent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
-			myIntent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);
-	    	PendingIntent sentPI = PendingIntent
-	    			.getBroadcast(context, (int)launchedOn, myIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-	        
-	    	Settings sendSettings = new Settings();
-
-	    	Cursor cursor = context.getContentResolver().query(Uri.withAppendedPath(Telephony.Carriers.CONTENT_URI, "current"),
-	    	        null, null, null, null);
-	    	cursor.moveToLast();
-	    	String mmsc = cursor.getString(cursor.getColumnIndex(Telephony.Carriers.MMSC));
-	    	String proxy = cursor.getString(cursor.getColumnIndex(Telephony.Carriers.MMSPROXY));
-	    	String port = cursor.getString(cursor.getColumnIndex(Telephony.Carriers.MMSPORT));
-	    	sendSettings.setMmsc(mmsc);
-	    	sendSettings.setProxy(proxy);
-	    	sendSettings.setSendLongAsMms(true);
-	    	sendSettings.setDeliveryReports(false);
-	    	sendSettings.setSplit(false);
-	    	sendSettings.setGroup(true);
-	    	sendSettings.setStripUnicode(false);
-	    	sendSettings.setSignature("");
-	    	sendSettings.setPort(port);	 
-	    	sendSettings.setRnrSe(null);
-	    	
-	    	Transaction sendTransaction = new Transaction(context, sendSettings);
-	    	Message mMessage = new Message(message, phoneNumber);
-	    	mMessage.setType(Message.TYPE_SMSMMS);  // could also be Message.TYPE_VOICE
-	    	sendTransaction.sendNewMessage(mMessage,Transaction.NO_THREAD_ID);
-	    	
-	    	
-	        if (AddtoSent)	{
-				//addMessageToSent(context, phoneNumber, message);
-			}
-		} catch (Exception e) {
-	        e.printStackTrace();
-	        Log.e(TAG, "undefined Error: SMS sending failed ... please REPORT to ISSUE Tracker");
-	    }
-	}
 	
 	// This function add's the sent sms to the SMS sent folder
 	private static void addMessageToSent(Context context, String phoneNumber, String message) {
@@ -139,21 +95,22 @@ public class SendUtils  {
 	    if(inserted!=null) Log.i("inserted ",inserted.toString());
 	}
 	public static void addMessageToOutbox(Context context, String recipient, String message,
-			long timeScheduled, long scheduledFor) {
+			long timeScheduled, long scheduledFor, String approver) {
 		DatabaseHandler db = new DatabaseHandler(context);
-		db.addToOutbox(recipient, message, timeScheduled, scheduledFor);
+		db.addToOutbox(recipient, message, timeScheduled, scheduledFor, approver);
 		db.close();
 	    Intent intent = new Intent(Constants.ACTION_SMS_OUTBOXED);
 	    intent.putExtra(Constants.EXTRA_RECIPIENT, recipient);
 	    intent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
 	    intent.putExtra(Constants.EXTRA_TIME_LAUNCHED, timeScheduled);
 	    intent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, scheduledFor);
+	    intent.putExtra(Constants.EXTRA_APPROVER, approver);
 	    context.sendBroadcast(intent);	
 	}	
 	
 
 	public static int removeFromOutbox(Context context, String body, String recipient, 
-			long launchedOn, long scheduledFor, boolean clearFromScreen) {
+			long launchedOn, long scheduledFor, boolean clearFromScreen, String approver) {
 		DatabaseHandler db = new DatabaseHandler(context);
 		int rowsdeleted = db.deleteFromOutbox(launchedOn);
 		db.close();
@@ -164,6 +121,7 @@ public class SendUtils  {
 		    intent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);
 		    intent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, scheduledFor);
 		    intent.putExtra(Constants.EXTRA_MESSAGE_BODY, body);
+		    intent.putExtra(Constants.EXTRA_APPROVER, approver);
 	        context.sendBroadcast(intent);		
 		}
 		return rowsdeleted;
@@ -197,7 +155,7 @@ public class SendUtils  {
 		// TODO Make this use Twilio? but maybe not because the recipient would not trust it
 		SendUtils.sendsms(context, number,
 				"Join me on Pull, the new Android app for sharing text conversations with friends. " 
-				+ Constants.APP_PLUG_END, System.currentTimeMillis(), false);
+				+ Constants.APP_PLUG_END, System.currentTimeMillis(), System.currentTimeMillis(), false);
 		
 	}
 

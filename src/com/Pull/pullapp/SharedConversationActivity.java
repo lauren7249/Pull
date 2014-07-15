@@ -496,7 +496,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 				
 	}
 	protected void commentViaSMS(String recipient) {
-		SendUtils.sendsms(mContext, recipient, commentText, 0, false);
+		SendUtils.sendsms(mContext, recipient, commentText, 0, 0, false);
 	}	
 
 	private void createFakeConvo(){

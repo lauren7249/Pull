@@ -26,6 +26,7 @@ import com.Pull.pullapp.R.drawable;
 import com.Pull.pullapp.R.id;
 import com.Pull.pullapp.R.layout;
 import com.Pull.pullapp.model.SMSMessage;
+import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.SendUtils;
 /**
  * QueuedMessageAdapter is a Custom class to implement custom row in ListView
@@ -131,18 +132,23 @@ public class QueuedMessageAdapter extends BaseAdapter{
 		}else{
 			relativeTime = "Now";
 		}
-	    
+	    String approverString = "";
+	    if(message.getApprover()!=null && message.getApprover().length()>0) {
+	    	approverString = ", with " + 
+	    			ContentUtils.getContactDisplayNameByNumber(mContext, message.getApprover()) + "'s approval";
+	    }
         holder.edit.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				
 				SendUtils.removeFromOutbox(mContext, message.getMessage(),
-						message.getAddress(), message.launchedOn, message.getFutureSendTime(), true);
+						message.getAddress(), message.launchedOn, message.getFutureSendTime(), 
+						true, message.getApprover());
 				
 			};
         });  
         
-	    holder.time.setText(relativeTime);
+	    holder.time.setText(relativeTime + approverString);
 		holder.messageBox.setLayoutParams(lp);
 		return convertView;
 	}

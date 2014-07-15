@@ -20,9 +20,10 @@ public class DelayedSend extends Thread {
     private Context parent;
     private String message, recipient, threadID;
     private long sendOn, launchedOn;
+	private String approver;
     
     public DelayedSend(Context parent, String recipient, String message, 
-    		Date sendOn, long launchedOn) {
+    		Date sendOn, long launchedOn, String approver) {
         this.parent = parent;
         this.recipient = recipient;
         this.message = message;
@@ -36,6 +37,7 @@ public class DelayedSend extends Thread {
         }
         
         this.launchedOn = launchedOn;
+        this.approver = approver;
         ParseAnalytics.trackEvent("SMS Sent", dimensions);    
     }
     
@@ -44,13 +46,14 @@ public class DelayedSend extends Thread {
     }
     @Override
     public void run() {
-    	SendUtils.addMessageToOutbox(parent, recipient, message, launchedOn, sendOn);
+    	SendUtils.addMessageToOutbox(parent, recipient, message, launchedOn, sendOn, approver);
         AlarmManager am = (AlarmManager) parent.getSystemService(Context.ALARM_SERVICE);   
         Intent intent = new Intent(Constants.ACTION_SEND_DELAYED_TEXT);
         intent.putExtra(Constants.EXTRA_RECIPIENT, recipient);
         intent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
         intent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);
         intent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, sendOn);
+        intent.putExtra(Constants.EXTRA_APPROVER, approver);
         PendingIntent sendMessage;
         sendMessage = PendingIntent.getBroadcast(parent, (int)launchedOn, 
         		intent, PendingIntent.FLAG_UPDATE_CURRENT);

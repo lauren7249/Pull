@@ -34,29 +34,31 @@ public class SMSReceiver extends BroadcastReceiver {
 				.equals(Intents.SMS_RECEIVED_ACTION)) {		
 		if (intent.getAction()
 				.equals(Intents.SMS_RECEIVED_ACTION)) {
-			Bundle bundle = intent.getExtras();
-			if (bundle != null) {
-				// Get SMS objects.
-				Object[] pdus = (Object[]) bundle.get("pdus");
-				if (pdus.length == 0) {
-					return;
-				}
-				// Large message might be broken into many.
-				SmsMessage[] messages = new SmsMessage[pdus.length];
-				StringBuilder sb = new StringBuilder();
-				for (int i = 0; i < pdus.length; i++) {
-					messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
-					sb.append(messages[i].getMessageBody());
-				}
-				String sender = messages[0].getOriginatingAddress();
-		        SharedPreferences sharedPrefs = PreferenceManager
-		                .getDefaultSharedPreferences(context);
-		        boolean receive = sharedPrefs.getBoolean("prefReceiveTexts", false);
-				if (receive) {
+	        SharedPreferences sharedPrefs = PreferenceManager
+	                .getDefaultSharedPreferences(context);			
+	        boolean receive = sharedPrefs.getBoolean("prefReceiveTexts", false);
+			if (receive) {
+				abortBroadcast();
+				Bundle bundle = intent.getExtras();
+				if (bundle != null) {
+					// Get SMS objects.
+					Object[] pdus = (Object[]) bundle.get("pdus");
+					if (pdus.length == 0) {
+						return;
+					}
+					// Large message might be broken into many.
+					SmsMessage[] messages = new SmsMessage[pdus.length];
+					StringBuilder sb = new StringBuilder();
+					for (int i = 0; i < pdus.length; i++) {
+						messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+						sb.append(messages[i].getMessageBody());
+					}
+					String sender = messages[0].getOriginatingAddress();
+
 					// Contact not in address book: log message and don't let it through.
 					String message = sb.toString();
 					// Prevent other broadcast receivers from receiving broadcast.
-					abortBroadcast();
+					
 					SimpleDateFormat dateFormat = new SimpleDateFormat(
 							"yyyy-MM-dd'T'HH:mm'Z'"); // ISO 8601, Local time zone.
 					dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -109,18 +111,9 @@ public class SMSReceiver extends BroadcastReceiver {
 		values.put("thread_id", thread_id);
 		Uri uri = Uri.parse("content://sms/inbox");
 		context.getContentResolver().insert(uri, values);		
-
+	    Intent intent = new Intent(Constants.ACTION_SMS_INBOXED);
+	    intent.putExtra(Constants.EXTRA_NUMBER, number);
+	    context.sendBroadcast(intent);	
 	}	
-	public static void pushMessage(Context context, SMSMessage m) {
 
-		ContentValues values = new ContentValues(7);
-		values.put(TextBasedSmsColumns.ADDRESS, m.getAddress());
-		values.put(TextBasedSmsColumns.READ, false);
-		values.put(TextBasedSmsColumns.BODY, m.getMessage());
-		values.put(TextBasedSmsColumns.TYPE, m.getType());
-		values.put(TextBasedSmsColumns.PERSON, m.getSender());
-		Uri uri = Uri.parse("content://sms/inbox");
-		context.getContentResolver().insert(uri, values);		
-
-	}	
 }

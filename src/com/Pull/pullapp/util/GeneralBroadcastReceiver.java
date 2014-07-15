@@ -109,15 +109,18 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         if (action.equals(Constants.ACTION_SEND_DELAYED_TEXT)) {
             String recipient = intent.getStringExtra(Constants.EXTRA_RECIPIENT);
             String message = intent.getStringExtra(Constants.EXTRA_MESSAGE_BODY);
-            
+            String approver = intent.getStringExtra(Constants.EXTRA_APPROVER);
             Log.i("new message",message);
             long launchedOn = intent.getLongExtra(Constants.EXTRA_TIME_LAUNCHED,0);
             long scheduledFor = intent.getLongExtra(Constants.EXTRA_TIME_SCHEDULED_FOR,0);
+            
 			//dont send if the user canceled (removed from outbox) or received a message since launching
             if(!messagedAfterLaunch(context,recipient,launchedOn) &&  
-            		SendUtils.removeFromOutbox(context, message, recipient, launchedOn, scheduledFor, false)>0) 
+            		SendUtils.removeFromOutbox(context, message, recipient, launchedOn, 
+            				scheduledFor, false, approver)>0
+            		&& !disapproved(recipient,message,scheduledFor,approver, mContext)) 
             {
-            	SendUtils.sendsms(context, recipient, message, launchedOn, true);
+            	SendUtils.sendsms(context, recipient, message, launchedOn, scheduledFor, true);
 
             }
             	
@@ -126,7 +129,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         if (action.equals(Constants.ACTION_SHARE_TAG)) {
             String recipient = intent.getStringExtra(Constants.EXTRA_RECIPIENT);
             String message = intent.getStringExtra(Constants.EXTRA_MESSAGE_BODY);
-            SendUtils.sendsms(context, recipient, message, 0, false);
+            SendUtils.sendsms(context, recipient, message, 0, 0, false);
             return;
         }          
         
@@ -224,6 +227,16 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         
     }
    
+
+	private boolean disapproved(String recipient, String message,
+			long scheduledFor, String approver, Context context) {
+		if(approver==null || approver.length()==0) return false;
+		Log.i("approver",approver);
+		UserInfoStore store = new UserInfoStore(context);
+		if(!store.wasApproved(recipient,message,scheduledFor,approver)) return true;
+		return false;
+	}
+
 
 	private void notifyFriendConfirmed(String name) {
 		NotificationManager mNotificationManager = (NotificationManager) mContext

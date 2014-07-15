@@ -8,7 +8,7 @@
     android:orientation="vertical" >
 
     <ListView
-        android:id="@android:id/list"
+        android:id="@+id/list"
         android:layout_width="fill_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/viewSwitcher"
@@ -73,29 +73,50 @@
                     android:textSize="20dp"
                     android:color="@android:color/white" >
                 </EditText>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                        android:layout_marginLeft="8dp"
-                        android:layout_marginTop="5dp" >
-
-                    <Button
-                        android:id="@+id/time_delay_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/select_time"
-                        android:freezesText="true"
-                        android:minHeight="40dp"
-                        android:onClick="pickTime"
-                        android:text="Schedule Text"
-                        android:textColor="@android:color/white"
-                        android:textSize="20sp"
-                        android:color="@android:color/white" />
-
-                </LinearLayout>
-
+	         <HorizontalScrollView
+	             android:layout_width="match_parent"
+	             android:layout_height="wrap_content"
+	             >   	 
+             
+                 	
+	                <LinearLayout
+	                    android:layout_width="match_parent"
+	                    android:layout_height="wrap_content"
+	                    android:layout_marginBottom="8dp"
+	                        android:layout_marginLeft="8dp"
+	                        android:layout_marginTop="5dp" >
+	
+	                    <Button
+	                        android:id="@+id/time_delay_button"
+	                        android:layout_width="wrap_content"
+	                        android:layout_height="wrap_content"
+	                        android:background="@drawable/select_time"
+	                        android:freezesText="true"
+	                        android:paddingRight="20dp"
+	                        android:layout_marginRight="5dp"	                        
+	                        android:minHeight="40dp"
+	                        android:onClick="pickTime"
+	                        android:text="Schedule Text"
+	                        android:textColor="@android:color/white"
+	                        android:textSize="14sp"
+	                        android:color="@android:color/white" />
+	                    <Button
+	                        android:id="@+id/approvers_button"
+	                        android:layout_width="wrap_content"
+	                        android:layout_height="wrap_content"
+	                        android:paddingRight="20dp"
+	                        android:layout_marginRight="20dp"
+	                        android:background="@drawable/select_ppl"
+	                        android:freezesText="true"
+	                        android:minHeight="40dp"
+	                        android:onClick="pickApprover"
+	                        android:text="Approver"
+	                        android:visibility="gone"
+	                        android:textColor="@android:color/white"
+	                        android:textSize="14sp"
+	                        android:color="@android:color/white" />
+	                </LinearLayout>
+				</HorizontalScrollView>	
             </LinearLayout>
 
             <Button

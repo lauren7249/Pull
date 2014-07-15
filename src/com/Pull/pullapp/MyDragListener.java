@@ -60,7 +60,8 @@ public class MyDragListener implements OnDragListener {
 							activity.getApplicationContext().sendBroadcast(broadcastIntent);	
 							if(convo.getSharer().equals(mApp.getUserName()))
 								SendUtils.sendsms(activity.getApplicationContext(), 
-									convo.getOriginalRecipient(), message, System.currentTimeMillis(), true);
+									convo.getOriginalRecipient(), message, System.currentTimeMillis(), 
+									System.currentTimeMillis(), true);
 							else {
 								Toast.makeText(activity.getApplicationContext(), "not yet implemented for friends",
 										Toast.LENGTH_LONG).show();

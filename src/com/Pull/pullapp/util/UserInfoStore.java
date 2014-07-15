@@ -23,6 +23,7 @@ public class UserInfoStore {
 	private SharedPreferences mPrefs_phoneNumber_FacebookID;
 	private SharedPreferences mPrefs_sms_sharedWith;
 	private SharedPreferences phoneNumber_photoPath;
+	private SharedPreferences approvals;
 	public UserInfoStore(Context context) {
 		this.mContext = context;
     	mPrefs_recipientID_phoneNumber = mContext.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
@@ -38,7 +39,10 @@ public class UserInfoStore {
     			+ "phoneNumber_FacebookID",Context.MODE_PRIVATE); 	
     	mPrefs_sms_sharedWith = context
     			.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
-    			+ "mPrefs_sms_sharedWith",Context.MODE_PRIVATE); 	   
+    			+ "mPrefs_sms_sharedWith",Context.MODE_PRIVATE); 
+    	approvals = context
+    			.getSharedPreferences(MainApplication.class.getSimpleName() 
+    			+ "approvals",Context.MODE_PRIVATE); 	     	
 	}
 	public String getPhoneNumber(String recipientId) {
 		return mPrefs_recipientID_phoneNumber.getString(recipientId, null);
@@ -126,5 +130,25 @@ public class UserInfoStore {
 		// TODO Auto-generated method stub
 		return phoneNumber_photoPath.getString(ContentUtils.addCountryCode(number), null);
 	}
+	public boolean wasApproved(String phoneNumber, String message,
+			long scheduledFor, String approver) {
+		return approvals.getBoolean(getApprovalString(phoneNumber,message,scheduledFor,approver),false);
+	}
+	public boolean wasDisapproved(String phoneNumber, String message,
+			long scheduledFor, String approver) {
+		return approvals.contains(getApprovalString(phoneNumber,message,scheduledFor,approver)) &&
+				approvals.getBoolean(getApprovalString(phoneNumber,message,scheduledFor,approver),false)==false;
+	}	
 	
+	public boolean wasApproved(String approvalString) {
+		return approvals.getBoolean(approvalString,false);
+	}
+	public boolean wasDisapproved(String approvalString) {
+		return approvals.contains(approvalString) &&
+				approvals.getBoolean(approvalString,false)==false;
+	}		
+	public static String getApprovalString(String phoneNumber, String message,
+			long scheduledFor, String approver) {
+		return Integer.toString((phoneNumber+message+Long.toString(scheduledFor)+approver).hashCode());
+	}
 }

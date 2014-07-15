@@ -2,6 +2,7 @@
 package com.Pull.pullapp.model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.json.JSONException;
@@ -46,18 +47,7 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
      * confidantes - people who have access to this record
      * username - person who created the record
      */
-    
-    public SMSMessage(long date, String message, String address, int type) { 
-        put("smsMessage",message);
-        put("address",ContentUtils.addCountryCode(address));    
-        put("smsDate",date);      
-        put("type",type);
-        put("sentByMe",(
-        		type == TextBasedSmsColumns.MESSAGE_TYPE_SENT) || 
-        		type == Constants.MESSAGE_TYPE_SENT_COMMENT ||
-        		type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX );
-        put("isDelayed",(type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX));
-    }
+
     
     public SMSMessage(long date, String message, String address, int type, UserInfoStore store) {
         put("smsMessage",message);
@@ -142,7 +132,14 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 		String number = ContentUtils.addCountryCode(to);	
 		store.addSharedWith(number, this);
 	}
+	public void setApprover(String approver) {
+		put("approver",approver);
+		
+	}	
 	
+	public String getApprover(){
+		return getString("approver");
+	}
 	public void schedule(long date) {
 		put("isDelayed", true);
 		put("futureSendTime", date);
@@ -170,7 +167,9 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 
 
 	public Set<String> getConfidantes() {
-		return store.getSharedWith(this);
+		Set<String> confidantes = store.getSharedWith(this);
+		if (confidantes==null) confidantes = new HashSet<String>();
+		return confidantes;
 	}
 
 
@@ -188,6 +187,8 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 		// TODO Auto-generated method stub
 		return getString("username");
 	}
+
+
 
 
 }

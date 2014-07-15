@@ -134,6 +134,8 @@ public class Constants {
 	public static final int MESSAGE_TYPE_RECEIVED_COMMENT = "receivedcomment".hashCode();
 	public static final String ACTION_FACEBOOK_PHOTO_OBTAINED =  PACKAGE_NAME + ".util.ACTION_FACEBOOK_PHOTO_OBTAINED";
 	public static final String ACTION_DATABASE_UPDATE = PACKAGE_NAME + ".util.ACTION_DATABASE_UPDATE";
+	public static final String ACTION_SMS_INBOXED = PACKAGE_NAME + ".util.ACTION_SMS_INBOXED";
+	public static final String EXTRA_APPROVER = PACKAGE_NAME + "EXTRA_APPROVER";
 	
 	
 	
