@@ -1,6 +1,7 @@
 package com.Pull.pullapp.util;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -167,26 +168,40 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
             return;
         }   **/
         
-        //CURRENT METHOD FORE RECEIVING EVERYTHING. COMES FROM CLOUD PUSH NOTIFICATION
+        //CURRENT METHOD FOR RECEIVING EVERYTHING. COMES FROM CLOUD PUSH NOTIFICATION
         if (action.equals(Constants.ACTION_RECEIVE_SHARED_MESSAGES)) {
         	
         	Log.i("received broadcast","ACTION_RECEIVE_SHARED_MESSAGES");
             try {
+            	
                 JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
+                Log.i("json",json.toString());
                 final String sender = ContentUtils.addCountryCode(json.getString("from"));
+                final String owner = ContentUtils.addCountryCode(json.getString("owner"));
                 final String person_shared = json.getString("person_shared");
+                final String to = json.getString("to");
                 final String address = ContentUtils.addCountryCode(json.getString("address"));
-                final int type;
-                type = TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
+                final int messageType = json.getInt("messageType");
+
+                final int convoType;
+                final String confidante;
+                if(owner.equals(ParseUser.getCurrentUser().getUsername())) {
+                		convoType = TextBasedSmsColumns.MESSAGE_TYPE_SENT;
+                		confidante = sender;
+                }
+                else {
+                		convoType = TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
+                		confidante = to;
+                }
             	ParseQuery<SMSMessage> query = ParseQuery.getQuery("SMSMessage");
-            	//query.whereContainedIn("hashCode", hashcodes);
-            	query.whereEqualTo("username", sender);  
-            	query.whereEqualTo("address", address);
+            	query.whereEqualTo("owner", owner);  
+            	query.whereEqualTo("address", address); //number of other person
             	query.findInBackground(new FindCallback<SMSMessage>(){
 					@Override
 					public void done(List<SMSMessage> objects, ParseException e) {
 						if(e==null && objects.size()>0) {
-							notifySharedMessages(sender,person_shared,address, objects, type);
+							notifySharedMessages(sender,owner, to, confidante,
+									person_shared,address, objects, convoType, messageType);
 						} else {
 
 						}
@@ -294,34 +309,46 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	}
 
 
-	private void notifySharedMessages(String sender, String person_shared,
-			String address, List<SMSMessage> objects, int convoType) {
-		  Log.i("number of objects",""+objects.size());
-		  String convoID = sender+address;
-		  db = new DatabaseHandler(mContext);
+	private void notifySharedMessages(String sender, String owner, String to, String confidante,
+			String person_shared, String address, List<SMSMessage> objects, int convoType, int messageType) {
+
+		String convoID = owner+address;
+		db = new DatabaseHandler(mContext);
 		  
-		  for(SMSMessage m: new TreeSet<SMSMessage>(objects)) {
-			  if(m.getType()==Constants.MESSAGE_TYPE_SENT_COMMENT)
-				  m.setType(Constants.MESSAGE_TYPE_RECEIVED_COMMENT);
-			  db.addSharedMessage(convoID, m, convoType);
-		  }
-		  String from = store.getName(sender);
-		  db.addSharedConversation(convoID, ParseUser.getCurrentUser().getUsername(), person_shared,
-					address, sender, convoType);		  	
-		  if(convoType == TextBasedSmsColumns.MESSAGE_TYPE_INBOX) {
-				Intent ni = new Intent(mContext, MessageActivityCheckboxCursor.class);
-				ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-				ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);		
-				ni.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
-				ni.putExtra(Constants.EXTRA_SHARED_ADDRESS, address);
-				ni.putExtra(Constants.EXTRA_SHARED_NAME, person_shared);
-				ni.putExtra(Constants.EXTRA_SHARED_SENDER, sender);
-				ni.putExtra(Constants.EXTRA_SHARED_CONFIDANTE, ParseUser.getCurrentUser().getUsername());
-				PendingIntent pi = PendingIntent.getActivity(mContext, 0,
-						ni, PendingIntent.FLAG_CANCEL_CURRENT);			  
+		for(SMSMessage m: new TreeSet<SMSMessage>(objects)) {
+			if(m.getType()==Constants.MESSAGE_TYPE_SENT_COMMENT)
+				m.setType(Constants.MESSAGE_TYPE_RECEIVED_COMMENT);
+			db.addSharedMessage(convoID, m, convoType);
+		}
+		String from = store.getName(sender);
+		db.addSharedConversation(convoID, confidante, person_shared,
+					address, owner, convoType);	
+		if(!to.equals(ParseUser.getCurrentUser().getUsername())) return;
+
+		Intent ni = new Intent(mContext, MessageActivityCheckboxCursor.class);
+		ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);		
+		ni.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
+		ni.putExtra(Constants.EXTRA_SHARED_ADDRESS, address);
+		ni.putExtra(Constants.EXTRA_SHARED_NAME, person_shared);
+		ni.putExtra(Constants.EXTRA_SHARED_SENDER, owner);
+		ni.putExtra(Constants.EXTRA_MESSAGE_TYPE, messageType);
+		ni.putExtra(Constants.EXTRA_SHARED_CONFIDANTE, confidante);
+		ni.putExtra(Constants.EXTRA_SHARED_CONVO_TYPE, convoType);
+		PendingIntent pi;
+		pi = PendingIntent.getActivity(mContext, 0, ni, PendingIntent.FLAG_CANCEL_CURRENT);				
+		 if(messageType==4) { 
+			 sendNotification(from + " needs approval!", "on a message to " + person_shared, pi);
+		 }				 
+		 else if(messageType==Constants.MESSAGE_TYPE_RECEIVED_COMMENT 
+				 || messageType==Constants.MESSAGE_TYPE_SENT_COMMENT){
+			 sendNotification("Comment from " + from, "about " + person_shared, pi);
+		 } 
+		 else {
 			 sendNotification(from + "'s messages", "with " + person_shared, pi);
-		  }
-		  db.close();
+		 }
+
+		 db.close();
 	}
 
 	private void sendNotification(CharSequence title, CharSequence content, PendingIntent pendingIntent) {

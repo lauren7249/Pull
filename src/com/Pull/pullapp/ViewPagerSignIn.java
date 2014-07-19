@@ -393,14 +393,14 @@ public class ViewPagerSignIn extends BaseActivity {
 	    builder.setMessage("Pull is not yet launched to the public. "+ 
 	    "Like us on Facebook to be one of the first to try it. Interested?")
 	           .setCancelable(true)
-	           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+	           .setNegativeButton("Yes", new DialogInterface.OnClickListener() {
 	               public void onClick(DialogInterface dialog, int id) {
 	            	   dialog.cancel();
 	            	   onBoardAsAlphaTester();
 	            	 
 	               	}
 	           })
-	           .setNegativeButton("No", new DialogInterface.OnClickListener() {
+	           .setPositiveButton("No", new DialogInterface.OnClickListener() {
 	               public void onClick(DialogInterface dialog, int id) {
 	                    dialog.cancel();
 	               }

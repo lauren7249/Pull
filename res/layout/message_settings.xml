@@ -1,0 +1,38 @@
+<android.support.v4.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <!-- The main content view -->
+    <FrameLayout
+        android:id="@+id/content_frame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+    <!-- The navigation drawer -->
+
+    <Button
+        android:id="@+id/time_delay_button"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/select_time"
+        android:freezesText="true"                      
+        android:minHeight="40dp"
+        android:onClick="pickTime"
+        android:text="Schedule Text"
+        android:textColor="@android:color/white"
+        android:textSize="14sp"
+        android:color="@android:color/white" />
+    <Button
+        android:id="@+id/approvers_button"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/select_ppl"
+        android:freezesText="true"
+        android:minHeight="40dp"
+        android:onClick="pickApprover"
+        android:text="Approver"
+        android:visibility="visible"
+        android:textColor="@android:color/white"
+        android:textSize="14sp"
+        android:color="@android:color/white" />
+</android.support.v4.widget.DrawerLayout>  

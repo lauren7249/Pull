@@ -22,6 +22,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
 import com.amazonaws.services.simpledb.model.PutAttributesRequest;
 import com.amazonaws.services.simpledb.model.ReplaceableAttribute;
+import com.parse.ParseUser;
 public class SmsLogger extends Thread {
     
     private static final Uri SMS_URI = Uri.parse("content://sms");
@@ -83,7 +84,8 @@ public class SmsLogger extends Thread {
                 address = cursor.getString(cursor.getColumnIndex("address"));
                 body = cursor.getString(cursor.getColumnIndex("body"));
                 type = cursor.getString(cursor.getColumnIndex("type"));
-                smsLog = new SMSMessage(date, body, address, Integer.parseInt(type), store);
+                smsLog = new SMSMessage(date, body, address, store.getName(address),
+                		Integer.parseInt(type), store, ParseUser.getCurrentUser().getUsername());
 
                 if (smsLogs.contains(smsLog)) {
                     continue;

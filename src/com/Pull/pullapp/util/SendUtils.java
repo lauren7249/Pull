@@ -2,7 +2,7 @@ package com.Pull.pullapp.util;
 
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.TreeSet;
 
 import org.json.JSONException;
@@ -15,9 +15,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
-import android.provider.Telephony;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.telephony.SmsManager;
 import android.text.format.DateUtils;
@@ -25,15 +23,11 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.Pull.pullapp.model.SMSMessage;
-import com.klinker.android.send_message.Message;
-import com.klinker.android.send_message.Settings;
-import com.klinker.android.send_message.Transaction;
-import com.parse.FindCallback;
+import com.parse.FunctionCallback;
 import com.parse.ParseACL;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
-import com.parse.ParseObject;
 import com.parse.ParsePush;
-import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
 public class SendUtils  {    
@@ -133,20 +127,23 @@ public class SendUtils  {
 		push.sendInBackground();		
 	}	
 	
+	@SuppressWarnings("unchecked")
 	public static void inviteFriend(final String number, final Context context, Activity a) {
 		UserInfoStore store = new UserInfoStore(context);
 		store.logInvite(number);
-		ParseQuery<ParseObject> query = ParseQuery.getQuery("Channels");
-		query.whereEqualTo("channel", ContentUtils.setChannel(number));
-		query.findInBackground(new FindCallback<ParseObject>() {
-		    public void done(List<ParseObject> list, ParseException e) {
-		        if (e==null && list.size()>0) {
-		        	inviteViaPush(number, context);
-		        } else {
-		        	inviteViaSMS(number, context);
-		        }
-		    }
+		HashMap<String, Object> params = new HashMap<String, Object>();
+		params.put("phoneNumber", ContentUtils.addCountryCode(number));
+		ParseCloud.callFunctionInBackground("findUser", params, new FunctionCallback() {
+			@Override
+			public void done(Object obj, ParseException e) {
+		         if (e == null) {
+		        	 inviteViaPush(number, context);			         
+		         } else {
+		        	 inviteViaSMS(number, context);
+		         }
+			} 
 		});			
+		
 		Toast.makeText(context, "Invite sent", Toast.LENGTH_LONG).show();
 		
 	}
@@ -155,7 +152,7 @@ public class SendUtils  {
 		// TODO Make this use Twilio? but maybe not because the recipient would not trust it
 		SendUtils.sendsms(context, number,
 				"Join me on Pull, the new Android app for sharing text conversations with friends. " 
-				+ Constants.APP_PLUG_END, System.currentTimeMillis(), System.currentTimeMillis(), false);
+				+ Constants.GOOGLE_PLAY_LINK, System.currentTimeMillis(), System.currentTimeMillis(), false);
 		
 	}
 

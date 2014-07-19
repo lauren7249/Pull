@@ -43,9 +43,13 @@ public class DownloadFriendPhoto extends Thread {
 					        public void done(byte[] data, ParseException e2) {
 					          if (e2 == null && data.length>0) {
 					            // data has the bytes for the image
-
+					        	  BitmapFactory.Options options = new BitmapFactory.Options();
+					        	  //options.outHeight = 1000;
+					        	  //options.outWidth = 1000;
 					              Bitmap bMap = BitmapFactory
-					            		  .decodeByteArray(data, 0, data.length);
+					            		  .decodeByteArray(data, 0, data.length, options);
+					              Log.i("bytearry len", "" + data.length);
+					              Log.i("bitmap size", "" + bMap.getByteCount());
 					              String photoPath = ContentUtils.saveToInternalStorage(mContext, bMap, number);
 					              store.savePhotoPath(number,photoPath);
 					          } else {

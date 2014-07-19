@@ -1,5 +1,6 @@
 package com.Pull.pullapp.adapter;
 
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
 
 import android.app.Activity;
@@ -7,8 +8,12 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.widget.CursorAdapter;
 import android.util.Log;
@@ -34,6 +39,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 	private Context mContext;
 	protected Activity activity;
 	private UserInfoStore store;
+	private ContentUtils cu;
 	
     @SuppressWarnings("deprecation")
 	public ThreadItemsCursorAdapter(Context context, Cursor cursor, int cursorType, Activity a) {
@@ -43,6 +49,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	recipientID_hash = new HashMap<Integer,String>();
     	this.cursorType = cursorType;
     	activity = a;
+    	cu = new ContentUtils();
     }
 
 	@Override
@@ -121,8 +128,8 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 		other_pic.setVisibility(View.VISIBLE);
 
     	if(!store.isFriend(number)) {
-    		other_pic.setImageDrawable(null);
-    		other_pic.setBackgroundResource(R.drawable.add_ppl);
+    		//other_pic.setImageBitmap(null);
+    		other_pic.setImageResource(R.drawable.add_ppl);
     		other_pic.setOnClickListener(new OnClickListener(){
 	
 				@Override
@@ -134,7 +141,13 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 				    builder.setMessage("Invite " + store.getName(number) + " to be your friend on Pull?")
 				           .setCancelable(true)
 				           .setView(addFriendView)
-				           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+				           .setPositiveButton("No", new DialogInterface.OnClickListener() {
+				               public void onClick(DialogInterface dialog, int id) 
+				               {
+				                    dialog.cancel();
+				               }
+				           })				           
+				           .setNegativeButton("Yes", new DialogInterface.OnClickListener() {
 				               public void onClick(DialogInterface dialog, int id)
 				               {
 	
@@ -142,18 +155,15 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 	
 				               	}
 				           }) 
-				           .setNegativeButton("No", new DialogInterface.OnClickListener() {
-				               public void onClick(DialogInterface dialog, int id) 
-				               {
-				                    dialog.cancel();
-				               }
-				           }).show();		
+				           .show();		
 	
 				}
     		});
     	} else {
     		other_pic.setOnClickListener(null);
-    		other_pic.setImageDrawable(Drawable.createFromPath(store.getPhotoPath(number)));
+    		//other_pic.setBackground(null);
+    		//other_pic.setImageDrawable(Drawable.createFromPath(store.getPhotoPath(number)));
+    		cu.loadBitmap(store.getPhotoPath(number),other_pic);
     	}
     	share.setOnClickListener(new OnClickListener(){
 
@@ -229,8 +239,8 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	name_view.setText(name);
     	
     	if(!store.isFriend(number)) {
-    		other_pic.setImageDrawable(null);
-    		other_pic.setBackgroundResource(R.drawable.add_ppl);
+    		//other_pic.setImageBitmap(null);
+    		other_pic.setImageResource(R.drawable.add_ppl);
     		other_pic.setOnClickListener(new OnClickListener(){
 	
 				@Override
@@ -241,7 +251,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 				    builder.setMessage("Invite " + store.getName(number) + " to be your friend on Pull?")
 				           .setCancelable(true)
 				           .setView(addFriendView)
-				           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+				           .setNegativeButton("Yes", new DialogInterface.OnClickListener() {
 				               public void onClick(DialogInterface dialog, int id)
 				               {
 	
@@ -249,7 +259,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 	
 				               	}
 				           }) 
-				           .setNegativeButton("No", new DialogInterface.OnClickListener() {
+				           .setPositiveButton("No", new DialogInterface.OnClickListener() {
 				               public void onClick(DialogInterface dialog, int id) 
 				               {
 				                    dialog.cancel();
@@ -260,7 +270,8 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     		});
     	} else {
     		other_pic.setOnClickListener(null);
-    		other_pic.setImageDrawable(Drawable.createFromPath(store.getPhotoPath(number)));
+    		cu.loadBitmap(store.getPhotoPath(number),other_pic);
+    		//other_pic.setImageBitmap(Drawable.createFromPath(store.getPhotoPath(number)));
     	}
     	   	
     	
@@ -268,5 +279,6 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	read_indicator.setVisibility(View.GONE);
     	
 	}
+	
 
 }

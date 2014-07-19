@@ -1,14 +1,18 @@
 package com.Pull.pullapp;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.provider.Telephony.TextBasedSmsColumns;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -46,7 +50,7 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	private ParseUser currentUser;
 	private Cursor threads_cursor;
 	private String mPassword;
-	private int currentTab, shareType;
+	private int currentTab;
 	private DatabaseHandler dbHandler;
     private RecipientsEditor mConfidantesEditor;
 	private RecipientsAdapter mRecipientsAdapter;
@@ -59,6 +63,13 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	private boolean visible;	
 	private Button hint;
 	private UserInfoStore store;
+	private final String columns = DatabaseHandler.KEY_SHARED_WITH + 
+			", " + DatabaseHandler.KEY_CONVERSATION_FROM_NAME +
+			", " + DatabaseHandler.KEY_SHARER +
+			", " + DatabaseHandler.KEY_ID + " as _id" +
+			", " + DatabaseHandler.KEY_CONVO_TYPE +
+			", " + DatabaseHandler.KEY_CONVERSATION_FROM;	
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
@@ -75,6 +86,7 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	    hint = (Button) findViewById(R.id.hint);   
 	    hint.setVisibility(View.VISIBLE);
 	    listview = getListView();
+	    registerForContextMenu(listview);
 	    
 	    currentTab = getIntent().getIntExtra(Constants.EXTRA_TAB_ID,R.id.my_conversation_tab);
 
@@ -115,18 +127,38 @@ public class AllThreadsListActivity extends SherlockListActivity {
 		populateList();
 	}
 	
+    @Override  
+    public void onCreateContextMenu(ContextMenu menu, View v,ContextMenuInfo menuInfo) {  
+    super.onCreateContextMenu(menu, v, menuInfo);  
+        if(currentTab==R.id.shared_tab) menu.add(0, v.getId(), 0, "Delete Thread");  
+    }  
+    
+    @Override
+    public boolean onContextItemSelected (android.view.MenuItem item)
+    {
+    	AdapterView.AdapterContextMenuInfo info=
+            (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+        Cursor threads  = (Cursor) getListView().getItemAtPosition(info.position);
+  		switch(currentTab) {
+  		case R.id.shared_tab:
+  			String convoID = threads.getString(threads.getColumnIndex("_id"));
+  			int rows = dbHandler.deleteShared(convoID);
+  			threads_cursor = dbHandler.getSharedConversationCursor(columns);
+  			adapter.swapCursor(threads_cursor);
+  			adapter.notifyDataSetChanged();
+  		    return true;
+  		case R.id.my_conversation_tab: 
+  		    return true;
+  		default: 
+  			return true;
+  		}	          
+    } 
+    
 
 
 	private void populateList() {
-		String columns = DatabaseHandler.KEY_SHARED_WITH + 
-				", " + DatabaseHandler.KEY_CONVERSATION_FROM_NAME +
-				", " + DatabaseHandler.KEY_SHARER +
-				", " + DatabaseHandler.KEY_ID + " as _id" +
-				", " + DatabaseHandler.KEY_CONVO_TYPE +
-				", " + DatabaseHandler.KEY_CONVERSATION_FROM;
 		switch(currentTab) {
 		case R.id.shared_tab:
-			shareType = TextBasedSmsColumns.MESSAGE_TYPE_SENT;
 			threads_cursor = dbHandler.getSharedConversationCursor(columns);
 		    adapter = new ThreadItemsCursorAdapter(mContext, threads_cursor, currentTab, this);
 		    setListAdapter(adapter);  	
@@ -150,7 +182,7 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Intent intent;
 		Class c;
-		switch (item.getItemId()) {
+		switch (item.getItemId()) {   
 		case R.id.new_message:
 			switch(currentTab) {
 				case R.id.my_conversation_tab: 
@@ -214,7 +246,9 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	        startActivity(intent);   
 	        return;
 		default:
+		//	Log.i("long id ", "long id " + id);
 			String convoID = threads.getString(threads.getColumnIndex("_id"));
+			//Log.i("convoID", convoID);
 			intent = new Intent(mContext, MessageActivityCheckboxCursor.class);
 			intent.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
 			intent.putExtra(Constants.EXTRA_SHARED_NAME, 
@@ -225,8 +259,8 @@ public class AllThreadsListActivity extends SherlockListActivity {
 					threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_CONVERSATION_FROM)));
 			intent.putExtra(Constants.EXTRA_SHARED_CONFIDANTE, 
 					threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_SHARED_WITH)));		
-			intent.putExtra(Constants.EXTRA_SHARED_CONVO_TYPE, 
-					threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_CONVO_TYPE)));			
+			intent.putExtra(Constants.EXTRA_SHARED_CONVO_TYPE, Integer.parseInt(
+					threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_CONVO_TYPE))));			
 			//Log.i(Constants.EXTRA_SHARED_ADDRESS, threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_CONVERSATION_FROM)));
 	        startActivity(intent);	
 	        return;
@@ -266,7 +300,6 @@ public class AllThreadsListActivity extends SherlockListActivity {
 		}			
 				
 		mBox.setVisibility(View.GONE);
-		//newShare.setBackgroundResource(R.color.pullLight);
 		conversant = conversants[0];
 		recipient = recipients[0];
 		
@@ -293,6 +326,8 @@ public class AllThreadsListActivity extends SherlockListActivity {
 		getSupportMenuInflater().inflate(R.menu.threads_list_menu, menu);
 		return true;
 	}		
+	
+
 /**
     public boolean onContextItemSelected(MenuItem aItem) {
     	Toast.makeText(mContext, " + ", Toast.LENGTH_LONG).show();
@@ -326,21 +361,5 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	protected void onPause(){
 		super.onPause();
 	}
-		
-	/**  private void startLoginActivity(int signin_result) {
-	Intent intent = new Intent(this, ViewPagerSignIn.class);
-	intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-	intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-	intent.putExtra(Constants.EXTRA_SIGNIN_RESULT, signin_result);
-	startActivity(intent);
-	
-}
 
-
-protected void onLogoutButtonClicked() {
-	ParseUser.logOut();
-	startLoginActivity(0);
-	
-}
-**/    
 } 

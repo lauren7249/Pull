@@ -26,6 +26,7 @@
         <item name="actionBarTabStyle">@style/ActionBarTabStyle.Pull</item>
         <item name="actionDropDownStyle">@style/DropDownNav.Pull</item>
         <item name="actionBarStyle">@style/ActionBar.Solid.Pull</item>
+        <item name="android:windowBackground">@drawable/logo_smaller</item>     
         <item name="actionModeBackground">@drawable/cab_background_top_pull</item>
         <item name="actionModeSplitBackground">@drawable/cab_background_bottom_pull</item>
         <item name="actionModeCloseButtonStyle">@style/ActionButton.CloseMode.Pull</item>

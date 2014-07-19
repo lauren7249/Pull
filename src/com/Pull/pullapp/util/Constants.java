@@ -136,6 +136,8 @@ public class Constants {
 	public static final String ACTION_DATABASE_UPDATE = PACKAGE_NAME + ".util.ACTION_DATABASE_UPDATE";
 	public static final String ACTION_SMS_INBOXED = PACKAGE_NAME + ".util.ACTION_SMS_INBOXED";
 	public static final String EXTRA_APPROVER = PACKAGE_NAME + "EXTRA_APPROVER";
+	public static final String EXTRA_MESSAGE_TYPE = PACKAGE_NAME + "EXTRA_MESSAGE_TYPE";
+	public static final String ACTION_APPROVE_MESSAGE = PACKAGE_NAME + ".util.ACTION_APPROVE_MESSAGE";
 	
 	
 	

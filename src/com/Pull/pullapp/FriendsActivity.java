@@ -45,7 +45,15 @@ public class FriendsActivity extends SherlockListActivity {
 		    " so feel free to reject. " + name + " will not know the difference.")
 		           .setCancelable(true)
 		           .setView(addFriendView)
-		           .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+		           .setPositiveButton("Reject", new DialogInterface.OnClickListener() {
+		               public void onClick(DialogInterface dialog, int id) 
+		               {
+		                    dialog.cancel();
+			            	Intent i = new Intent(mContext, AllThreadsListActivity.class);
+			            	startActivity(i);		                    
+		               }
+		           })
+		           .setNegativeButton("Accept", new DialogInterface.OnClickListener() {
 		               public void onClick(DialogInterface dialog, int id)
 		               {
 
@@ -57,15 +65,8 @@ public class FriendsActivity extends SherlockListActivity {
 		            	   startActivity(i);
 
 		               	}
-		           }) 
-		           .setNegativeButton("Reject", new DialogInterface.OnClickListener() {
-		               public void onClick(DialogInterface dialog, int id) 
-		               {
-		                    dialog.cancel();
-			            	Intent i = new Intent(mContext, AllThreadsListActivity.class);
-			            	startActivity(i);		                    
-		               }
-		           }).show();		    	
+		           }) 		           
+		           .show();		    	
 	    }
 	}
 	

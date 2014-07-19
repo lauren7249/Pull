@@ -22,7 +22,8 @@
 	        android:visibility="gone" /> 
      <LinearLayout
          android:id="@+id/message_box"
-         android:layout_width="fill_parent"
+         android:layout_width="0dp"
+         android:layout_weight="1"
          android:layout_height="wrap_content"
          android:clipToPadding="false"
          android:clipChildren="false"
@@ -97,5 +98,10 @@
              android:textSize="12sp" />
           
      </LinearLayout>
-
+    <ImageView
+            android:id="@+id/my_image"
+	        android:layout_width="60dp"
+	        android:layout_height="60dp"
+	        android:layout_gravity="right"
+	        android:visibility="gone" /> 
 </LinearLayout>

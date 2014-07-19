@@ -52,7 +52,7 @@ public class MyDragListener implements OnDragListener {
 		    	+ "?");
 		    builder.setMessage(message)
 		           .setCancelable(true)
-		           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+		           .setNegativeButton("Yes", new DialogInterface.OnClickListener() {
 		               public void onClick(DialogInterface dialog, int id) {
 		            	   dialog.cancel();
 							broadcastIntent = new Intent();
@@ -68,7 +68,7 @@ public class MyDragListener implements OnDragListener {
 							}
 		               	}
 		           })
-		           .setNegativeButton("No", new DialogInterface.OnClickListener() {
+		           .setPositiveButton("No", new DialogInterface.OnClickListener() {
 		               public void onClick(DialogInterface dialog, int id) {
 		                    dialog.cancel();
 							broadcastIntent = new Intent();

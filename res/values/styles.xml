@@ -18,7 +18,7 @@
     <!--
         Base application theme, dependent on API level. This theme is replaced
         by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
-    -->
+    -->  
     <style name="AppBaseTheme" parent="android:Theme.Light">
         <!--
             Theme customizations available in newer API levels can go in
@@ -30,7 +30,11 @@
     <!-- Application theme. -->
     <style name="AppTheme" parent="AppBaseTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
-    </style>
-    
-    
+    </style>  
+	<style name="splashScreenTheme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+	    <item name="android:animation">@android:anim/slide_in_left</item>
+		<item name="android:windowEnterAnimation">@android:anim/slide_in_left</item>
+		<item name="android:windowExitAnimation">@android:anim/slide_out_right</item>	    
+	    <item name="android:windowBackground">@drawable/logotext</item>     
+	</style>       
 </resources>

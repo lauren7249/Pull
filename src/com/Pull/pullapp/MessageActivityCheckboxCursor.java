@@ -24,8 +24,11 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony.Sms.Intents;
 import android.provider.Telephony.TextBasedSmsColumns;
+import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NavUtils;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateUtils;
@@ -42,8 +45,10 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
@@ -78,6 +83,7 @@ import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseInstallation;
 import com.parse.ParseQuery;
+import com.parse.ParseUser;
 
 public class MessageActivityCheckboxCursor extends SherlockFragmentActivity implements ApproverDialogListener{
 	
@@ -136,10 +142,16 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 	private String shared_address;
 	private String confidante_name;
 	private String shared_conversant;
-	private String shared_convo_type;
+	private int shared_convo_type;
 	private Cursor messages_cursor;
 	private Button pickApprover;
 	private String approver;
+	private TextView title_view;
+	private DrawerLayout mDrawerLayout;
+	private ActionBarDrawerToggle mDrawerToggle;
+	private LinearLayout mDrawerLinearLayout;
+	private String indicatorText;
+	private LinearLayout mButtonsBar;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -150,22 +162,40 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		mPrefs = mContext.getSharedPreferences(Constants.PREFERENCE_TIME_DELAY_PROMPT, Context.MODE_PRIVATE);
 		
 		store = new UserInfoStore(mContext);
-		
+	/*	mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+		mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
+		mDrawerLinearLayout = (LinearLayout) findViewById(R.id.left_drawer);
+        // ActionBarDrawerToggle ties together the the proper interactions
+        // between the sliding drawer and the action bar app icon
+        mDrawerToggle = new ActionBarDrawerToggle(
+                this,                 
+                mDrawerLayout,         
+                R.drawable.ic_launcher, 
+                R.string.drawer_open, 
+                R.string.drawer_close  
+                ) {
+            public void onDrawerClosed(View view) {
+                getActionBar().setTitle("drawer closed");
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+
+            public void onDrawerOpened(View drawerView) {
+                getActionBar().setTitle("drawer opened");
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+        };
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+        if (savedInstanceState == null) {
+           // selectItem(0);
+        }		*/
 		mListView = (ListView) findViewById(R.id.list);
 		mListView.setFocusable(true);
 		mListView.setFocusableInTouchMode(true);	
 		mListView.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
-		
+		mButtonsBar = (LinearLayout) findViewById(R.id.buttons_box);
 		mLayout = (RelativeLayout) findViewById(R.id.main_layout);
-		mLayout.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
-			@Override
-			public void onGlobalLayout() {
-				if ((mLayout.getRootView().getHeight() - mLayout.getHeight()) > mLayout.getRootView().getHeight() / 3) {
-					//mListView.setSelection(merge_adapter.getCount()-1);
-				} 
-			}
-		});		
-		
+			
 		delayPressed = false;
 		loader = new GetOutboxMessages();
 		
@@ -202,16 +232,24 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 			shared_convoID = getIntent().getStringExtra(Constants.EXTRA_SHARED_CONVERSATION_ID); 
 			person_shared = getIntent().getStringExtra(Constants.EXTRA_SHARED_NAME); 
 			shared_address = getIntent().getStringExtra(Constants.EXTRA_SHARED_ADDRESS);
-			shared_convo_type = getIntent().getStringExtra(Constants.EXTRA_SHARED_CONVO_TYPE);
+			shared_convo_type = getIntent().getIntExtra(Constants.EXTRA_SHARED_CONVO_TYPE,-1);
 			Log.i("shared_convo_type",""+shared_convo_type );
 			if(number!=null && name!=null) {
 				populateMessages();
 				
-				if(Constants.DEBUG==false) this.setTitle(name);
+				getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
+		                | ActionBar.DISPLAY_SHOW_HOME);
+            	getSupportActionBar().setDisplayHomeAsUpEnabled(true);				
+				getSupportActionBar().setCustomView(R.layout.message_thread_action_bar);		
+				title_view = (TextView) findViewById(R.id.name);
+				title_view.setText(name);
 				setupComposeBox();
 			} else if(person_shared!=null && shared_sender!=null){
 				populateSharedMessages(shared_convoID);
-				setTitle(person_shared + "|" + store.getName(shared_sender));
+				if(shared_convo_type == TextBasedSmsColumns.MESSAGE_TYPE_INBOX)
+					setTitle(person_shared + "|" + store.getName(shared_sender));
+				else
+					setTitle(person_shared + "|Me");
 			}
 			else {
 				
@@ -219,10 +257,10 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		                | ActionBar.DISPLAY_SHOW_HOME);
             	getSupportActionBar().setDisplayHomeAsUpEnabled(true);				
 				getSupportActionBar().setCustomView(R.layout.recipients_editor);
-				
+				setupComposeBox();
 				mRecipientEditor = (RecipientsEditor) getSupportActionBar().getCustomView().findViewById(R.id.recipients_editor);
 				mRecipientEditor.setAdapter(mRecipientsAdapter);
-				setupComposeBox();
+				
 			}
 			
 		}		
@@ -309,7 +347,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 							if(queue_adapter.delayedMessages.containsKey(scheduledOn) && scheduledOn>0) {
 								removeMessage();
 								SMSMessage m = new SMSMessage(scheduledFor, intent_message, intent_number, 
-										TextBasedSmsColumns.MESSAGE_TYPE_SENT, store);		
+										name, TextBasedSmsColumns.MESSAGE_TYPE_SENT, store, 
+										ParseUser.getCurrentUser().getUsername());		
 								m.schedule(scheduledFor);
 								m.setType(TextBasedSmsColumns.MESSAGE_TYPE_SENT);
 								try {
@@ -336,8 +375,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 					
 					queue_adapter.delayedMessages.put(scheduledOn, messages.size());
 					Log.i("tag","queue_adapter.delayedMessages.put " + messages.size());
-					SMSMessage m = new SMSMessage(scheduledFor, intent_message, intent_number, 
-							TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX, store);
+					SMSMessage m = new SMSMessage(scheduledFor, intent_message, intent_number, name,
+							TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX, store, ParseUser.getCurrentUser().getUsername());
 					m.schedule(scheduledFor);
 					m.launchedOn = scheduledOn;
 					m.setApprover(intent_approver);
@@ -352,8 +391,13 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 				} else if(action.equals(Constants.ACTION_SMS_UNOUTBOXED)) {
 					sendDate = new Date(scheduledFor);
 					updateDelayButton();
-					if(intent_approver!=null&& intent_approver.length()>0)
-						pickApprover.setText(intent_approver);
+					
+					if(intent_approver!=null&& intent_approver.length()>0){
+						approver = intent_approver;
+						pickApprover.setText("if " + ContentUtils
+								.getContactDisplayNameByNumber(context, intent_approver) + " approves");						
+					}
+
 					removeMessage();
 					text.setText(intent_message);
 					
@@ -440,19 +484,21 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 
 
 	private void setupComposeBox() {
-		
+		indicatorText = "Write something";
 		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				popup = new SimplePopupWindow(v);
 				popup.showLikePopDownMenu();
-				popup.setMessage("I don't think you wrote a message yet");
+				popup.setMessage(indicatorText);				
+	
 			}
 		});
 		
 		isIdealLength = false;
 	    text.addTextChangedListener(new TextWatcher(){
-	        public void beforeTextChanged(CharSequence s, int start, int count, int after){}
+	        
+			public void beforeTextChanged(CharSequence s, int start, int count, int after){}
 			@Override
 			public void afterTextChanged(Editable s) {
 				// TODO Auto-generated method stub
@@ -466,44 +512,32 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 	        			n_characters<=Constants.MAX_TEXT_LENGTH && !isIdealLength) {
 	        		isIdealLength = true;
 	        		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.good_indicator));
-	        		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
-	        			@Override
-	        			public void onClick(View v) {
-	        				popup = new SimplePopupWindow(v);
-	        				popup.showLikePopDownMenu();
-	        				popup.setMessage("Good length for this message");
-	        			}
-	        		});	        		
+	        		indicatorText = "Good length for this message";      		
 	        		
 	        	} 
 	        	else if(isIdealLength && n_characters>Constants.MAX_TEXT_LENGTH) {
 	        		isIdealLength = false;
 	        		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.bad_indicator));
-	        		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
-	        			@Override
-	        			public void onClick(View v) {
-	        				popup = new SimplePopupWindow(v);
-	        				popup.showLikePopDownMenu();
-	        				popup.setMessage("Your message might be too long");
-	        			}
-	        		});		        		
+	        		indicatorText = "This message is a bit long";	        		
 	        		
 	        	} 	        	
 	        	else if((isIdealLength || n_characters>0) && n_characters<Constants.MIN_TEXT_LENGTH) {
 	        		isIdealLength = false;
 	        		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.pendinh_indicator));
-	        		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
-	        			@Override
-	        			public void onClick(View v) {
-	        				popup = new SimplePopupWindow(v);
-	        				popup.showLikePopDownMenu();
-	        				popup.setMessage("This message is a bit short");
-	        			}
-	        		});
+	        		indicatorText = "This message is a bit short";
+
 	        	} 	 
 				
 			}
 	    }); 	
+		mLayout.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
+			@Override
+			public void onGlobalLayout() {
+				if ((mLayout.getRootView().getHeight() - mLayout.getHeight()) > mLayout.getRootView().getHeight() / 3) {
+					mButtonsBar.setVisibility(View.VISIBLE);
+				} 
+			}
+		});		    
 	}
 
 
@@ -520,6 +554,12 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		intentFilter.addAction(Constants.ACTION_DATABASE_UPDATE);
 		intentFilter.addAction(Intents.SMS_RECEIVED_ACTION);
 		registerReceiver(mBroadcastReceiver, intentFilter);	
+		
+		if(merge_adapter!=null && queue_adapter!=null && messages_adapter!=null) {
+			queue_adapter.notifyDataSetChanged();
+			messages_adapter.notifyDataSetChanged();
+			merge_adapter.notifyDataSetChanged();
+		}
 		
 		calendar.get(Calendar.HOUR_OF_DAY);
 		calendar.get(Calendar.MINUTE);	
@@ -541,17 +581,20 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		mListView.setSelection(merge_adapter.getCount()-1);				
 	}
 	private void populateSharedMessages(final String shared_convoID) {
+		Log.i("shared convo type",""+shared_convo_type);
+		Log.i("shared_sender",shared_sender);
+		Log.i("shared_confidante",shared_confidante);
+		if(shared_convo_type==TextBasedSmsColumns.MESSAGE_TYPE_INBOX) 
+			shared_conversant = shared_sender;
+		else 
+			shared_conversant = shared_confidante;		
 		dh = new DatabaseHandler(mContext);
 		messages_cursor = dh.getSharedMessagesCursor(shared_convoID);
-		messages_adapter = new MessageCursorAdapter(mContext, messages_cursor, this, false);
+		messages_adapter = new MessageCursorAdapter(mContext, messages_cursor, this, false, 
+				shared_conversant, shared_address, person_shared);
 		mListView.setAdapter(messages_adapter);	
 		mListView.setSelection(messages_adapter.getCount()-1);		
 		viewSwitcher.setDisplayedChild(0);
-		if(shared_convo_type!=null && 
-				Integer.parseInt(shared_convo_type)==TextBasedSmsColumns.MESSAGE_TYPE_INBOX) 
-			shared_conversant = shared_sender;
-		else 
-			shared_conversant = shared_confidante;
 		text.setHint("Write a comment to " + store.getName(shared_conversant));
 		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.comment_indicator));
 		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
@@ -562,13 +605,13 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 				popup.setMessage("Your comments are only visible to " + store.getName(shared_conversant));
 			}
 		});		
-		pickDelay.setVisibility(View.GONE);
+		//pickDelay.setVisibility(View.GONE);
 		send.setOnClickListener(new OnClickListener(){
 
 			@Override
 			public void onClick(View v) {
 				try {
-					sendComment(shared_conversant, shared_address, text.getText().toString());
+					sendComment(text.getText().toString());
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -580,15 +623,14 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		});
 	}
 
-	protected void sendComment(String shared_sender, String shared_address,
-			String commentText) throws JSONException {
+	protected void sendComment(String commentText) throws JSONException {
 /*		Toast.makeText(mContext, commentText + " to " + shared_sender + " for " + shared_address, 
 				Toast.LENGTH_LONG).show();
 */
 		SMSMessage comment = new SMSMessage(System.currentTimeMillis(), commentText, 
-				shared_address, Constants.MESSAGE_TYPE_SENT_COMMENT, store);
+				shared_address, person_shared, Constants.MESSAGE_TYPE_SENT_COMMENT, store, shared_sender);
 		//assume this is a conversation that was shared with us
-		comment.addConfidante(shared_sender);
+		comment.addConfidante(shared_conversant);
 		dh = new DatabaseHandler(mContext);
 		
 		dh.addSharedMessage(shared_convoID, comment, TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
@@ -626,6 +668,15 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 			pickDelay.setText(date);	
 		}
 	}
+	
+    /* Called whenever we call invalidateOptionsMenu() 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        // If the nav drawer is open, hide action items related to the content view
+        boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerLinearLayout);
+        menu.findItem(R.id.menu_contacts).setVisible(!drawerOpen);
+        return super.onPrepareOptionsMenu(menu);
+    }	**/
 	// make the menu work
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -669,7 +720,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		long scheduledOn = Long.parseLong(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.DATE_SENT)).toString());
 		String approver = c.getString(c.getColumnIndexOrThrow(DatabaseHandler.KEY_APPROVER));
 		queue_adapter.delayedMessages.put(scheduledOn, messages.size());
-		SMSMessage m = new SMSMessage(scheduledOn, body, number, TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX, store);
+		SMSMessage m = new SMSMessage(scheduledOn, body, number, name,
+				TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX, store, ParseUser.getCurrentUser().getUsername());
 		m.isDelayed = true;
 		m.schedule(scheduledFor);
 		m.launchedOn = scheduledOn;
@@ -684,6 +736,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		newMessage = text.getText().toString().trim(); 
 		hideKeyboard();
 		text.clearFocus();
+		mButtonsBar.setVisibility(View.GONE);
 		if(newMessage.length() > 0)
 		{
 			
@@ -698,7 +751,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 					return;
 				}
 
-				number = recipients[0];	
+				number = ContentUtils.addCountryCode(recipients[0]);	
 			}			
           
             if(name == null) {
@@ -907,6 +960,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		mConfidantesEditor.setText("");						
 		viewSwitcher.setDisplayedChild(0);
 		hideKeyboard();
+		
 		mListView.setSelection(mListView.getCount()-1);		        
         TreeSet<SMSMessage> messagesHash = (TreeSet<SMSMessage>) messages_adapter.check_hash.clone();
 		for(SMSMessage m : messagesHash) {
@@ -929,8 +983,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		messages_adapter.notifyDataSetChanged();
 		mConfidantesEditor.setText("");
 		confidantes = null;	
-		share.setClickable(true);		
+		share.setClickable(true);	
 		
+		mButtonsBar.setVisibility(View.GONE);
 	}	    
 	
     
@@ -960,7 +1015,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		    " Want to set a delay?")
 		           .setView(checkBoxView)
 		           .setCancelable(true)
-		           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+		           .setNegativeButton("Yes", new DialogInterface.OnClickListener() {
 		               public void onClick(DialogInterface dialog, int id)
 		               {
 		            	
@@ -972,7 +1027,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		            	 
 		               	}
 		           }) 
-		           .setNegativeButton("No", new DialogInterface.OnClickListener() {
+		           .setPositiveButton("No", new DialogInterface.OnClickListener() {
 		               public void onClick(DialogInterface dialog, int id) 
 		               {
 		            	   mixpanel.track("alertdialog for a text delay, user clicked no", null);
@@ -1023,7 +1078,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 	private void hideKeyboard(){
 		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-		imm.hideSoftInputFromWindow(text.getWindowToken(), 0);		
+		imm.hideSoftInputFromWindow(text.getWindowToken(), 0);	
+		mButtonsBar.setVisibility(View.GONE);
 		
 	}	
 		
@@ -1040,7 +1096,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 	public void onFinishEditDialog(String inputText) {
 		//Toast.makeText(mContext, inputText, Toast.LENGTH_LONG).show();
 		if(inputText!=null) {
-			pickApprover.setText(ContentUtils.getContactDisplayNameByNumber(mContext, inputText));
+			pickApprover.setText("after " + ContentUtils
+					.getContactDisplayNameByNumber(mContext, inputText) + " approves it");
 			approver = inputText;
 		}
 	}	  		

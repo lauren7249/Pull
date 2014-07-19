@@ -3,12 +3,16 @@
 		xmlns:android="http://schemas.android.com/apk/res/android"
 		android:layout_width="wrap_content"
 		android:layout_height="fill_parent"
+		android:gravity="top"
+		android:layout_gravity="top"
 		android:orientation="horizontal"
 	>
 		<LinearLayout
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:orientation="horizontal"
+			android:gravity="top"
+			android:layout_gravity="top"
 			android:color="@android:color/white"	
 			    
 		    >

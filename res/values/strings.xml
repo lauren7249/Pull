@@ -12,6 +12,8 @@
     <string name="signed_out_status">Signed out.</string>
     <string name="greeting_status">Welcome, %s.</string>
     <string name="announce">Announcement</string>
+    <string name="drawer_open">open</string>
+    <string name="drawer_close">close</string>
 	
     <string name="facebook_app_id">609671019119718</string>
     
@@ -57,5 +59,15 @@
     <string name="compose_message_hint">Message</string>
     <string name="action_settings">Settings</string>
     <string name="compose_select_time">Select Time</string>
-
+    <!-- Nav Drawer Menu Items -->
+    <string-array name="nav_drawer_items">
+        <item >Schedule Text</item>
+        <item >Approvers</item>
+    </string-array>
+    <!-- Nav Drawer List Item Icons -->
+    <!-- Keep them in order as the titles are in -->
+    <array name="nav_drawer_icons">
+        <item>@drawable/select_time</item>
+        <item>@drawable/select_ppl</item>
+    </array>    
 </resources>

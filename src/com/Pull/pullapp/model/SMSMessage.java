@@ -49,17 +49,19 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
      */
 
     
-    public SMSMessage(long date, String message, String address, int type, UserInfoStore store) {
+    public SMSMessage(long date, String message, String address, String person,
+    		int type, UserInfoStore store, String owner) {
         put("smsMessage",message);
         put("address",ContentUtils.addCountryCode(address));    
         put("smsDate",date);      
         put("type",type);
+        put("owner",ContentUtils.addCountryCode(owner));
         put("sentByMe",(
         		type == TextBasedSmsColumns.MESSAGE_TYPE_SENT) || 
         		type == Constants.MESSAGE_TYPE_SENT_COMMENT ||
         		type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX );
         put("isDelayed",(type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX));
-        put("person", store.getName(address));
+        put("person", person);
     	this.store = store;
     }    
     public void setType(int type) {
@@ -133,8 +135,8 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 		store.addSharedWith(number, this);
 	}
 	public void setApprover(String approver) {
-		put("approver",approver);
-		
+		addConfidante(approver);
+		put("approver",ContentUtils.addCountryCode(approver));
 	}	
 	
 	public String getApprover(){
@@ -187,8 +189,18 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 		// TODO Auto-generated method stub
 		return getString("username");
 	}
+	
+	public void setApproved() {
+		put("approved",true);
+	}
 
+	public boolean isApproved(){
+		return getBoolean("approved");
+	}
 
-
+	public String getOwner() {
+		// TODO Auto-generated method stub
+		return getString("owner");
+	}
 
 }

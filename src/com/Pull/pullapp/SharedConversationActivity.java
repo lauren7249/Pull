@@ -369,7 +369,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 	    builder.setMessage("Before " + recipient_name + " can get your comments, " +
 	    		"they need to download the app! Do you want to send them a link?")
 	           .setCancelable(true)
-	           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+	           .setNegativeButton("Yes", new DialogInterface.OnClickListener() {
 	               public void onClick(DialogInterface dialog, int id) {
 	            	   dialog.cancel();
 	            	   Intent sendIntent = new Intent(Intent.ACTION_VIEW);     
@@ -381,7 +381,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 	               	}
 	           })
 	       
-	           .setNegativeButton("No", new DialogInterface.OnClickListener() {
+	           .setPositiveButton("No", new DialogInterface.OnClickListener() {
 	               public void onClick(DialogInterface dialog, int id) 
 	               {
 	            	   mixpanel.track("alertdialog user denied inviting friend", null);
@@ -468,7 +468,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 		    builder.setTitle("Propose sending this to " + this.mOriginalRecipientName + "?");
 		    builder.setMessage(commentText)
 		           .setCancelable(true)
-		           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+		           .setNegativeButton("Yes", new DialogInterface.OnClickListener() {
 		               public void onClick(DialogInterface dialog, int id) 
 		               {
 		            	   mixpanel.track("alertdialog user accepts sending message", null);
@@ -483,7 +483,7 @@ public class SharedConversationActivity extends SherlockActivity implements
 							attemptSend(recipient);				            	   
 		               	}
 		           })
-		           .setNegativeButton("No", new DialogInterface.OnClickListener() {
+		           .setPositiveButton("No", new DialogInterface.OnClickListener() {
 		               public void onClick(DialogInterface dialog, int id)
 		               {
 		    		   mixpanel.track("alertdialog user denies to sending message", null);

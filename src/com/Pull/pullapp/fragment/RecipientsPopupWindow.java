@@ -1,18 +1,17 @@
 package com.Pull.pullapp.fragment;
 
-import java.util.Calendar;
-import java.util.Date;
-
 import android.app.Dialog;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ImageButton;
+import android.widget.TableLayout.LayoutParams;
 
 import com.Pull.pullapp.R;
 import com.Pull.pullapp.util.RecipientsAdapter;
@@ -37,11 +36,18 @@ public class RecipientsPopupWindow extends DialogFragment  {
             Bundle savedInstanceState) {
     	dialog = getDialog();
     	dialog.setTitle("Approver");
+        WindowManager.LayoutParams p = dialog.getWindow().getAttributes();
+        p.width = LayoutParams.MATCH_PARENT;
+        p.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE;
+        p.x = 200;
+        p.y = 20;
+        p.gravity = Gravity.TOP;
+        dialog.getWindow().setAttributes(p);    	
         View v = inflater.inflate(R.layout.share_popup_layout, container, false);
 		mConfidantesEditor = (RecipientsEditor)v.findViewById(R.id.confidantes_editor);
 		mRecipientsAdapter = new RecipientsAdapter(getActivity().getApplicationContext());
 		mConfidantesEditor.setAdapter(mRecipientsAdapter);
-		mConfidantesEditor.setTextColor(Color.BLACK);
+
 		chooser = (ImageButton) v.findViewById(R.id.choose);
 		chooser.setOnClickListener(new OnClickListener(){
 
