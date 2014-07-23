@@ -125,6 +125,8 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	protected void onResume() {
 		super.onResume();
 		populateList();
+		listview.refreshDrawableState();
+		
 	}
 	
     @Override  
@@ -164,6 +166,7 @@ public class AllThreadsListActivity extends SherlockListActivity {
 		    setListAdapter(adapter);  	
 		    mBox.setVisibility(View.GONE);
 		    hint.setVisibility(View.VISIBLE);
+		    
 		    return;
 		case R.id.my_conversation_tab: 
 		    threads_cursor = ContentUtils.getThreadsCursor(mContext);

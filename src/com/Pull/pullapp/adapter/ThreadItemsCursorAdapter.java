@@ -22,6 +22,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -54,7 +56,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 
 	@Override
 	public void bindView(View v, Context context, Cursor threads) {
-		populateFields(v, context, threads);
+		populateFields(v, context, threads, true);
 		
 	}
 
@@ -64,37 +66,38 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
         final LayoutInflater inflater = LayoutInflater.from(context);
         View v = inflater.inflate(R.layout.list_item_thread, parent, false);
         
-        populateFields(v, context, threads);
+        populateFields(v, context, threads, false);
 		return v;
 	}
 
-	private void populateFields(View v, Context context, Cursor threads) {
+	private void populateFields(View v, Context context, Cursor threads, boolean isBindView) {
 		switch(cursorType){
 		case R.id.my_conversation_tab:
-			setTextMessageFields(context,threads,v);
+			setTextMessageFields(context,threads,v, isBindView);
 			return;
 		default:
-			setSharedFields(context,threads,v);
+			setSharedFields(context,threads,v, isBindView);
 			return;
 		}
 	}
-	private void setTextMessageFields(Context context, Cursor threads, View v) {
+	private void setTextMessageFields(Context context, Cursor threads, View v, boolean isBindView) {
+		final ViewHolder holder; 
+		if(!isBindView) holder = new ViewHolder();
+		else holder = (ViewHolder) v.getTag();		
 
-		TextView name_view = (TextView) v.findViewById(R.id.txt_title);
-		TextView snippet_view = (TextView) v.findViewById(R.id.txt_message_info);
-		ImageView read_indicator = (ImageView) v.findViewById(R.id.indicator);
-		ImageView share = (ImageView) v.findViewById(R.id.share_button);
-	    final ImageView other_pic_mine = 
-	    		(ImageView) v.findViewById(R.id.other_pic_mine);
-	    final ImageView other_pic = 
-	    		(ImageView) v.findViewById(R.id.other_pic);
+		holder.name_view = (TextView) v.findViewById(R.id.txt_title);
+		holder.snippet_view = (TextView) v.findViewById(R.id.txt_message_info);
+		holder.read_indicator = (ImageView) v.findViewById(R.id.indicator);
+		holder.share = (ImageView) v.findViewById(R.id.share_button);
+	    holder.other_pic_mine = (ImageView) v.findViewById(R.id.other_pic_mine);
+	    holder.other_pic = (ImageView) v.findViewById(R.id.other_pic);
 
 		String name="", snippet="", recipientId="";
 		final String number;
 		boolean read = true;        
 
         final int position= threads.getPosition();
-        
+
     	read = (!threads.getString(1).equals("0"));	 
     	recipientId = threads.getString(2);
     	snippet = threads.getString(4);		    		    	
@@ -116,21 +119,19 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	
     	//final String friend_name = name;
     	
-		name_view.setText(store.getName(number));
-		snippet_view.setText(snippet);
+		holder.name_view.setText(store.getName(number));
+		holder.snippet_view.setText(snippet);
 		if(!read) {
-			read_indicator.setVisibility(View.VISIBLE);
+			holder.read_indicator.setVisibility(View.VISIBLE);
 		} else {
-			read_indicator.setVisibility(View.GONE);
+			holder.read_indicator.setVisibility(View.GONE);
 		}  
 
-    	other_pic_mine.setVisibility(View.GONE);
-		other_pic.setVisibility(View.VISIBLE);
+    	holder.other_pic_mine.setVisibility(View.GONE);
+		holder.other_pic.setVisibility(View.VISIBLE);
 
     	if(!store.isFriend(number)) {
-    		//other_pic.setImageBitmap(null);
-    		other_pic.setImageResource(R.drawable.add_ppl);
-    		other_pic.setOnClickListener(new OnClickListener(){
+    		holder.other_pic.setOnClickListener(new OnClickListener(){
 	
 				@Override
 				public void onClick(View v) {
@@ -159,13 +160,10 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 	
 				}
     		});
-    	} else {
-    		other_pic.setOnClickListener(null);
-    		//other_pic.setBackground(null);
-    		//other_pic.setImageDrawable(Drawable.createFromPath(store.getPhotoPath(number)));
-    		cu.loadBitmap(store.getPhotoPath(number),other_pic);
-    	}
-    	share.setOnClickListener(new OnClickListener(){
+    	} 
+    	  	
+    
+    	holder.share.setOnClickListener(new OnClickListener(){
 
 			@Override
 			public void onClick(View v) {
@@ -178,12 +176,17 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 
 			}
     		
-    	});    	
-
+    	});   
+    	
+    	if(isBindView) {
+			String path = store.getPhotoPath(number);
+    		cu.loadBitmap(path, holder.other_pic, R.drawable.add_ppl);
+    	}    	
+    	v.setTag(holder);
 	}
 
 
-	private void setSharedFields(Context context, Cursor threads, View v) {
+	private void setSharedFields(Context context, Cursor threads, View v, boolean isBindView) {
 		LinearLayout row = (LinearLayout) v.findViewById(R.id.row);
 		TextView name_view = (TextView) v.findViewById(R.id.txt_title);
 		TextView snippet_view = (TextView) v.findViewById(R.id.txt_message_info);
@@ -270,14 +273,28 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     		});
     	} else {
     		other_pic.setOnClickListener(null);
-    		cu.loadBitmap(store.getPhotoPath(number),other_pic);
-    		//other_pic.setImageBitmap(Drawable.createFromPath(store.getPhotoPath(number)));
+    		if(isBindView) cu.loadBitmap(store.getPhotoPath(number), other_pic ,R.drawable.add_ppl);
     	}
-    	   	
+    	
+    	
     	
     	//TODO: ADD DATA TO SHOW IF IT IS READ OR NOT
     	read_indicator.setVisibility(View.GONE);
     	
+	}
+	
+	private static class ViewHolder
+	{
+		LinearLayout row;
+		TextView name_view;
+		TextView snippet_view;
+		ImageView read_indicator;
+		ImageView share;
+
+	    ImageView other_pic_theirs;
+	    ImageView other_pic_mine;
+	    ImageView other_pic;
+	    
 	}
 	
 

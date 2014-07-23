@@ -288,7 +288,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 				if(path!=null && !path.isEmpty()) {
 					p.setLayoutParams(params);
 					p.setPadding(5, 5, 5, 5);
-					cu.loadBitmap(path,p);
+					cu.loadBitmap(path,p, 0);
 					//p.setImageDrawable(Drawable.createFromPath(path));
 					p.setOnClickListener(new OnClickListener() {
 						@Override
@@ -296,8 +296,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 							View pullProfileView = View.inflate(mContext, R.layout.pull_profile, null);
 							ImageView pp = (ImageView) pullProfileView
 									.findViewById(R.id.contact_image);
-							//pp.setImageDrawable(Drawable.createFromPath(path));
-							cu.loadBitmap(path,pp);
+							cu.loadBitmap(path,pp, 0);
 							AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 							builder.setTitle(name);
 					        builder.setCancelable(true).setView(pullProfileView)	
@@ -422,7 +421,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		{
 	    	if(store.getPhotoPath(address)!=null) {
 	    		//holder.pic.setImageDrawable(Drawable.createFromPath(store.getPhotoPath(address)));
-	    		cu.loadBitmap(store.getPhotoPath(address),holder.their_pic);
+	    		cu.loadBitmap(store.getPhotoPath(address),holder.their_pic, 0);
 	    		holder.their_pic.setVisibility(View.VISIBLE);
 	    	}
 	    	else holder.their_pic.setVisibility(View.GONE);			

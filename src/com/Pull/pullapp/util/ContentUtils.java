@@ -9,16 +9,18 @@ import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import com.Pull.pullapp.R;
+
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
@@ -337,33 +339,7 @@ public class ContentUtils {
 			return byteArray;
 		}		
 		
-		public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
-		    private final WeakReference<ImageView> imageViewReference;
-		    private String path = "";
 
-		    public BitmapWorkerTask(ImageView imageView) {
-		        // Use a WeakReference to ensure the ImageView can be garbage collected
-		        imageViewReference = new WeakReference<ImageView>(imageView);
-		    }
-
-		    // Decode image in background.
-		    @Override
-		    protected Bitmap doInBackground(String... params) {
-		        path = params[0];
-		        return decodeSampledBitmapFromResource(path, 100, 100);
-		    }
-
-		    // Once complete, see if ImageView is still around and set bitmap.
-		    @Override
-		    protected void onPostExecute(Bitmap bitmap) {
-		        if (imageViewReference != null && bitmap != null) {
-		            final ImageView imageView = imageViewReference.get();
-		            if (imageView != null) {
-		                imageView.setImageBitmap(bitmap);
-		            }
-		        }
-		    }
-		}	
 		public static Bitmap decodeSampledBitmapFromResource(String path,
 		        int reqWidth, int reqHeight) {
 
@@ -377,9 +353,9 @@ public class ContentUtils {
 
 		    // Decode bitmap with inSampleSize set
 		    options.inJustDecodeBounds = false;
-
 		    return BitmapFactory.decodeFile(path, options);
-		}
+		} 
+		
 		public static int calculateInSampleSize(
 	            BitmapFactory.Options options, int reqWidth, int reqHeight) {
 	    // Raw height and width of image
@@ -402,8 +378,46 @@ public class ContentUtils {
 
 	    return inSampleSize;
 	}	
-		public void loadBitmap(String path, ImageView imageView) {
-		    BitmapWorkerTask task = new BitmapWorkerTask(imageView);
+		
+		public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
+		    private final WeakReference<ImageView> imageViewReference;
+		    private String path = "";
+		    private int alt_id;
+		    
+		    public BitmapWorkerTask(ImageView imageView, int alt_id) {
+		        // Use a WeakReference to ensure the ImageView can be garbage collected
+		        imageViewReference = new WeakReference<ImageView>(imageView);
+		        this.alt_id = alt_id;
+		    }
+
+		    // Decode image in background.
+		    @Override
+		    protected Bitmap doInBackground(String... params) {
+		        path = params[0];
+		        if (path!=null) {
+		        	return ContentUtils.decodeSampledBitmapFromResource(path, 100, 100);
+		        }
+		        else {
+		        	return null;
+		        }
+		        		
+		    }
+
+		    // Once complete, see if ImageView is still around and set bitmap.
+		    @Override
+		    protected void onPostExecute(Bitmap bitmap) {
+		        if (imageViewReference != null) {
+		            final ImageView imageView = imageViewReference.get();
+		            if (imageView != null) {
+		                if(bitmap!=null) imageView.setImageBitmap(bitmap);
+		                else imageView.setImageResource(alt_id);
+		            }
+		        }
+		    }
+		}	
+		
+		public void loadBitmap(String path, ImageView imageView, int alt_id) {
+		    BitmapWorkerTask task = new BitmapWorkerTask(imageView, alt_id);
 		    task.execute(path);
-		}			
+		}				
 }
