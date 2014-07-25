@@ -146,8 +146,11 @@ public class MessageCursorAdapter extends CursorAdapter {
 			if(type == Constants.MESSAGE_TYPE_SENT_COMMENT) {
 				holder.messageBox.setBackgroundResource(R.drawable.blank_outgoing);
 				holder.message.setTypeface(Typeface.SANS_SERIF, Typeface.ITALIC);
-			} else
+				holder.time.setBackgroundResource(0);
+				holder.time.setTextColor(Color.GRAY);						
+			} else {
 				holder.messageBox.setBackgroundResource(R.drawable.outgoing);
+			}
 			layoutParams.gravity = Gravity.LEFT;
 			holder.message.setGravity(Gravity.RIGHT);
 			holder.time.setGravity(Gravity.RIGHT);				
@@ -288,7 +291,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 				if(path!=null && !path.isEmpty()) {
 					p.setLayoutParams(params);
 					p.setPadding(5, 5, 5, 5);
-					cu.loadBitmap(path,p, 0);
+					cu.loadBitmap(mContext, path,p, 0);
 					//p.setImageDrawable(Drawable.createFromPath(path));
 					p.setOnClickListener(new OnClickListener() {
 						@Override
@@ -296,7 +299,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 							View pullProfileView = View.inflate(mContext, R.layout.pull_profile, null);
 							ImageView pp = (ImageView) pullProfileView
 									.findViewById(R.id.contact_image);
-							cu.loadBitmap(path,pp, 0);
+							cu.loadBitmap(mContext, path,pp, 0);
 							AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 							builder.setTitle(name);
 					        builder.setCancelable(true).setView(pullProfileView)	
@@ -421,7 +424,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		{
 	    	if(store.getPhotoPath(address)!=null) {
 	    		//holder.pic.setImageDrawable(Drawable.createFromPath(store.getPhotoPath(address)));
-	    		cu.loadBitmap(store.getPhotoPath(address),holder.their_pic, 0);
+	    		cu.loadBitmap(mContext, store.getPhotoPath(address),holder.their_pic, 0);
 	    		holder.their_pic.setVisibility(View.VISIBLE);
 	    	}
 	    	else holder.their_pic.setVisibility(View.GONE);			

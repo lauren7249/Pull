@@ -180,7 +180,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	
     	if(isBindView) {
 			String path = store.getPhotoPath(number);
-    		cu.loadBitmap(path, holder.other_pic, R.drawable.add_ppl);
+    		cu.loadBitmap(mContext, path, holder.other_pic, R.drawable.add_ppl);
     	}    	
     	v.setTag(holder);
 	}
@@ -273,7 +273,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     		});
     	} else {
     		other_pic.setOnClickListener(null);
-    		if(isBindView) cu.loadBitmap(store.getPhotoPath(number), other_pic ,R.drawable.add_ppl);
+    		if(isBindView) cu.loadBitmap(mContext, store.getPhotoPath(number), other_pic ,R.drawable.add_ppl);
     	}
     	
     	

@@ -141,14 +141,16 @@ public class ViewPagerSignIn extends BaseActivity {
 					} else {
 						if(ParseUser.getCurrentUser()!=null) {
 							mixpanel.track("Error signing in, user is null", jsonUser);
+							
 							Toast.makeText(mContext, "Error signing in, user is null", Toast.LENGTH_LONG).show();
 						}
 						else {
 							mixpanel.track("Error signing in, not authenticated", jsonUser);
 							Toast.makeText(mContext, "Error signing in, not authenticated", Toast.LENGTH_LONG).show();
 						}
+						progressDialog.dismiss();
 					}					
-					//progressDialog.dismiss();
+					//
 					return;
 				}				
 				

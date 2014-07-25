@@ -148,7 +148,7 @@
 				        android:minHeight="40dp"
 				        android:onClick="pickApprover"
 				        android:text="Approver"
-				        android:visibility="gone"
+				        android:visibility="visible"
 				        android:textColor="@android:color/white"
 				        android:textSize="14sp"
 				        android:color="@android:color/white" />	

@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
@@ -133,6 +134,7 @@ public class AllThreadsListActivity extends SherlockListActivity {
     public void onCreateContextMenu(ContextMenu menu, View v,ContextMenuInfo menuInfo) {  
     super.onCreateContextMenu(menu, v, menuInfo);  
         if(currentTab==R.id.shared_tab) menu.add(0, v.getId(), 0, "Delete Thread");  
+        else menu.add(0, v.getId(), 0, "Add to Contacts");  
     }  
     
     @Override
@@ -150,6 +152,14 @@ public class AllThreadsListActivity extends SherlockListActivity {
   			adapter.notifyDataSetChanged();
   		    return true;
   		case R.id.my_conversation_tab: 
+			String recipientId = threads.getString(threads
+				      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS));		
+			String number = store.getPhoneNumber(recipientId);
+            Intent intent = new Intent(Intent.ACTION_INSERT);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
+            intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
+            startActivity(intent);       			
   		    return true;
   		default: 
   			return true;

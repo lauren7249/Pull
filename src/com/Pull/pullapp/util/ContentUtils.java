@@ -33,6 +33,7 @@ import android.util.Log;
 import android.widget.ImageView;
 
 public class ContentUtils {
+	
 
 	public static String getContactDisplayNameByNumber(Context context, String number) {
 		if(number == null || number.length()==0) return null;
@@ -88,11 +89,9 @@ public class ContentUtils {
 		  return c;
 	  }	
 	  
-	  public static void addMessage(String threadID, String number, String body) {
-      	ContentValues values = new ContentValues();
-  		values.put("read",true);			  
-	  }
-	  
+	  public static void markRead(Cursor c) {
+		  
+	  }		  
 	  public static String getNextThreadID(Context context, String recipient_ids) {
 		  Uri threadIdUri = Uri.parse("content://mms-sms/threadID");
 		  Uri.Builder builder = threadIdUri.buildUpon();
@@ -383,11 +382,12 @@ public class ContentUtils {
 		    private final WeakReference<ImageView> imageViewReference;
 		    private String path = "";
 		    private int alt_id;
-		    
-		    public BitmapWorkerTask(ImageView imageView, int alt_id) {
+		    private Context mContext;
+		    public BitmapWorkerTask(Context context, ImageView imageView, int alt_id) {
 		        // Use a WeakReference to ensure the ImageView can be garbage collected
 		        imageViewReference = new WeakReference<ImageView>(imageView);
 		        this.alt_id = alt_id;
+		        this.mContext = context;
 		    }
 
 		    // Decode image in background.
@@ -398,7 +398,8 @@ public class ContentUtils {
 		        	return ContentUtils.decodeSampledBitmapFromResource(path, 100, 100);
 		        }
 		        else {
-		        	return null;
+		        	return ContentUtils.decodeSampledBitmapFromResource(mContext.getResources(), alt_id, 100, 100);
+		        		    
 		        }
 		        		
 		    }
@@ -408,16 +409,30 @@ public class ContentUtils {
 		    protected void onPostExecute(Bitmap bitmap) {
 		        if (imageViewReference != null) {
 		            final ImageView imageView = imageViewReference.get();
-		            if (imageView != null) {
-		                if(bitmap!=null) imageView.setImageBitmap(bitmap);
-		                else imageView.setImageResource(alt_id);
+		            if (imageView != null && bitmap!=null) {
+		                imageView.setImageBitmap(bitmap);
 		            }
 		        }
 		    }
 		}	
 		
-		public void loadBitmap(String path, ImageView imageView, int alt_id) {
-		    BitmapWorkerTask task = new BitmapWorkerTask(imageView, alt_id);
+		public void loadBitmap(Context context, String path, ImageView imageView, int alt_id) {
+		    BitmapWorkerTask task = new BitmapWorkerTask(context, imageView, alt_id);
 		    task.execute(path);
-		}				
+		}
+		public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
+		        int reqWidth, int reqHeight) {
+
+		    // First decode with inJustDecodeBounds=true to check dimensions
+		    final BitmapFactory.Options options = new BitmapFactory.Options();
+		    options.inJustDecodeBounds = true;
+		    BitmapFactory.decodeResource(res, resId, options);
+
+		    // Calculate inSampleSize
+		    options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+
+		    // Decode bitmap with inSampleSize set
+		    options.inJustDecodeBounds = false;
+		    return BitmapFactory.decodeResource(res, resId, options);
+		}			
 }

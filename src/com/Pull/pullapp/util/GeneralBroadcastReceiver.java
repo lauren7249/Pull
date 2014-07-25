@@ -369,7 +369,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 		notification.sound = Uri.parse("android.resource://" + mContext.getPackageName() + "/" + R.raw.jackie_sound_1);
 		notification.defaults|= Notification.DEFAULT_LIGHTS;
 		notification.defaults|= Notification.DEFAULT_VIBRATE;		
-		mNotificationManager.notify(pendingIntent.hashCode(), notification);		
+		mNotificationManager.notify(title.hashCode()+content.hashCode(), notification);		
 	}
 	private void getCommentFromParse(final String convoID, final String commentID) {
     	ParseQuery<Comment> comments = ParseQuery.getQuery(Comment.class);

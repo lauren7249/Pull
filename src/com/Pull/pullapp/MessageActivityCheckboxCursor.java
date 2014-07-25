@@ -737,56 +737,65 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		hideKeyboard();
 		text.clearFocus();
 		mButtonsBar.setVisibility(View.GONE);
-		if(newMessage.length() > 0)
-		{
-			
-			if(number == null) {
-				recipients = mRecipientEditor.constructContactsFromInput(false).getToNumbers();
-				if(recipients.length > 1) {
-					Toast.makeText(mContext, "Can only send to 1 recipient", Toast.LENGTH_LONG).show();
-					return;
-				}
-				else if(recipients.length == 0) {
-					Toast.makeText(mContext, "No recipients selected", Toast.LENGTH_LONG).show();
-					return;
-				}
+		
+		if(newMessage.length() == 0) {
+			popup = new SimplePopupWindow(v);
+			popup.showLikeQuickAction();
+			popup.setMessage("There's no message here!");					
+			return;
+		}		
 
-				number = ContentUtils.addCountryCode(recipients[0]);	
-			}			
-          
-            if(name == null) {
-            	name = ContentUtils.getContactDisplayNameByNumber(mContext, number);
-            	getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME);
-            	getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            	getSupportActionBar().setDisplayShowTitleEnabled(true);
-            	if(Constants.DEBUG==false) this.setTitle(name);
-            	populateMessages();
-            }
-			
-			/**if(!delayPressed && mPrefs.getBoolean(Constants.PREFERENCE_TIME_DELAY_PROMPT, true)) {
-				askAboutTimeDelay();
+		if(number == null) {
+			recipients = mRecipientEditor.constructContactsFromInput(false).getToNumbers();
+			if(recipients.length > 1) {
+				popup = new SimplePopupWindow(v);
+				popup.showLikeQuickAction();
+				popup.setMessage("Only 1 recipient at a time");					
 				return;
-			}     **/          
-            new DelayedSend(mContext, number, newMessage, sendDate, System.currentTimeMillis(), approver).start();
-            
-        	text.setText("");
-    		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.pendinh_indicator));
-    		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
-    			@Override
-    			public void onClick(View v) {
-    				popup = new SimplePopupWindow(v);
-    				popup.showLikePopDownMenu();
-    				popup.setMessage("I don't think you wrote a message yet");
-    			}
-    		});	        	
-        	if(sendDate!=null && calendar.getTime().before(sendDate)) {
-        		pickDelay.setText(R.string.compose_select_time);
-        		sendDate = null; 
-        		//TODO: MAKE IT SO THAT YOU CANT DO THE PAST
-        	}
-        	newMessage = "";
+			}
+			else if(recipients.length == 0) {
+				popup = new SimplePopupWindow(v);
+				popup.showLikeQuickAction();
+				popup.setMessage("Type someone to send to!");
+				return;
+			}
 
-		}
+			number = ContentUtils.addCountryCode(recipients[0]);	
+		}			
+      
+        if(name == null) {
+        	name = ContentUtils.getContactDisplayNameByNumber(mContext, number);
+        	getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME);
+        	getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        	getSupportActionBar().setDisplayShowTitleEnabled(true);
+        	if(Constants.DEBUG==false) this.setTitle(name);
+        	populateMessages();
+        }
+		
+		/**if(!delayPressed && mPrefs.getBoolean(Constants.PREFERENCE_TIME_DELAY_PROMPT, true)) {
+			askAboutTimeDelay();
+			return;
+		}     **/          
+        new DelayedSend(mContext, number, newMessage, sendDate, System.currentTimeMillis(), approver).start();
+        
+    	text.setText("");
+		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.pendinh_indicator));
+		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				popup = new SimplePopupWindow(v);
+				popup.showLikeQuickAction();
+				popup.setMessage("I don't think you wrote a message yet");
+			}
+		});	        	
+    	if(sendDate!=null && calendar.getTime().before(sendDate)) {
+    		pickDelay.setText(R.string.compose_select_time);
+    		sendDate = null; 
+    		//TODO: MAKE IT SO THAT YOU CANT DO THE PAST
+    	}
+    	newMessage = "";
+
+		
 	}
 	
 	public void pickTime(View v) {
@@ -803,6 +812,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		
 	private void addNewMessage(SMSMessage m, boolean onTop)
 	{
+		if(messages.contains(m)) return;
+		
 		if(onTop) {
 			messages.add(m);
 		}

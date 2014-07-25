@@ -2,12 +2,12 @@ package com.Pull.pullapp.adapter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,9 +22,6 @@ import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 
 import com.Pull.pullapp.R;
-import com.Pull.pullapp.R.drawable;
-import com.Pull.pullapp.R.id;
-import com.Pull.pullapp.R.layout;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.SendUtils;
@@ -43,10 +40,12 @@ public class QueuedMessageAdapter extends BaseAdapter{
 		this.mMessages = messages;
 		delayedMessages = new HashMap<Long,Integer>();
 	}
+
 	public int getCount() {
 		return mMessages.size();
 	}
 	public SMSMessage getItem(int position) {		
+		
 		return mMessages.get(position);
 	}
 

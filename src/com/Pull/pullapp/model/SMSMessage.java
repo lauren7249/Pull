@@ -62,6 +62,8 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
         		type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX );
         put("isDelayed",(type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX));
         put("person", person);
+		put("user", ParseUser.getCurrentUser());
+		put("username", ParseUser.getCurrentUser().getUsername());        
     	this.store = store;
     }    
     public void setType(int type) {
@@ -152,9 +154,7 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 	}
 	
 	public void saveToParse() throws JSONException {
-		put("user", ParseUser.getCurrentUser());
 		put("hashCode", this.hashCode());
-		put("username", ParseUser.getCurrentUser().getUsername());
 		put("confidantes",new ArrayList<String>(getConfidantes()));
 		this.setACL(acl);
 		this.saveInBackground(new SaveCallback() {
