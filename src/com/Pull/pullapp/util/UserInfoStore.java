@@ -107,8 +107,8 @@ public class UserInfoStore {
 	public void savePhotoPath(String number, String photoPath) {
 		Editor editor = phoneNumber_photoPath.edit();
 		editor.putString(ContentUtils.addCountryCode(number), photoPath);	
-		Log.i("phone number", ContentUtils.addCountryCode(number));
-		Log.i("path of photo", photoPath);
+	//	Log.i("phone number", ContentUtils.addCountryCode(number));
+	//	Log.i("path of photo", photoPath);
 		editor.commit();	
 	}
 	public Bitmap getFriendBitmap(String number) {
