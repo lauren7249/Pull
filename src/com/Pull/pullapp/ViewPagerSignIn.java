@@ -213,13 +213,13 @@ public class ViewPagerSignIn extends BaseActivity {
 				if(mParseUser.get("profilePhoto")==null) openPhotoPicker();
 				else openThreads();				
 			} catch (NoSuchAlgorithmException e) {
-				// TODO Auto-generated catch block
+				mixpanel.track(e.getLocalizedMessage(), jsonUser);
 				e.printStackTrace();
 			} catch (InvalidKeySpecException e) {
-				// TODO Auto-generated catch block
+				mixpanel.track(e.getLocalizedMessage(), jsonUser);
 				e.printStackTrace();
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
+				mixpanel.track(e.getLocalizedMessage(), jsonUser);
 				e.printStackTrace();
 			}
 			

@@ -311,8 +311,12 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 
 	private void notifySharedMessages(String sender, String owner, String to, String confidante,
 			String person_shared, String address, List<SMSMessage> objects, int convoType, int messageType) {
-
-		String convoID = owner+address;
+		String conversant;
+		if(convoType==TextBasedSmsColumns.MESSAGE_TYPE_INBOX) 
+			conversant = owner;
+		else 
+			conversant = confidante;
+		String convoID = owner+address+conversant;
 		db = new DatabaseHandler(mContext);
 		  
 		for(SMSMessage m: new TreeSet<SMSMessage>(objects)) {

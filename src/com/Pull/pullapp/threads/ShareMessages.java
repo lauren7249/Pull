@@ -52,7 +52,8 @@ public class ShareMessages extends Thread {
 	@Override
     public void run() {
 		  String sender = ParseUser.getCurrentUser().getUsername();
-		  String convoID = sender+address;
+	  
+		  String convoID = sender+address+confidante;
 		  db = new DatabaseHandler(parent);
 		  
 		  for(SMSMessage m: messages) {
