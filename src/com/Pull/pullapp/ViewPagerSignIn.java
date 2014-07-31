@@ -25,6 +25,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
@@ -173,8 +174,8 @@ public class ViewPagerSignIn extends BaseActivity {
 		mixpanel = MixpanelAPI.getInstance(mContext, Constants.MIXEDPANEL_TOKEN);
 		mixpanel.identify(ParseInstallation.getCurrentInstallation().getObjectId());
 		mixpanel.track("ViewPagerSignIn created", jsonUser);
-
-	    mUserID.setText(mPhoneNumber);
+		mixpanel.track("Phone number " + mPhoneNumber , jsonUser);
+	   // mUserID.setText(mPhoneNumber);
 		
 	 // Find the user's profile picture custom view
 	    profilePictureView = (ProfilePictureView) findViewById(R.id.selection_profile_pic);
@@ -246,7 +247,7 @@ public class ViewPagerSignIn extends BaseActivity {
 	    	mixpanel.track("Facebook not running", jsonUser);
 	    	displayAlternateLoginOption();
 	    }		
-	    
+	      
 	
     }
 
@@ -334,13 +335,14 @@ public class ViewPagerSignIn extends BaseActivity {
 	}
 	
 	public void anonymousLogin(View v){
+		mixpanel.track("Alternate login button clicked" , jsonUser);
 	    if(progressDialog==null || !progressDialog.isShowing()) progressDialog = ProgressDialog.show(
 	    		ViewPagerSignIn.this, "", "Signing up...", true);	
 		if(mUserID.getText().toString() != null) {
 			mPhoneNumber = mUserID.getText().toString();
 			if(!PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber)) {
 				Toast.makeText(mContext, "Not a valid number", Toast.LENGTH_LONG).show();
-				mixpanel.track("Invalid phone number", jsonUser);
+				mixpanel.track("Invalid phone number " + mPhoneNumber, jsonUser);
 				return;
 			}
 		}
@@ -360,12 +362,14 @@ public class ViewPagerSignIn extends BaseActivity {
 		// TODO Auto-generated method stub
 		mSignInButton.setVisibility(View.GONE);
 		mGenericSignInButton.setVisibility(View.VISIBLE);
-		//mGenericSignInButton.setText("Sign Up");
+		mGenericSignInButton.setBackgroundResource(R.drawable.neutral_signin_button);
+		mGenericSignInButton.setTextColor(Color.WHITE);
+		mGenericSignInButton.setText("Sign up");
 		
 		if(!PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber)) {
 			mAssurance.setText("Confirm Phone Number");
 			mUserID.setVisibility(View.VISIBLE);
-			mixpanel.track("Internal phone number is not well formed" , jsonUser);
+			mixpanel.track("Internal phone number is not well formed " + mPhoneNumber , jsonUser);
 		}
 		else {
 			mAssurance.setText("");
