@@ -154,11 +154,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         if(exists(convo_id)) db.update(TABLE_SHARED_CONVERSATIONS, values, KEY_ID+"="+convo_id, null);
         else db.insert(TABLE_SHARED_CONVERSATIONS, null, values);
         int count = this.getSharedCount(type);     
-        if(type == TextBasedSmsColumns.MESSAGE_TYPE_INBOX) {
-		    Intent intent = new Intent(Constants.ACTION_DATABASE_UPDATE);
-		    intent.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convo_id);
-	        mContext.sendBroadcast(intent);		
-        }
+	    Intent intent = new Intent(Constants.ACTION_DATABASE_UPDATE);
+	    intent.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convo_id);
+        mContext.sendBroadcast(intent);		
         return count;    	
     }
 	public void updateSharedConversation(SharedConversation shared) {

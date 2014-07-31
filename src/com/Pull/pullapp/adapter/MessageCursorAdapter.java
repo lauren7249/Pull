@@ -266,7 +266,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);
 		
 		holder.shared_with_text.setVisibility(View.GONE);
-		
+		/**
 		Set<String> sharedWith = message.getConfidantes();
 		holder.sharedWith.removeAllViewsInLayout();
 		if(sharedWith.size()>0) {
@@ -351,7 +351,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 					holder.sharedWith.addView(tv);
 				}
 			}
-		}
+		}**/
 
 
         if (check_hash.contains(message)) {

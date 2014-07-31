@@ -152,6 +152,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 	private LinearLayout mDrawerLinearLayout;
 	private String indicatorText;
 	private LinearLayout mButtonsBar;
+	private TextWatcher watcher;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -286,6 +287,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 					return;
 				}				
 				if(action.equals(Constants.ACTION_DATABASE_UPDATE) && shared_convoID!=null){
+					Log.i("convoid from broadcastreceiver in messageactivity",
+							intent.getStringExtra(Constants.EXTRA_SHARED_CONVERSATION_ID));
 					if(!intent.getStringExtra(Constants.EXTRA_SHARED_CONVERSATION_ID).equals(shared_convoID)) 
 						return;
 					dh = new DatabaseHandler(mContext);
@@ -489,47 +492,15 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 			@Override
 			public void onClick(View v) {
 				popup = new SimplePopupWindow(v);
-				popup.showLikePopDownMenu();
+				popup.showLikeQuickAction();
 				popup.setMessage(indicatorText);				
 	
 			}
 		});
 		
 		isIdealLength = false;
-	    text.addTextChangedListener(new TextWatcher(){
-	        
-			public void beforeTextChanged(CharSequence s, int start, int count, int after){}
-			@Override
-			public void afterTextChanged(Editable s) {
-				// TODO Auto-generated method stub
-				
-			}
-			@Override
-			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {
-	        	n_characters = s.length();
-	        	if(n_characters>=Constants.MIN_TEXT_LENGTH && 
-	        			n_characters<=Constants.MAX_TEXT_LENGTH && !isIdealLength) {
-	        		isIdealLength = true;
-	        		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.good_indicator));
-	        		indicatorText = "Good length for this message";      		
-	        		
-	        	} 
-	        	else if(isIdealLength && n_characters>Constants.MAX_TEXT_LENGTH) {
-	        		isIdealLength = false;
-	        		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.bad_indicator));
-	        		indicatorText = "This message is a bit long";	        		
-	        		
-	        	} 	        	
-	        	else if((isIdealLength || n_characters>0) && n_characters<Constants.MIN_TEXT_LENGTH) {
-	        		isIdealLength = false;
-	        		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.pendinh_indicator));
-	        		indicatorText = "This message is a bit short";
-
-	        	} 	 
-				
-			}
-	    }); 	
+		watcher = getTextWatcher();
+	    text.addTextChangedListener(watcher); 	
 		mLayout.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
 			@Override
 			public void onGlobalLayout() {
@@ -595,13 +566,16 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		mListView.setAdapter(messages_adapter);	
 		mListView.setSelection(messages_adapter.getCount()-1);		
 		viewSwitcher.setDisplayedChild(0);
+		mButtonsBar.setVisibility(View.GONE);
+		pickDelay.setVisibility(View.GONE);
 		text.setHint("Write a comment to " + store.getName(shared_conversant));
+		text.removeTextChangedListener(watcher);
 		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.comment_indicator));
 		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				popup = new SimplePopupWindow(v);
-				popup.showLikePopDownMenu();
+				popup.showLikeQuickAction();
 				popup.setMessage("Your comments are only visible to " + store.getName(shared_conversant));
 			}
 		});		
@@ -662,6 +636,34 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		unregisterReceiver(tickReceiver);
 	}
 	
+	@Override
+	public void onSaveInstanceState(Bundle savedInstanceState) {
+	  savedInstanceState.putString("number", number);    
+	  savedInstanceState.putString("name", name);    
+	  savedInstanceState.putString("thread_id", thread_id);    
+	  savedInstanceState.putString("shared_confidante", shared_confidante); 	 
+	  savedInstanceState.putString("shared_sender", shared_sender);    
+	  savedInstanceState.putString("shared_convoID", shared_convoID);    
+	  savedInstanceState.putString("person_shared", person_shared);    
+	  savedInstanceState.putString("shared_address", shared_address); 	 	  
+	  savedInstanceState.putInt("shared_convo_type", shared_convo_type); 	 	
+	  // etc.  
+	  super.onSaveInstanceState(savedInstanceState);  
+	}  
+	//onRestoreInstanceState  
+	    @Override  
+	public void onRestoreInstanceState(Bundle savedInstanceState) {  
+	  super.onRestoreInstanceState(savedInstanceState);  
+	  number = savedInstanceState.getString("number");    
+	  name = savedInstanceState.getString("name");    
+	  thread_id = savedInstanceState.getString("thread_id");    
+	  shared_confidante = savedInstanceState.getString("shared_confidante" ); 	 
+	  shared_sender = savedInstanceState.getString("shared_sender");    
+	  shared_convoID = savedInstanceState.getString("shared_convoID");    
+	  person_shared = savedInstanceState.getString("person_shared");    
+	  shared_address = savedInstanceState.getString("shared_address"); 	 	  
+	  shared_convo_type = savedInstanceState.getInt("shared_convo_type"); 	
+	}	
 	private void updateDelayButton(){
 		if(sendDate!=null){
 			CharSequence date = DateUtils.getRelativeDateTimeString(mContext, sendDate.getTime(), DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS, DateUtils.FORMAT_ABBREV_ALL);
@@ -835,7 +837,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		merge_adapter.notifyDataSetChanged();
 	}	
 
-    public void getShareContent(View v) {
+   /** public void getShareContent(View v) {
 		final long date = System.currentTimeMillis();
 		
 		if(mConfidantesEditor.constructContactsFromInput(false).getNumbers().length==0 
@@ -855,11 +857,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 			popup.setMessage("Try entering a contact from your address book");	
 			return;
 		}
-		
-		/*if(messages_adapter.check_hash.size()==0) {
-			addPersistentSharers();
-			return;
-		}*/
 		
 		if(messages_adapter.check_hash.size()==0) {
 			popup = new SimplePopupWindow(v);
@@ -945,7 +942,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		if(mConfidantesEditor.constructContactsFromInput(false).getNumbers().length==0 
 				&& (confidantes==null || confidantes.length==0)) {
 			popup = new SimplePopupWindow(v);
-			popup.showLikePopDownMenu();
+			popup.showLikeQuickAction();
 			popup.setMessage("Try entering a contact from your address book");	
 			return;
 		}
@@ -955,14 +952,14 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		
 		if(confidantes==null || confidantes.length == 0) {
 			popup = new SimplePopupWindow(v);
-			popup.showLikePopDownMenu();
+			popup.showLikeQuickAction();
 			popup.setMessage("Try entering a contact from your address book");	
 			return;
 		}
 		
 		if(messages_adapter.check_hash.size()==0) {
 			popup = new SimplePopupWindow(v);
-			popup.showLikePopDownMenu();
+			popup.showLikeQuickAction();
 			popup.setMessage("Tap messages to select them for sharing");
 			return;
 		}		
@@ -972,6 +969,12 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		viewSwitcher.setDisplayedChild(0);
 		hideKeyboard();
 		
+		
+		shared_sender = ParseUser.getCurrentUser().getUsername();
+		person_shared = name;
+		shared_address = number;
+		shared_convo_type = TextBasedSmsColumns.MESSAGE_TYPE_SENT;	
+	
 		mListView.setSelection(mListView.getCount()-1);		        
         TreeSet<SMSMessage> messagesHash = (TreeSet<SMSMessage>) messages_adapter.check_hash.clone();
 		for(SMSMessage m : messagesHash) {
@@ -985,18 +988,34 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 	    	confidante_name = ContentUtils.getContactDisplayNameByNumber(mContext, confidante);
 	    	store.setName(confidante, confidante_name);
 			
+			shared_confidante = confidante;
+			shared_convoID = shared_sender+shared_address+shared_confidante;
+			Log.i("convoid from sharemessages function", shared_convoID);
 			new ShareMessages(mContext, confidante, 
 					name, number,  messagesHash).start();	  
+			populateSharedMessages(shared_convoID);
 		}	
         
+		name = null;
+		number = null;
+		confidantes = null;			
+		Intent intent = new Intent();
+		intent.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, shared_convoID);
+		intent.putExtra(Constants.EXTRA_SHARED_NAME, person_shared);
+		intent.putExtra(Constants.EXTRA_SHARED_SENDER, shared_sender);
+		intent.putExtra(Constants.EXTRA_SHARED_ADDRESS, shared_address);
+		intent.putExtra(Constants.EXTRA_SHARED_CONFIDANTE, shared_confidante);		
+		intent.putExtra(Constants.EXTRA_SHARED_CONVO_TYPE, shared_convo_type);			
+		setIntent(intent);
 		messages_adapter.check_hash.clear();
 		messages_adapter.showCheckboxes = false;	
 		messages_adapter.notifyDataSetChanged();
 		mConfidantesEditor.setText("");
-		confidantes = null;	
+		
 		share.setClickable(true);	
 		
 		mButtonsBar.setVisibility(View.GONE);
+		
 	}	    
 	
     
@@ -1111,5 +1130,41 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 					.getContactDisplayNameByNumber(mContext, inputText) + " approves it");
 			approver = inputText;
 		}
-	}	  		
+	}
+	private TextWatcher getTextWatcher() {
+		return new TextWatcher(){
+	        
+			public void beforeTextChanged(CharSequence s, int start, int count, int after){}
+			@Override
+			public void afterTextChanged(Editable s) {
+				// TODO Auto-generated method stub
+				
+			}
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
+	        	n_characters = s.length();
+	        	if(n_characters>=Constants.MIN_TEXT_LENGTH && 
+	        			n_characters<=Constants.MAX_TEXT_LENGTH && !isIdealLength) {
+	        		isIdealLength = true;
+	        		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.good_indicator));
+	        		indicatorText = "Good length for this message";      		
+	        		
+	        	} 
+	        	else if(isIdealLength && n_characters>Constants.MAX_TEXT_LENGTH) {
+	        		isIdealLength = false;
+	        		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.bad_indicator));
+	        		indicatorText = "This message is a bit long";	        		
+	        		
+	        	} 	        	
+	        	else if((isIdealLength || n_characters>0) && n_characters<Constants.MIN_TEXT_LENGTH) {
+	        		isIdealLength = false;
+	        		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.pendinh_indicator));
+	        		indicatorText = "This message is a bit short";
+	
+	        	} 	 
+				
+			}
+	    }	;
+	}
 }

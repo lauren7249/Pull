@@ -338,7 +338,7 @@ public class ViewPagerSignIn extends BaseActivity {
 		mixpanel.track("Alternate login button clicked" , jsonUser);
 	    if(progressDialog==null || !progressDialog.isShowing()) progressDialog = ProgressDialog.show(
 	    		ViewPagerSignIn.this, "", "Signing up...", true);	
-		if(mUserID.getText().toString() != null) {
+		if(mUserID.getText().toString() != null && !PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber)) {
 			mPhoneNumber = mUserID.getText().toString();
 			if(!PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber)) {
 				Toast.makeText(mContext, "Not a valid number", Toast.LENGTH_LONG).show();

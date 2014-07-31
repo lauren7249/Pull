@@ -317,6 +317,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 		else 
 			conversant = confidante;
 		String convoID = owner+address+conversant;
+		Log.i("convoid from broadcastreceiver", convoID);
 		db = new DatabaseHandler(mContext);
 		  
 		for(SMSMessage m: new TreeSet<SMSMessage>(objects)) {
