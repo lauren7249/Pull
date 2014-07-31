@@ -224,7 +224,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		approver = "";
 		if(getIntent() != null && !isPopulated) {
 			
-			number =  getIntent().getStringExtra(Constants.EXTRA_NUMBER); 
+			number =  ContentUtils.addCountryCode(getIntent().getStringExtra(Constants.EXTRA_NUMBER)); 
 			name =  getIntent().getStringExtra(Constants.EXTRA_NAME); 
 			thread_id = getIntent().getStringExtra(Constants.EXTRA_THREAD_ID); 
 			
@@ -988,10 +988,10 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 	    	confidante_name = ContentUtils.getContactDisplayNameByNumber(mContext, confidante);
 	    	store.setName(confidante, confidante_name);
 			
-			shared_confidante = confidante;
+			shared_confidante = ContentUtils.addCountryCode(confidante);
 			shared_convoID = shared_sender+shared_address+shared_confidante;
 			Log.i("convoid from sharemessages function", shared_convoID);
-			new ShareMessages(mContext, confidante, 
+			new ShareMessages(mContext, shared_confidante, 
 					name, number,  messagesHash).start();	  
 			populateSharedMessages(shared_convoID);
 		}	
