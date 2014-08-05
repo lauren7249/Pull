@@ -1,0 +1,92 @@
+
+<LinearLayout 
+    android:id="@+id/main_layout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:facebook="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:gravity="center"
+    android:background="#8fffffff"
+    android:orientation="vertical" >
+  
+    
+		<EditText
+		    android:id="@+id/mobileNumber"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:padding="10dp"
+		    android:layout_centerInParent="true"
+		    android:hint="Mobile Number"
+		    android:inputType="phone"
+		    android:background="#8fffffff"
+		    android:visibility="visible" />  
+		<EditText
+		    android:id="@+id/password"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:layout_below="@id/mobileNumber"
+		    android:padding="10dp"
+		    android:inputType="textPassword"
+		    android:hint="Choose password"
+		    android:background="#8fffffff"
+		    android:layout_centerInParent="true"
+		    android:visibility="visible" />  		  
+		<EditText
+		    android:id="@+id/confirmPassword"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:layout_below="@id/password"
+		    android:hint="Confirm password"
+		    android:inputType="textPassword"
+		    android:background="#8fffffff"
+		    android:padding="10dp"
+		    android:layout_marginBottom="20dp"
+		    android:layout_centerInParent="true"
+		    android:visibility="visible" />  			      		    	   
+		<EditText
+		    android:id="@+id/keyhash"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:background="#8fffffff"
+		    android:padding="10dp"
+		    android:layout_centerInParent="true"
+		    android:layout_below="@id/confirmPassword"
+		    android:visibility="gone" />            
+
+		<Button
+		    android:id="@+id/sign_in"
+		    android:layout_below="@id/confirmPassword"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:padding="10dp"
+		    android:layout_centerInParent="true"
+		    android:textColor="#ffffff"
+		    android:background="@drawable/fb_signin_button"
+		    android:onClick="facebookLogin"
+		    android:text="Sign up with Facebook" />   
+		<TextView
+		    android:id="@+id/assurance"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:padding="10dp"
+		    android:layout_above="@id/sign_in"
+		    android:text="We will never post anything to Facebook." /> 			     		         
+		<Button
+		    android:id="@+id/generic_sign_in"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:layout_below="@id/sign_in"
+		    android:layout_marginTop="20dp"
+		    android:padding="10dp"
+		    android:background="#8fffffff"
+		    android:layout_centerHorizontal="true"
+		    android:textColor="#000000"
+		    android:textSize="12dp"
+		    android:visibility="visible"
+		    android:text="Sign Up without Facebook" />    		    
+
+		    	    
+
+        
+</LinearLayout>

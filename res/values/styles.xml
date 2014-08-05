@@ -31,10 +31,11 @@
     <style name="AppTheme" parent="AppBaseTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>  
-	<style name="splashScreenTheme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+	<style name="splashScreenTheme" parent="@android:style/Theme.Holo.Light.NoActionBar">
 	    <item name="android:animation">@android:anim/slide_in_left</item>
 		<item name="android:windowEnterAnimation">@android:anim/slide_in_left</item>
 		<item name="android:windowExitAnimation">@android:anim/slide_out_right</item>	    
 	    <item name="android:windowBackground">@drawable/logotext</item>     
+	    <item name="android:colorBackground">@android:color/white</item>
 	</style>       
 </resources>

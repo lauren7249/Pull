@@ -138,6 +138,9 @@ public class Constants {
 	public static final String EXTRA_APPROVER = PACKAGE_NAME + "EXTRA_APPROVER";
 	public static final String EXTRA_MESSAGE_TYPE = PACKAGE_NAME + "EXTRA_MESSAGE_TYPE";
 	public static final String ACTION_APPROVE_MESSAGE = PACKAGE_NAME + ".util.ACTION_APPROVE_MESSAGE";
+	public static final String ACTION_NUMBER_VERIFIED = PACKAGE_NAME + ".util.ACTION_NUMBER_VERIFIED";
+	public static final String ACTION_NUMBER_NOT_VERIFIED = PACKAGE_NAME + ".util.ACTION_NOT_VERIFIED";
+	public static final String USER_PASSWORD_SALT = "PULL_PASSWORD_SALT";
 	
 	
 	

@@ -15,6 +15,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
@@ -58,6 +59,7 @@ public class MainApplication extends Application {
 	private Context mContext;
 	private UserInfoStore store;
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void onCreate() {
 		super.onCreate();
@@ -96,6 +98,16 @@ public class MainApplication extends Application {
 	    
 	    
 	    if (ParseUser.getCurrentUser()!=null) uploadPhoto(ParseUser.getCurrentUser());
+		HashMap<String, Object> params = new HashMap<String, Object>();
+		params.put("to", "");		    
+		ParseCloud.callFunctionInBackground("getTwilioNumber", params, new FunctionCallback<String>() {
+		@Override
+			public void done(String obj, ParseException e) {
+	         	if (e == null && obj!=null) {
+	         		store.saveTwilioNumber(obj);
+		        }
+			}
+	  });	    
 	}
 	
 	public void uploadPhoto(final ParseUser user) {
@@ -136,6 +148,11 @@ public class MainApplication extends Application {
 		editor.commit();
 	}
 	
+	public void setUsername(String Name) {
+		editor = prefs.edit();
+		editor.putString(Constants.USER_NAME, Name);
+		editor.commit();
+	}	
 	public boolean isSignedIn(){
 		return prefs.getBoolean(Constants.IS_SIGNED_IN, false);
 	}	
@@ -152,7 +169,12 @@ public class MainApplication extends Application {
 		editor.commit();
 		
 	}
-
+	public void setPasswordSalt(String salt) {
+		editor = prefs.edit();
+		editor.putString(Constants.USER_PASSWORD_SALT, salt);	
+		editor.commit();
+		
+	}
 	public String getFacebookID() {
 		return prefs.getString(Constants.FACEBOOK_USER_ID, null);
 	}
@@ -163,6 +185,10 @@ public class MainApplication extends Application {
 	
 	public String getPassword() {
 		return prefs.getString(Constants.USER_PASSWORD, null);
+	}		
+	public String getPasswordSalt() {
+		// TODO Auto-generated method stub
+		return prefs.getString(Constants.USER_PASSWORD_SALT, null);
 	}		
 
     static String generateStrongPasswordHash(String password, String saltString) throws NoSuchAlgorithmException, InvalidKeySpecException
@@ -255,6 +281,8 @@ public class MainApplication extends Application {
 		installation.saveInBackground();		
 		mixpanel.track("saved installation",null);
 		sendResult();
-	}	
+	}
+
+
 
 }

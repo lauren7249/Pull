@@ -31,33 +31,43 @@ public class SMSReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		if (intent.getAction()
-				.equals(Intents.SMS_RECEIVED_ACTION)) {		
-		if (intent.getAction()
 				.equals(Intents.SMS_RECEIVED_ACTION)) {
 	        SharedPreferences sharedPrefs = PreferenceManager
 	                .getDefaultSharedPreferences(context);			
-	        boolean receive = sharedPrefs.getBoolean("prefReceiveTexts", false);
-			if (receive) {
-				abortBroadcast();
-				Bundle bundle = intent.getExtras();
-				if (bundle != null) {
-					// Get SMS objects.
-					Object[] pdus = (Object[]) bundle.get("pdus");
-					if (pdus.length == 0) {
-						return;
-					}
-					// Large message might be broken into many.
-					SmsMessage[] messages = new SmsMessage[pdus.length];
-					StringBuilder sb = new StringBuilder();
-					for (int i = 0; i < pdus.length; i++) {
-						messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
-						sb.append(messages[i].getMessageBody());
-					}
-					String sender = messages[0].getOriginatingAddress();
+	        UserInfoStore store = new UserInfoStore(context);
+			Bundle bundle = intent.getExtras();
+			if (bundle != null) {
+				// Get SMS objects.
+				Object[] pdus = (Object[]) bundle.get("pdus");
+				if (pdus.length == 0) {
+					return;
+				}
+				// Large message might be broken into many.
+				SmsMessage[] messages = new SmsMessage[pdus.length];
+				StringBuilder sb = new StringBuilder();
+				for (int i = 0; i < pdus.length; i++) {
+					messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+					sb.append(messages[i].getMessageBody());
+				}
+				String sender = messages[0].getOriginatingAddress();
 
-					// Contact not in address book: log message and don't let it through.
-					String message = sb.toString();
-					// Prevent other broadcast receivers from receiving broadcast.
+				// Contact not in address book: log message and don't let it through.
+				String message = sb.toString();	        
+		        String twilioNumber = ContentUtils.addCountryCode(store.getTwilioNumber());
+		        if(twilioNumber!=null && sender!=null && 
+		        		ContentUtils.addCountryCode(sender).equals(twilioNumber)){
+		        	abortBroadcast();
+		        	if(message.equals(store.getVerificationCode())) {
+		        	    intent = new Intent(Constants.ACTION_NUMBER_VERIFIED);
+		        	    context.sendBroadcast(intent);		
+		        	   // Log.i("received broadcast",Constants.ACTION_NUMBER_VERIFIED);
+		        	}
+		        	return;
+		        }
+		        boolean receive = sharedPrefs.getBoolean("prefReceiveTexts", false);
+				if (receive) {
+					abortBroadcast();
+						// Prevent other broadcast receivers from receiving broadcast.
 					
 					SimpleDateFormat dateFormat = new SimpleDateFormat(
 							"yyyy-MM-dd'T'HH:mm'Z'"); // ISO 8601, Local time zone.
@@ -98,7 +108,6 @@ public class SMSReceiver extends BroadcastReceiver {
 				}
 			}
 			return;
-			}
 		}
 	}
 	public static void pushMessage(Context context, String message, String number, String thread_id) {

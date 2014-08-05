@@ -24,8 +24,10 @@ public class UserInfoStore {
 	private SharedPreferences mPrefs_sms_sharedWith;
 	private SharedPreferences phoneNumber_photoPath;
 	private SharedPreferences approvals;
+	private SharedPreferences mPrefs;
 	public UserInfoStore(Context context) {
 		this.mContext = context;
+    	mPrefs = mContext.getSharedPreferences(MainApplication.class.getSimpleName(),Context.MODE_PRIVATE);		
     	mPrefs_recipientID_phoneNumber = mContext.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
     			+ "recipientId_phoneNumber",Context.MODE_PRIVATE);
     	mPrefs_phoneNumber_Name = mContext.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
@@ -150,5 +152,24 @@ public class UserInfoStore {
 	public static String getApprovalString(String phoneNumber, String message,
 			long scheduledFor, String approver) {
 		return Integer.toString((phoneNumber+message+Long.toString(scheduledFor)+approver).hashCode());
+	}
+	public void saveTwilioNumber(String obj) {
+		Editor editor = mPrefs.edit();
+		editor.putString("twilioNumber", obj);	
+		editor.commit();	
+		
+	}
+	public void saveVerificationCode(String mVerificationCode) {
+		Editor editor = mPrefs.edit();
+		editor.putString("mVerificationCode", mVerificationCode);	
+		editor.commit();	
+	}
+	public String getTwilioNumber() {
+		// TODO Auto-generated method stub
+		return mPrefs.getString("twilioNumber", null);
+	}
+	public String getVerificationCode() {
+		// TODO Auto-generated method stub
+		return mPrefs.getString("mVerificationCode", null);
 	}
 }

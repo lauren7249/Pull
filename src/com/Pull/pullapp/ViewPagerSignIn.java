@@ -4,7 +4,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,23 +31,23 @@ import android.content.pm.Signature;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.view.ViewPager;
+import android.telephony.PhoneNumberFormattingTextWatcher;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.View.OnClickListener;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.TableLayout;
-import android.widget.TableLayout.LayoutParams;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.Pull.pullapp.adapter.SignInFragmentAdapter;
 import com.Pull.pullapp.model.FacebookUser;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
@@ -56,24 +59,27 @@ import com.facebook.Session;
 import com.facebook.model.GraphUser;
 import com.facebook.widget.ProfilePictureView;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
+import com.parse.FunctionCallback;
 import com.parse.LogInCallback;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
 import com.parse.ParseInstallation;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
-import com.viewpagerindicator.CirclePageIndicator;
 
 public class ViewPagerSignIn extends BaseActivity {
+	private Timer myTimer;
 	private ParseUser mParseUser;
     private Button mSignInButton;
 	private SharedPreferences prefs;
 	private Context mContext;
-	private String mPhoneNumber, mSerialNumber;
+	private String mPhoneNumber, mPasswordSalt;
 	private MainApplication mApp;
 	private TelephonyManager tMgr;
 	private int errorCode = 0;
-	private ProfilePictureView profilePictureView;
+	private String mVerificationCode;
+	ProfilePictureView profilePictureView;
 	private GraphUser mGraphUser;
 	protected String mFacebookID;
 	private EditText mKeyHashBox;
@@ -98,16 +104,16 @@ public class ViewPagerSignIn extends BaseActivity {
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.signin_viewpager);
+        setContentView(R.layout.signin);
         mLayout = (LinearLayout) findViewById(R.id.main_layout);
-        mBottomHalf = (RelativeLayout) findViewById(R.id.signin_area);
-        mAdapter = new SignInFragmentAdapter(getSupportFragmentManager());
+       // mBottomHalf = (RelativeLayout) findViewById(R.id.signin_area);
+       // mAdapter = new SignInFragmentAdapter(getSupportFragmentManager());
 
-        mPager = (ViewPager)findViewById(R.id.pager);
-        mPager.setAdapter(mAdapter);
+      //  mPager = (ViewPager)findViewById(R.id.pager);
+      //  mPager.setAdapter(mAdapter);
 
-        mIndicator = (CirclePageIndicator)findViewById(R.id.indicator);
-        mIndicator.setViewPager(mPager);
+      //  mIndicator = (CirclePageIndicator)findViewById(R.id.indicator);
+        //mIndicator.setViewPager(mPager);
         
         mContext = getApplicationContext();
         
@@ -118,16 +124,26 @@ public class ViewPagerSignIn extends BaseActivity {
         mUserID = (EditText) findViewById(R.id.mobileNumber);
         mPassword = (EditText) findViewById(R.id.password);
         mConfirmPassword = (EditText) findViewById(R.id.confirmPassword);
-        
         mAssurance = (TextView) findViewById(R.id.assurance);
         mKeyHashBox = (EditText) findViewById(R.id.keyhash);
+        
 	    prefs = getSharedPreferences(MainApplication.class.getSimpleName(), Context.MODE_PRIVATE);
 	    tMgr =(TelephonyManager)this.getSystemService(Context.TELEPHONY_SERVICE);
-	    mPhoneNumber = ContentUtils.addCountryCode(tMgr,tMgr.getLine1Number());
-	    
-	    mSerialNumber = tMgr.getSimSerialNumber();
 	    mApp = (MainApplication) this.getApplication();   
 	    
+	    if(mApp.getUserName()==null) {
+	    	mPhoneNumber = ContentUtils.addCountryCode(tMgr,tMgr.getLine1Number());
+	    	//mPhoneNumber = null;
+	    }
+	    else mPhoneNumber = mApp.getUserName();
+	    
+	    if(mApp.getPasswordSalt()==null) {
+		    mPasswordSalt = tMgr.getSimSerialNumber();
+			//mPasswordSalt = null;
+	    }
+	    else mPasswordSalt = mApp.getPasswordSalt();	    
+
+			    
 		mBroadcastReceiver = 
 		new BroadcastReceiver() {
 			@Override
@@ -154,18 +170,44 @@ public class ViewPagerSignIn extends BaseActivity {
 					//
 					return;
 				}				
-				
+				if(action.equals(Constants.ACTION_NUMBER_VERIFIED)) {
+					hideKeyboard();
+					mApp.setUsername(mPhoneNumber);
+					mApp.setPasswordSalt(mVerificationCode);					
+					mAssurance.setText("Number verified!");
+					mAssurance.clearFocus();
+					mAssurance.setTextColor(Color.BLACK);
+					//mAssurance.setVisibility(View.GONE);
+				    if(appRunning("com.facebook.katana")) {
+				    	mixpanel.track("Facebook is running", jsonUser);
+				    	displayFacebookLoginOption();
+				    }
+				    else {
+				    	mixpanel.track("Facebook not running", jsonUser);
+				    	displayAlternateLoginOption();
+				    }						
+					return;
+				}	
+				if(action.equals(Constants.ACTION_NUMBER_NOT_VERIFIED)) {
+					mAssurance.setText("Could not verify number");
+					mAssurance.setTextColor(Color.RED);
+					mGenericSignInButton.setClickable(true);	
+					return;
+				}
 
 			}
-		};				
+		};	
+		
 		intentFilter = new IntentFilter();	
 		intentFilter.addAction(Constants.ACTION_COMPLETE_SIGNUP);		
+		intentFilter.addAction(Constants.ACTION_NUMBER_VERIFIED);	
+		intentFilter.addAction(Constants.ACTION_NUMBER_NOT_VERIFIED);
 		registerReceiver(mBroadcastReceiver, intentFilter);		
 		
 	    jsonUser = new JSONObject();
 	    try {
 	    	jsonUser.put("mPhoneNumber", mPhoneNumber);
-	    	jsonUser.put("mSerialNumber", mSerialNumber);
+	    	jsonUser.put("mPasswordSalt", mPasswordSalt);
 		} catch (JSONException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -178,8 +220,8 @@ public class ViewPagerSignIn extends BaseActivity {
 	   // mUserID.setText(mPhoneNumber);
 		
 	 // Find the user's profile picture custom view
-	    profilePictureView = (ProfilePictureView) findViewById(R.id.selection_profile_pic);
-	    profilePictureView.setCropped(true);
+	//    profilePictureView = (ProfilePictureView) findViewById(R.id.selection_profile_pic);
+	  //  profilePictureView.setCropped(true);
 	    
 		//if (mFacebookID!=null) profilePictureView.setProfileId(mFacebookID);	 
 	    if(Constants.DEBUG) {
@@ -205,51 +247,137 @@ public class ViewPagerSignIn extends BaseActivity {
 	    	mKeyHashBox.setVisibility(View.VISIBLE);
 	    }  
 		mParseUser = ParseUser.getCurrentUser();
-		if (mParseUser!=null && mParseUser.isDataAvailable() && mParseUser.isAuthenticated()) {
-			mixpanel.track("Authenticated & signed in", jsonUser);
-			Log.i("isDataAvailable",""+mParseUser.isDataAvailable());
-			try {
-				mPasswordString = MainApplication.generateStrongPasswordHash(mPhoneNumber,mSerialNumber);
-				ParseUser.logIn(mParseUser.getUsername(), mPasswordString);
-				if(mParseUser.get("profilePhoto")==null) openPhotoPicker();
-				else openThreads();				
-			} catch (NoSuchAlgorithmException e) {
-				mixpanel.track(e.getLocalizedMessage(), jsonUser);
-				e.printStackTrace();
-			} catch (InvalidKeySpecException e) {
-				mixpanel.track(e.getLocalizedMessage(), jsonUser);
-				e.printStackTrace();
-			} catch (ParseException e) {
-				mixpanel.track(e.getLocalizedMessage(), jsonUser);
-				e.printStackTrace();
-			}
-			
-	    }
-
+		if(mPhoneNumber!=null && mPasswordSalt!=null
+				 && !mPhoneNumber.isEmpty() && !mPasswordSalt.isEmpty())	{
+			mApp.setUsername(mPhoneNumber);
+			mApp.setPasswordSalt(mPasswordSalt);
+			if (mParseUser!=null &&  mParseUser.getUsername()!=null && !mParseUser.getUsername().isEmpty() &&
+					mParseUser.isDataAvailable() && mParseUser.isAuthenticated()) {
+				mixpanel.track("Authenticated & signed in", jsonUser);
+				try {
+					mPasswordString = MainApplication.generateStrongPasswordHash(mPhoneNumber,mPasswordSalt);
+					ParseUser.logIn(mPhoneNumber, mPasswordString);
+					if(mParseUser.get("profilePhoto")==null) openPhotoPicker();
+					else openThreads();				
+				} catch (NoSuchAlgorithmException e) {  
+					mixpanel.track(e.getLocalizedMessage(), jsonUser);
+					e.printStackTrace();
+				} catch (InvalidKeySpecException e) {
+					mixpanel.track(e.getLocalizedMessage(), jsonUser);
+					e.printStackTrace();
+				} catch (ParseException e) {
+					mixpanel.track(e.getLocalizedMessage(), jsonUser);
+					e.printStackTrace();  
+				}
+				
+		    }
+			mUserID.setVisibility(View.GONE);
+			mPassword.setVisibility(View.GONE);
+			mConfirmPassword.setVisibility(View.GONE);			
+		    if(appRunning("com.facebook.katana")) {
+		    	mixpanel.track("Facebook is running", jsonUser);
+		    	displayFacebookLoginOption();
+		    }
+		    else {
+		    	mixpanel.track("Facebook not running", jsonUser);
+		    	displayAlternateLoginOption();
+		    }					
+		} else {
+			mixpanel.track("Need to confirm phone number", jsonUser);
+			displayPhoneNumberConfirmation();
+		}
+		
 	    // Dirty Hack to detect keyboard
 		mLayout.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
 			
 			@Override
 			public void onGlobalLayout() {
 				if ((mLayout.getRootView().getHeight() - mLayout.getHeight()) > mLayout.getRootView().getHeight() / 3) {
-					mBottomHalf.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.MATCH_PARENT, 0, 100f));
+				//	mBottomHalf.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.MATCH_PARENT, 0, 100f));
 				} else {
-					mBottomHalf.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.MATCH_PARENT, 0, 2f));
+				//	mBottomHalf.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.MATCH_PARENT, 0, 2f));
 				}
 			}
 		});		
 		   
-	    if(appRunning("com.facebook.katana")) {
-	    	mixpanel.track("Facebook is running", jsonUser);
-	    	displayFacebookLoginOption();
-	    }
-	    else {
-	    	mixpanel.track("Facebook not running", jsonUser);
-	    	displayAlternateLoginOption();
-	    }		
 	      
 	
     }
+	private void displayPhoneNumberConfirmation() {
+		mUserID.setVisibility(View.VISIBLE);
+		mUserID.addTextChangedListener(new PhoneNumberFormattingTextWatcher());
+		mPassword.setVisibility(View.GONE);
+		mConfirmPassword.setVisibility(View.GONE);
+		mSignInButton.setVisibility(View.GONE);
+		mGenericSignInButton.setVisibility(View.VISIBLE);
+		mGenericSignInButton.setBackgroundResource(R.drawable.neutral_signin_button);
+		mGenericSignInButton.setTextColor(Color.WHITE);
+		mGenericSignInButton.setText("Confirm");	
+		mGenericSignInButton.setTextSize(20);
+		mGenericSignInButton.setOnClickListener(new OnClickListener(){
+
+			@SuppressWarnings("unchecked")
+			@Override
+			public void onClick(View v) {
+				mAssurance.setVisibility(View.VISIBLE);
+				mPhoneNumber = ContentUtils.addCountryCode(
+						PhoneNumberUtils.stripSeparators(mUserID.getText().toString()));
+				mVerificationCode = "5555";
+				store.saveVerificationCode(mVerificationCode);
+				if(PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber) &&
+						PhoneNumberUtils.isGlobalPhoneNumber(mPhoneNumber)) {
+					mAssurance.setText("Attempting verification...");
+					mAssurance.setTextColor(Color.BLACK);		
+					//mGenericSignInButton.setClickable(false);
+					HashMap<String, Object> params = new HashMap<String, Object>();
+					params.put("phoneNumber", mPhoneNumber);	
+					params.put("verificationCode", mVerificationCode);	
+					ParseCloud.callFunctionInBackground("phoneNumberVerification", params, new FunctionCallback() {
+					
+
+					@Override
+						public void done(Object obj, ParseException e) {
+				         	if (e == null) {
+				         		if(obj!=null) {
+									mAssurance.setText("Sending verification code...");
+									mAssurance.setTextColor(Color.BLACK);
+									mGenericSignInButton.setClickable(true);	
+									//myTimer = new Timer();
+									/**myTimer.schedule(new TimerTask() {			
+										@Override
+										public void run() {
+							        	    Intent intent = new Intent(Constants.ACTION_NUMBER_NOT_VERIFIED);
+							        	    mContext.sendBroadcast(intent);
+										}
+										
+									}, 10000, 10000);			**/				
+
+				         		} 
+				         		else {
+									mAssurance.setText("Unable to verify");
+									mAssurance.setTextColor(Color.BLACK);
+									mGenericSignInButton.setClickable(true);				         			
+				         		}
+					        }
+				         	else {
+								mAssurance.setText(e.getMessage());
+								mAssurance.setTextColor(Color.RED);
+								mGenericSignInButton.setClickable(true);				         		
+				         	}
+						}
+				  });						
+				} else {
+					mAssurance.setText("Invalid phone number");
+					mAssurance.setTextColor(Color.RED);
+					mGenericSignInButton.setClickable(true);
+				}
+				
+			}
+			
+		});
+		mAssurance.setTextSize(16);
+		mAssurance.setText("Enter your mobile number");
+	}
 
 
 	private void openPhotoPicker() {
@@ -309,7 +437,7 @@ public class ViewPagerSignIn extends BaseActivity {
 				       }
 			       }
 			       progressDialog.dismiss();
-			       anonymousLogin(v);	
+			       basicLogin(v);	
 			    } else {
 			    	
 			    	mixpanel.track("ParseFacebookUtils.logIn successful", jsonUser);
@@ -334,28 +462,28 @@ public class ViewPagerSignIn extends BaseActivity {
 
 	}
 	
-	public void anonymousLogin(View v){
+	public void basicLogin(View v){
 		mixpanel.track("Alternate login button clicked" , jsonUser);
 	    if(progressDialog==null || !progressDialog.isShowing()) progressDialog = ProgressDialog.show(
 	    		ViewPagerSignIn.this, "", "Signing up...", true);	
-		if(mUserID.getText().toString() != null && !PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber)) {
+	/**	if(mUserID.getText().toString() != null && !PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber)) {
 			mPhoneNumber = mUserID.getText().toString();
 			if(!PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber)) {
 				Toast.makeText(mContext, "Not a valid number", Toast.LENGTH_LONG).show();
 				mixpanel.track("Invalid phone number " + mPhoneNumber, jsonUser);
 				return;
 			}
-		}
+		}**/
 		try {
-			mPasswordString = MainApplication.generateStrongPasswordHash(mPhoneNumber,mSerialNumber);
-			mApp.saveUserInfo(mPhoneNumber,mPasswordString);
+			mPasswordString = MainApplication.generateStrongPasswordHash(mApp.getUserName(),mApp.getPasswordSalt());
+			mApp.saveUserInfo(mApp.getUserName(), mPasswordString);
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
+			mixpanel.track(e.getLocalizedMessage(), jsonUser);
 			e.printStackTrace();
 		} catch (InvalidKeySpecException e) {
-			// TODO Auto-generated catch block
+			mixpanel.track(e.getLocalizedMessage(), jsonUser);
 			e.printStackTrace();
-		}			
+		}
 	}	
 
 	protected void displayAlternateLoginOption() {
@@ -365,8 +493,14 @@ public class ViewPagerSignIn extends BaseActivity {
 		mGenericSignInButton.setBackgroundResource(R.drawable.neutral_signin_button);
 		mGenericSignInButton.setTextColor(Color.WHITE);
 		mGenericSignInButton.setText("Sign up");
-		
-		if(!PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber)) {
+		mGenericSignInButton.setOnClickListener(new OnClickListener(){
+			@Override
+			public void onClick(View v) {
+				basicLogin(v);
+				
+			}
+		});		
+	/**	if(!PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber)) {
 			mAssurance.setText("Confirm Phone Number");
 			mUserID.setVisibility(View.VISIBLE);
 			mixpanel.track("Internal phone number is not well formed " + mPhoneNumber , jsonUser);
@@ -374,7 +508,7 @@ public class ViewPagerSignIn extends BaseActivity {
 		else {
 			mAssurance.setText("");
 			mixpanel.track("Internal phone number is well formed" , jsonUser);
-		}
+		}**/
 	}
 	
 	public void toggleGenericLogin(View v) {
@@ -384,12 +518,18 @@ public class ViewPagerSignIn extends BaseActivity {
 	
 	private void displayFacebookLoginOption() {
 		mSignInButton.setVisibility(View.VISIBLE);
-		//mGenericSignInButton.setVisibility(View.GONE);
 		mUserID.setVisibility(View.GONE);
-		mPassword.setVisibility(View.GONE);
-		mConfirmPassword.setVisibility(View.GONE);
 		mAssurance.setText("We will never post anything to Facebook.");
-		
+		mGenericSignInButton.setText("Sign up without Facebook");
+		mGenericSignInButton.setBackgroundColor(Color.parseColor("#8fffffff"));
+		mGenericSignInButton.setTextSize(14);
+		mGenericSignInButton.setOnClickListener(new OnClickListener(){
+			@Override
+			public void onClick(View v) {  
+				basicLogin(v);
+				
+			}
+		});			
 	}
 	
 
@@ -439,10 +579,10 @@ public class ViewPagerSignIn extends BaseActivity {
 				new Request.GraphUserCallback() {
 					@Override
 					public void onCompleted(GraphUser user, Response response) {
-						showdialog = false;
+						showdialog = false;  
 						store.saveFacebookID(mPhoneNumber, user.getId());
 						mixpanel.track("makeMeRequest completed", jsonUser);
-						anonymousLogin(v);	
+						basicLogin(v);	
 						if (user != null) {
 							mixpanel.track("makeMeRequest found graph user", jsonUser);
 							//Log.d("tag","Found graph user");
@@ -510,4 +650,10 @@ public class ViewPagerSignIn extends BaseActivity {
 		mixpanel.flush();
 	    super.onDestroy();
 	}	  		
+	private void hideKeyboard(){
+		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+		imm.hideSoftInputFromWindow(mUserID.getWindowToken(), 0);	
+		
+	}	
 }
