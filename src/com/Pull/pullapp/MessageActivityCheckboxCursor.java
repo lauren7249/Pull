@@ -601,7 +601,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 /*		Toast.makeText(mContext, commentText + " to " + shared_sender + " for " + shared_address, 
 				Toast.LENGTH_LONG).show();
 */
-		SMSMessage comment = new SMSMessage(System.currentTimeMillis(), commentText, 
+		long currentDate = new Date().getTime();
+		SMSMessage comment = new SMSMessage(currentDate, commentText, 
 				shared_address, person_shared, Constants.MESSAGE_TYPE_SENT_COMMENT, store, shared_sender);
 		//assume this is a conversation that was shared with us
 		comment.addConfidante(shared_conversant);
@@ -937,8 +938,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 
 	public void shareMessages(View v) throws JSONException 
 	{
-		final long date = System.currentTimeMillis();
-		
+
 		if(mConfidantesEditor.constructContactsFromInput(false).getNumbers().length==0 
 				&& (confidantes==null || confidantes.length==0)) {
 			popup = new SimplePopupWindow(v);
