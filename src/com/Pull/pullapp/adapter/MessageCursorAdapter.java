@@ -131,8 +131,6 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.shared_with_text = (TextView) v.findViewById(R.id.shared_with_text);
 		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);
 		
-		//int id = Resources.getSystem().getIdentifier("btn_check_holo_light", "drawable", "android");
-		//holder.box.setButtonDrawable(id);
 		holder.sharedWith.setVisibility(View.GONE);
 		holder.shared_with_text.setVisibility(View.GONE);
 		holder.addPPl.setVisibility(View.GONE);
@@ -266,92 +264,6 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);
 		
 		holder.shared_with_text.setVisibility(View.GONE);
-		/**
-		Set<String> sharedWith = message.getConfidantes();
-		holder.sharedWith.removeAllViewsInLayout();
-		if(sharedWith.size()>0) {
-			holder.shared_with_text.setVisibility(View.VISIBLE);
-			holder.shared_with_text.setOnClickListener(new OnClickListener(){
-
-				@Override
-				public void onClick(View v) {
-					if(holder.sharedWith.getVisibility() == View.VISIBLE) 
-						holder.sharedWith.setVisibility(View.GONE);
-					else 
-						holder.sharedWith.setVisibility(View.VISIBLE);
-				}
-				
-			});
-			for(final String confidante : sharedWith) {
-				final String name = store.getName(confidante);
-				LayoutParams params = new LayoutParams(90,90);				
-				ImageView p = new ImageView(mContext);
-				
-				final String path = store.getPhotoPath(confidante);
-				if(path!=null && !path.isEmpty()) {
-					p.setLayoutParams(params);
-					p.setPadding(5, 5, 5, 5);
-					cu.loadBitmap(mContext, path,p, 0);
-					//p.setImageDrawable(Drawable.createFromPath(path));
-					p.setOnClickListener(new OnClickListener() {
-						@Override
-						public void onClick(View v) {
-							View pullProfileView = View.inflate(mContext, R.layout.pull_profile, null);
-							ImageView pp = (ImageView) pullProfileView
-									.findViewById(R.id.contact_image);
-							cu.loadBitmap(mContext, path,pp, 0);
-							AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-							builder.setTitle(name);
-					        builder.setCancelable(true).setView(pullProfileView)	
-					           .setPositiveButton("Close", new DialogInterface.OnClickListener() {
-					               public void onClick(DialogInterface dialog, int id){
-					            	   dialog.cancel();
-					               	}
-					           });					        
-					        builder.show();
-						};
-			        });			
-					holder.sharedWith.addView(p);
-				} else {
-					final TextView tv = new TextView(mContext);
-					params = new LayoutParams(LayoutParams.WRAP_CONTENT,
-							LayoutParams.MATCH_PARENT);
-					tv.setPadding(5, 5, 5, 5);
-					tv.setText(name);
-					tv.setHint(confidante);
-					tv.setTextColor(R.color.textColor);
-					tv.setGravity(Gravity.LEFT|Gravity.TOP);
-					tv.setLayoutParams(params);
-					if(!store.isFriend(confidante)) tv.setOnClickListener(new OnClickListener() {
-						@Override
-						public void onClick(View v) {
-							View addFriendView = View.inflate(mContext, R.layout.add_friend, null);
-							AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-						    builder.setTitle("Invite Friend");
-						    builder.setMessage("Invite " + tv.getText().toString() 
-						    		+ " to be your friend on Pull?")
-						           .setCancelable(true)
-						           .setView(addFriendView)
-						           .setNegativeButton("Yes", new DialogInterface.OnClickListener() {
-						               public void onClick(DialogInterface dialog, int id)
-						               {
-
-						            	   SendUtils.inviteFriend(tv.getHint().toString(), mContext, activity);
-
-						               	}
-						           }) 
-						           .setPositiveButton("No", new DialogInterface.OnClickListener() {
-						               public void onClick(DialogInterface dialog, int id) 
-						               {
-						                    dialog.cancel();
-						               }
-						           }).show();	
-						};
-			        });				
-					holder.sharedWith.addView(tv);
-				}
-			}
-		}**/
 
 
         if (check_hash.contains(message)) {
