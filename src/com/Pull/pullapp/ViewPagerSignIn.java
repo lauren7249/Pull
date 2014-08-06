@@ -133,7 +133,7 @@ public class ViewPagerSignIn extends BaseActivity {
 	    
 	    if(mApp.getUserName()==null) {
 	    	mPhoneNumber = ContentUtils.addCountryCode(tMgr,tMgr.getLine1Number());
-	    	//mPhoneNumber = null;
+	    	//mPhoneNumber = "";
 	    }
 	    else mPhoneNumber = mApp.getUserName();
 	    

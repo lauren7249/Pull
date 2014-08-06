@@ -85,7 +85,7 @@ public class MainApplication extends Application {
 		ParseACL.setDefaultACL(acl, true);
 		
 		PushService.setDefaultPushCallback(this, ViewPagerSignIn.class); 	
-	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();		    
+	    mPhoneNumber = getUserName();		    
 	    mContext = getBaseContext();
 	    
 		mixpanel = MixpanelAPI.getInstance(getBaseContext(), Constants.MIXEDPANEL_TOKEN);
@@ -272,12 +272,12 @@ public class MainApplication extends Application {
 	}	
 
 	private void saveInstallation(){
-		Channels c = new Channels(ContentUtils.setChannel(mPhoneNumber));
+		Channels c = new Channels(ContentUtils.setChannel(getUserName()));
 		if(ParseUser.getCurrentUser().getObjectId()!=null) c.put("user", ParseUser.getCurrentUser());
 		c.saveInBackground();
 		ParseInstallation installation = ParseInstallation.getCurrentInstallation();
 		if(ParseUser.getCurrentUser().getObjectId()!=null) installation.put("user", ParseUser.getCurrentUser());
-		installation.addAllUnique("channels", Arrays.asList(ContentUtils.setChannel(mPhoneNumber)));
+		installation.addAllUnique("channels", Arrays.asList(ContentUtils.setChannel(getUserName())));
 		installation.saveInBackground();		
 		mixpanel.track("saved installation",null);
 		sendResult();
