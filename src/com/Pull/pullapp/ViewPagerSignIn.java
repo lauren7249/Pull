@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
-import java.util.TimerTask;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,6 +26,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ResolveInfo;
 import android.content.pm.Signature;
 import android.graphics.Color;
 import android.net.Uri;
@@ -37,9 +37,9 @@ import android.telephony.TelephonyManager;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -100,6 +100,8 @@ public class ViewPagerSignIn extends BaseActivity {
 	private IntentFilter intentFilter;
 	private static final Class nextActivity = ImagePickerActivity.class;
 	private UserInfoStore store;
+	private boolean receiverIsTrumped;
+	private PhoneNumberFormattingTextWatcher mWatcher;
 	
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,8 +143,14 @@ public class ViewPagerSignIn extends BaseActivity {
 		    mPasswordSalt = tMgr.getSimSerialNumber();
 			//mPasswordSalt = null;
 	    }
-	    else mPasswordSalt = mApp.getPasswordSalt();	    
-
+	    else mPasswordSalt = mApp.getPasswordSalt();	 
+	    
+	    Intent intent = new Intent("android.provider.Telephony.SMS_RECEIVED");
+	    List<ResolveInfo> infos = getPackageManager().queryBroadcastReceivers(intent, 0);
+	    for (ResolveInfo info : infos) {
+	      //  System.out.println("Receiver name:" + info.activityInfo.name + "; priority=" + info.priority);
+	    	if(info.priority>=2147483647) receiverIsTrumped = true;
+	    }
 			    
 		mBroadcastReceiver = 
 		new BroadcastReceiver() {
@@ -184,14 +192,15 @@ public class ViewPagerSignIn extends BaseActivity {
 				    }
 				    else {
 				    	mixpanel.track("Facebook not running", jsonUser);
-				    	displayAlternateLoginOption();
+				    //	displayAlternateLoginOption();
+				    	basicLogin(new View(mContext));
 				    }						
 					return;
 				}	
 				if(action.equals(Constants.ACTION_NUMBER_NOT_VERIFIED)) {
-					mAssurance.setText("Could not verify number");
+					mAssurance.setText("Could not verify number.");
 					mAssurance.setTextColor(Color.RED);
-					mGenericSignInButton.setClickable(true);	
+					//displayPhoneNumberConfirmation();					
 					return;
 				}
 
@@ -304,8 +313,9 @@ public class ViewPagerSignIn extends BaseActivity {
 	
     }
 	private void displayPhoneNumberConfirmation() {
+		mWatcher = new PhoneNumberFormattingTextWatcher();
 		mUserID.setVisibility(View.VISIBLE);
-		mUserID.addTextChangedListener(new PhoneNumberFormattingTextWatcher());
+		mUserID.addTextChangedListener(mWatcher);
 		mPassword.setVisibility(View.GONE);
 		mConfirmPassword.setVisibility(View.GONE);
 		mSignInButton.setVisibility(View.GONE);
@@ -318,7 +328,7 @@ public class ViewPagerSignIn extends BaseActivity {
 
 			@SuppressWarnings("unchecked")
 			@Override
-			public void onClick(View v) {
+			public void onClick(final View v) {
 				mAssurance.setVisibility(View.VISIBLE);
 				mPhoneNumber = ContentUtils.addCountryCode(
 						PhoneNumberUtils.stripSeparators(mUserID.getText().toString()));
@@ -342,15 +352,29 @@ public class ViewPagerSignIn extends BaseActivity {
 									mAssurance.setText("Sending verification code...");
 									mAssurance.setTextColor(Color.BLACK);
 									mGenericSignInButton.setClickable(true);	
-									//myTimer = new Timer();
-									/**myTimer.schedule(new TimerTask() {			
-										@Override
-										public void run() {
-							        	    Intent intent = new Intent(Constants.ACTION_NUMBER_NOT_VERIFIED);
-							        	    mContext.sendBroadcast(intent);
-										}
-										
-									}, 10000, 10000);			**/				
+									if(receiverIsTrumped) {
+										mAssurance.setText("Enter SMS verification code");
+										mUserID.setText("");
+										mUserID.removeTextChangedListener(mWatcher);
+										mUserID.setHint("Enter code");
+										mGenericSignInButton.setText("Confirm code");
+										mGenericSignInButton.setOnClickListener(new OnClickListener(){
+											
+											@Override
+											public void onClick(View v) {
+												String code = mUserID.getText().toString();
+									        	if(code.equals(store.getVerificationCode())) {
+									        	    Intent intent = new Intent(Constants.ACTION_NUMBER_VERIFIED);
+									        	    mContext.sendBroadcast(intent);		
+									        	}	
+									        	else {
+													mAssurance.setText("Incorrect code. Please re-enter");
+													mAssurance.setTextColor(Color.RED);								        		
+									        	}
+											}
+											
+										});
+									}
 
 				         		} 
 				         		else {

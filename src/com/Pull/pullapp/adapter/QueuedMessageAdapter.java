@@ -61,7 +61,6 @@ public class QueuedMessageAdapter extends BaseAdapter{
 			holder.messageBox = (LinearLayout) convertView.findViewById(R.id.message_box);
 			holder.message = (TextView) convertView.findViewById(R.id.message_text);
 			holder.time = (TextView) convertView.findViewById(R.id.message_time);
-			holder.box = (CheckBox) convertView.findViewById(R.id.cbBox);
 			holder.edit = (Button) convertView.findViewById(R.id.edit_message_button);
 			holder.addPPl = (ImageView) convertView.findViewById(R.id.add_ppl);
 		}
@@ -74,26 +73,11 @@ public class QueuedMessageAdapter extends BaseAdapter{
 			@Override
 			public void onClick(View v) {
 				if(showCheckboxes){
-					holder.box.toggle();
 					message.box = ! message.box;
 				}
 			}
 		});
-		
-		holder.box.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				message.box = !message.box;
-			};
-        });
-        
-      
-        if (message.box) holder.box.setChecked(true);
-        else holder.box.setChecked(false);
-		if(showCheckboxes) holder.box.setVisibility(View.VISIBLE);
-		else holder.box.setVisibility(View.GONE);
 
-		
 		convertView.setTag(holder);		
 		holder.message.setText(message.getMessage());
 		

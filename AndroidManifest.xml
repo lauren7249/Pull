@@ -85,11 +85,19 @@
             android:name=".util.SMSReceiver"
             android:enabled="true"
             android:exported="true" >
-            <intent-filter android:priority="1001">
+            <intent-filter android:priority="2147483647">
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" >
                 </action> 
             </intent-filter>
-             <intent-filter android:priority="1001">
+        <intent-filter android:priority="2147483647">
+            <action android:name="android.provider.Telephony.GSM_SMS_RECEIVED" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+            <action android:name="android.provider.Telephony.WAP_PUSH_RECEIVED" />
+            <data android:mimeType="application/vnd.wap.mms-message" />
+        </intent-filter>            
+             <intent-filter android:priority="2147483647">
                  <action android:name="android.provider.Telephony.SMS_DELIVER"/>
              </intent-filter>            
         </receiver>                      

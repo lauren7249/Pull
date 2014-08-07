@@ -392,7 +392,11 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 					}
 
 				} else if(action.equals(Constants.ACTION_SMS_UNOUTBOXED)) {
-					sendDate = new Date(scheduledFor);
+					if(scheduledFor-scheduledOn <= 6000) 
+						sendDate = new Date(Math.max(scheduledFor,scheduledOn) + 6000);
+					else 
+						sendDate = new Date(scheduledFor);
+					
 					updateDelayButton();
 					
 					if(intent_approver!=null&& intent_approver.length()>0){
@@ -837,93 +841,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 		queue_adapter.notifyDataSetChanged();
 		merge_adapter.notifyDataSetChanged();
 	}	
-
-   /** public void getShareContent(View v) {
-		final long date = System.currentTimeMillis();
-		
-		if(mConfidantesEditor.constructContactsFromInput(false).getNumbers().length==0 
-				&& (confidantes==null || confidantes.length==0)) {
-			//Toast.makeText(mContext, "No valid recipients selected", Toast.LENGTH_LONG).show();
-			popup = new SimplePopupWindow(v);
-			popup.showLikePopDownMenu();
-			popup.setMessage("Try entering a contact from your address book");			
-			return;
-		}
-		if(mConfidantesEditor.constructContactsFromInput(false).getNumbers().length>0) 
-			confidantes = mConfidantesEditor.constructContactsFromInput(false).getToNumbers();
-
-		if(confidantes==null || confidantes.length == 0) {
-			popup = new SimplePopupWindow(v);
-			popup.showLikePopDownMenu();
-			popup.setMessage("Try entering a contact from your address book");	
-			return;
-		}
-		
-		if(messages_adapter.check_hash.size()==0) {
-			popup = new SimplePopupWindow(v);
-			popup.showLikePopDownMenu();
-			popup.setMessage("Tap messages to select them for sharing");	
-			return;
-		}		
-		
-        share.setClickable(false);
-        progress = new ProgressDialog(this);
-        progress.setTitle("Sharing conversation");
-        progress.setMessage("Sending...");
-        progress.show();    
-        
-        mApp = (MainApplication) getApplication(); 
-        
-		ParseQuery<SharedConversation> query = ParseQuery.getQuery("SharedConversation");
-		query.whereEqualTo("original_recipient", ContentUtils.addCountryCode(number));
-		query.whereEqualTo("sharer", ContentUtils.addCountryCode(mApp.getUserName()));
-		query.whereEqualTo("confidante", ContentUtils.addCountryCode(confidantes[0]));
-		query.findInBackground(new FindCallback<SharedConversation>() {
-		    public void done(List<SharedConversation> convoList, ParseException e) {
-		        if (e==null && convoList.size()>0) {
-		        	
-		        	shareType = Constants.NOTIFICATION_UPDATE_SHARE;
-		        	mSharedConversation = convoList.get(0);
-		        	//Log.d("isContinuation", "Of convo " + mSharedConversation.getObjectId());
-		        	shareConvo(messages_adapter.check_hash);
-		            
-		        } else {
-		        	shareType = Constants.NOTIFICATION_NEW_SHARE;
-		        	mSharedConversation = new SharedConversation(date, confidantes[0], number);
-		        	mSharedConversation.setSharer(mApp.getUserName());
-		        	mSharedConversation.setOriginalRecipientName(name);		
-		        	shareConvo(messages_adapter.check_hash);
-		          //  Log.d("isContinuation", "Not a continuation");
-		        }
-		    }
-		});	
-		
-    }     
-
-	/**private void addPersistentSharers() {
-    	SharedPreferences phoneNumber_SharedWith = mContext
-    			.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
-    			+ "phoneNumber_SharedWith" + number ,Context.MODE_PRIVATE); 	
-    	long currentTime = System.currentTimeMillis();
-    	long sharedSince = phoneNumber_SharedWith.getLong(confidantes[0], currentTime);
-    	if(sharedSince != currentTime) {
-    		Toast.makeText(mContext, "Already sharing with this person", Toast.LENGTH_LONG).show();
-    		return;
-    	}
-		Editor editor = phoneNumber_SharedWith.edit();
-		editor.putLong(confidantes[0], currentTime);
-		editor.commit();	
-		showSharingMessage(confidantes[0], currentTime);
-	}
-
-
-	private void showSharingMessage(String sharedWith, long date) {
-		SMSMessage c = new SMSMessage(date, "Started sharing with " + ContentUtils
-				.getContactDisplayNameByNumber(mContext, sharedWith), sharedWith, TextBasedSmsColumns.MESSAGE_TYPE_SENT);
-		c.setEvent(true);
-		addNewMessage(c, false);
-	}
-**/
 
 	protected void shareConvo(TreeSet<SMSMessage> check_hash) {
 		mSharedConversation.setMessages(check_hash);

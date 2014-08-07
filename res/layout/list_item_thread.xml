@@ -7,20 +7,13 @@
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
       android:layout_margin="5dp">
-    <com.facebook.widget.ProfilePictureView
-        android:id="@+id/profile_pic"
-        android:layout_gravity="left"
-	    android:layout_width="50dp"
-	    android:layout_height="50dp"
-	    android:layout_margin="5dp"
-	    android:visibility="gone"
-        facebook:preset_size="small"/>       
     <ImageView
         android:id="@+id/other_pic"
         android:layout_gravity="left"
 	    android:layout_width="50dp"
 	    android:layout_height="50dp"
 	    android:layout_margin="5dp"
+	    android:scaleType="centerCrop"
 	    android:visibility="visible"/>     
  	<ImageView
         android:id="@+id/indicator"
@@ -72,19 +65,14 @@
 	         android:paddingRight="4dp"
 	         android:textSize="12sp" />		             
 	</LinearLayout>
-    <com.facebook.widget.ProfilePictureView
-        android:id="@+id/profile_pic_mine"
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-	    android:layout_gravity="right"
-	    android:visibility="gone"
-        facebook:preset_size="small"/>  
+
     <ImageView
         android:id="@+id/other_pic_mine"
         android:layout_gravity="right"
 	    android:layout_width="50dp"
 	    android:layout_height="50dp"
 	    android:layout_margin="5dp"
+	    android:scaleType="centerCrop"
 	    android:visibility="visible"/>            	           
 
 </LinearLayout>

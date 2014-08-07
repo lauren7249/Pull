@@ -59,7 +59,6 @@ public class MainApplication extends Application {
 	private Context mContext;
 	private UserInfoStore store;
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void onCreate() {
 		super.onCreate();
@@ -203,13 +202,6 @@ public class MainApplication extends Application {
         return iterations + ":" + toHex(salt) + ":" + toHex(hash);
     }
      
-    private static String getSalt() throws NoSuchAlgorithmException
-    {
-        SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
-        byte[] salt = new byte[16];
-        sr.nextBytes(salt);
-        return salt.toString();
-    }
      
     private static String toHex(byte[] array) throws NoSuchAlgorithmException
     {

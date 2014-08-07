@@ -8,18 +8,12 @@
     android:layout_margin="5dp"
    	android:clipChildren="false" >
     
-    <CheckBox
-        android:id="@+id/cbBox"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent" >
-    </CheckBox>    
-   
-    <ImageView
-            android:id="@+id/contact_image"
-	        android:layout_width="60dp"
-	        android:layout_height="60dp"
-	        android:layout_gravity="left"
-	        android:visibility="gone" /> 
+    <com.mikhaellopez.circularimageview.CircularImageView
+       	android:id="@+id/contact_image"
+       	android:layout_width="60dp"
+       	android:layout_height="60dp"
+       	android:layout_gravity="left"   	
+       	android:visibility="gone"/>
      <LinearLayout
          android:id="@+id/message_box"
          android:layout_width="0dp"
@@ -61,33 +55,7 @@
              android:textStyle="bold" 
              />    
                            
-         <TextView
-             android:id="@+id/shared_with_text"
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-			 android:text="Shared With"
-			 android:gravity="center|center"
-             android:fontFamily="sans-serif-light"
-             android:textColor="@color/textColor"
-			 android:visibility="gone" 
-			 android:background="@drawable/ppl_shadow"		 
-             android:textSize="15sp"/>         
-                           
-         <HorizontalScrollView
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             >   	 
-                 			     
-	         <LinearLayout
-	             android:id="@+id/shared_with"
-	             android:layout_width="match_parent"
-	             android:layout_height="wrap_content"
-	             android:orientation="horizontal"
-	            
-	             >   	     			                
-	          </LinearLayout>                             
-          </HorizontalScrollView>      
-         <Button
+          <Button
              android:id="@+id/edit_message_button"
              android:layout_width="match_parent"
              android:layout_height="30dp"

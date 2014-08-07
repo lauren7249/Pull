@@ -1,23 +1,18 @@
 package com.Pull.pullapp.adapter;
 
 import java.util.HashMap;
-import java.util.Set;
 import java.util.TreeSet;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.widget.CursorAdapter;
@@ -29,7 +24,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
@@ -39,8 +33,8 @@ import com.Pull.pullapp.R;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
-import com.Pull.pullapp.util.SendUtils;
 import com.Pull.pullapp.util.UserInfoStore;
+import com.mikhaellopez.circularimageview.CircularImageView;
 import com.parse.ParsePush;
 import com.parse.ParseUser;
 
@@ -81,7 +75,7 @@ public class MessageCursorAdapter extends CursorAdapter {
     	this.other_person_name = person_shared;
 		this.activity = activity;
 		this.isMyConversation = isMyConversation;
-   	    	
+		cu  = new ContentUtils();
     }
 	
 	@Override
@@ -123,20 +117,13 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.messageBox = (LinearLayout) v.findViewById(R.id.message_box);
 		holder.message = (TextView) v.findViewById(R.id.message_text);
 		holder.time = (TextView) v.findViewById(R.id.message_time);
-		holder.box = (CheckBox) v.findViewById(R.id.cbBox);
 		holder.edit = (Button) v.findViewById(R.id.edit_message_button);	
-		holder.their_pic = (ImageView) v.findViewById(R.id.contact_image);
+		holder.their_pic = (CircularImageView) v.findViewById(R.id.contact_image);
 		holder.my_pic = (ImageView) v.findViewById(R.id.my_image);
-		holder.sharedWith = (LinearLayout) v.findViewById(R.id.shared_with);
-		holder.shared_with_text = (TextView) v.findViewById(R.id.shared_with_text);
 		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);
-		
-		holder.sharedWith.setVisibility(View.GONE);
-		holder.shared_with_text.setVisibility(View.GONE);
+
 		holder.addPPl.setVisibility(View.GONE);
     	
-    	holder.box.setChecked(false);
-    	holder.box.setVisibility(View.GONE);
     	holder.message.setTypeface(Typeface.SANS_SERIF, Typeface.NORMAL);
     	
     	LayoutParams layoutParams=(LayoutParams) holder.addPPl.getLayoutParams();
@@ -172,12 +159,22 @@ public class MessageCursorAdapter extends CursorAdapter {
 			lp.gravity = Gravity.RIGHT;
 			
 		}
-		//If not mine then it is from sender to show yellow background and align to left
 		else
 		{
-	    	holder.their_pic.setVisibility(View.GONE);			
+	    	if(conversant!=null && store.getPhotoPath(conversant)!=null 
+	    			&& message.getType()==Constants.MESSAGE_TYPE_RECEIVED_COMMENT) {
+ 	    		cu.loadBitmap(mContext, store.getPhotoPath(conversant),holder.their_pic, 0);
+	    		holder.their_pic.setVisibility(View.VISIBLE);
+	    	}
+	    	else if(false) {
+	    		
+	    	}
+	    	else holder.their_pic.setVisibility(View.GONE);				
 			lp.gravity = Gravity.LEFT;
 		}
+		
+		holder.their_pic.setScaleType(ImageView.ScaleType.CENTER_CROP);
+		holder.their_pic.setAdjustViewBounds(true);
 		
 		if(type==TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) {
 		//if(message.isDelayed) {
@@ -197,8 +194,6 @@ public class MessageCursorAdapter extends CursorAdapter {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-				//	holder.time.setText(relativeTime);
-					//holder.my_pic.setVisibility(View.GONE);
 				}
 				
 			}) ;
@@ -256,18 +251,12 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.messageBox = (LinearLayout) v.findViewById(R.id.message_box);
 		holder.message = (TextView) v.findViewById(R.id.message_text);
 		holder.time = (TextView) v.findViewById(R.id.message_time);
-		holder.box = (CheckBox) v.findViewById(R.id.cbBox);
 		holder.edit = (Button) v.findViewById(R.id.edit_message_button);	
-		holder.their_pic = (ImageView) v.findViewById(R.id.contact_image);
-		holder.sharedWith = (LinearLayout) v.findViewById(R.id.shared_with);
-		holder.shared_with_text = (TextView) v.findViewById(R.id.shared_with_text);
-		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);
-		
-		holder.shared_with_text.setVisibility(View.GONE);
+		holder.their_pic = (CircularImageView) v.findViewById(R.id.contact_image);
 
+		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);
 
         if (check_hash.contains(message)) {
-        	holder.box.setChecked(true);
         	holder.addPPl.setVisibility(View.GONE);
 			if(message.isSentByMe()) {
 				holder.messageBox.setBackgroundResource(R.drawable.outgoing_pressed);
@@ -280,8 +269,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 			}
         }
         else {
-        	holder.box.setChecked(false);
-        	
+
         	LayoutParams layoutParams=(LayoutParams) holder.addPPl.getLayoutParams();
 			if(message.isSentByMe()) {
 				holder.messageBox.setBackgroundResource(R.drawable.outgoing);
@@ -303,8 +291,6 @@ public class MessageCursorAdapter extends CursorAdapter {
 		//	holder.addPPl.setLayoutParams(layoutParams);
 			holder.addPPl.setVisibility(View.VISIBLE);
         }
-		if(showCheckboxes) holder.box.setVisibility(View.VISIBLE);
-		else holder.box.setVisibility(View.GONE);
 		
 		v.setTag(holder);		
 		holder.message.setText(message.getMessage());
@@ -313,9 +299,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 			public void onClick(View v) {
 				Intent broadcastIntent = new Intent();
 				broadcastIntent.setAction(Constants.ACTION_SHARE_STATE_CHANGED);
-				//broadcastIntent.putExtra(Constants.EXTRA_MESSAGE_POSITION, position);
 				context.sendBroadcast(broadcastIntent);					
-				holder.box.toggle();
 				if(check_hash.contains(message)) 
 					check_hash.remove(message);
 				else 
@@ -331,11 +315,9 @@ public class MessageCursorAdapter extends CursorAdapter {
 			lp.gravity = Gravity.RIGHT;
 			
 		}
-		//If not mine then it is from sender to show yellow background and align to left
 		else
 		{
 	    	if(store.getPhotoPath(address)!=null) {
-	    		//holder.pic.setImageDrawable(Drawable.createFromPath(store.getPhotoPath(address)));
 	    		cu.loadBitmap(mContext, store.getPhotoPath(address),holder.their_pic, 0);
 	    		holder.their_pic.setVisibility(View.VISIBLE);
 	    	}
@@ -370,11 +352,10 @@ public class MessageCursorAdapter extends CursorAdapter {
 	private static class ViewHolder
 	{
 		public ImageView my_pic;
-		TextView message, time, shared_with_text;
-		LinearLayout messageBox, sharedWith;
-		CheckBox box;
+		TextView message, time;
+		LinearLayout messageBox;
 		Button edit;
-		ImageView their_pic;
+		CircularImageView their_pic;
 		ImageView addPPl;
 	}
 	

@@ -1,7 +1,5 @@
 package com.Pull.pullapp;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -9,7 +7,6 @@ import android.provider.ContactsContract;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View;
@@ -31,6 +28,8 @@ import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.facebook.model.GraphUser;
+import com.github.amlcurran.showcaseview.ShowcaseView;
+import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.parse.ParseAnalytics;
 import com.parse.ParseUser;
 
@@ -108,17 +107,7 @@ public class AllThreadsListActivity extends SherlockListActivity {
 		mConfidantesEditor.setAdapter(mRecipientsAdapter);
 		mConversantsEditor = (RecipientsEditor)findViewById(R.id.recipient_editor);
 		mConversantsEditor.setAdapter(mRecipientsAdapter);    	
-    	
-	   /** listview.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
-	    	 
-			@Override
-			public void onCreateContextMenu(ContextMenu menu, View view,
-					ContextMenuInfo menuInfo) {			
-		        menu.setHeaderTitle("Options");
-		        menu.add(0, CONTEXTMENU_CONTACTITEM, 0, "Add to Contacts");
-				
-			}
-	    });	   **/		
+
 		
 	}
 	
@@ -127,6 +116,7 @@ public class AllThreadsListActivity extends SherlockListActivity {
 		super.onResume();
 		populateList();
 		listview.refreshDrawableState();
+		
 		
 	}
 	
@@ -184,6 +174,14 @@ public class AllThreadsListActivity extends SherlockListActivity {
 		    setListAdapter(adapter); 
 		    mBox.setVisibility(View.GONE);
 		    hint.setVisibility(View.GONE);
+			ShowcaseView sc = new ShowcaseView.Builder(this)
+			    .setTarget(new ViewTarget(findViewById(R.id.my_conversation_tab)))
+			    .setContentTitle("Your existing text conversations")
+			    .setContentText("Click a row to open the conversation")
+			    .hideOnTouchOutside()
+			    .singleShot(System.currentTimeMillis())
+			    .build();		
+			sc.hideButton();
 		    return;
 		default: 
 			
