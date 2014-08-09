@@ -27,7 +27,6 @@ import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NavUtils;
-import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -48,6 +47,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
@@ -78,6 +78,8 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.commonsware.cwac.merge.MergeAdapter;
+import com.github.amlcurran.showcaseview.ShowcaseView;
+import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.FindCallback;
 import com.parse.ParseException;
@@ -85,7 +87,8 @@ import com.parse.ParseInstallation;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
-public class MessageActivityCheckboxCursor extends SherlockFragmentActivity implements ApproverDialogListener{
+public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
+	implements ApproverDialogListener, View.OnClickListener{
 	
 	protected static final int CONTEXTMENU_CONTACTITEM = 1;	
 	protected static final int CONTEXTMENU_SHARE_SECTION = 2;	
@@ -153,43 +156,27 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 	private String indicatorText;
 	private LinearLayout mButtonsBar;
 	private TextWatcher watcher;
+	private ShowcaseView showcaseView;
+	private int counter;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.message_thread);
 		
+		showcaseView = new ShowcaseView.Builder(this)
+        .setTarget(new ViewTarget(findViewById(R.id.list)))
+        .setContentTitle("Tap to share")     
+        .setOnClickListener(this)
+        .singleShot(279)
+        .build();	    
+		showcaseView.setButtonText(">");
+		
 		mContext = getApplicationContext();
 		mPrefs = mContext.getSharedPreferences(Constants.PREFERENCE_TIME_DELAY_PROMPT, Context.MODE_PRIVATE);
 		
 		store = new UserInfoStore(mContext);
-	/*	mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-		mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
-		mDrawerLinearLayout = (LinearLayout) findViewById(R.id.left_drawer);
-        // ActionBarDrawerToggle ties together the the proper interactions
-        // between the sliding drawer and the action bar app icon
-        mDrawerToggle = new ActionBarDrawerToggle(
-                this,                 
-                mDrawerLayout,         
-                R.drawable.ic_launcher, 
-                R.string.drawer_open, 
-                R.string.drawer_close  
-                ) {
-            public void onDrawerClosed(View view) {
-                getActionBar().setTitle("drawer closed");
-                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
-            }
 
-            public void onDrawerOpened(View drawerView) {
-                getActionBar().setTitle("drawer opened");
-                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
-            }
-        };
-        mDrawerLayout.setDrawerListener(mDrawerToggle);
-
-        if (savedInstanceState == null) {
-           // selectItem(0);
-        }		*/
 		mListView = (ListView) findViewById(R.id.list);
 		mListView.setFocusable(true);
 		mListView.setFocusableInTouchMode(true);	
@@ -1083,5 +1070,37 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity impl
 				
 			}
 	    }	;
+	}
+
+
+
+
+	@Override
+	public void onClick(View v) {
+        switch (counter) {
+        case 0:
+        	mButtonsBar.setVisibility(View.VISIBLE);
+            showcaseView.setShowcase(new ViewTarget(findViewById(R.id.buttons_box)), true);
+            showcaseView.setContentTitle("Schedule texts");
+            showcaseView.setContentText(
+            		"Schedule your texts to send in the future, with the option to change them");  
+                 
+            break;
+        case 1:
+        	mButtonsBar.setVisibility(View.GONE);
+            showcaseView.setShowcase(new ViewTarget(findViewById(R.id.send_button)), true);
+            showcaseView.setContentTitle("Cancel texts");
+            showcaseView.setContentText(
+            		"After you send a text, you automatically have 5 seconds to cancel or edit it");  
+            showcaseView.hideButton();
+            showcaseView.setHideOnTouchOutside(true);
+            break;          
+        case 2:
+        	showcaseView.hide();
+            break;
+
+    }
+    counter++;
+		
 	}
 }

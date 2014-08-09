@@ -28,12 +28,16 @@ import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.facebook.model.GraphUser;
+import com.github.amlcurran.showcaseview.OnShowcaseEventListener;
 import com.github.amlcurran.showcaseview.ShowcaseView;
+import com.github.amlcurran.showcaseview.ShowcaseView.Builder;
+
+import com.github.amlcurran.showcaseview.targets.Target;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.parse.ParseAnalytics;
 import com.parse.ParseUser;
 
-public class AllThreadsListActivity extends SherlockListActivity {
+public class AllThreadsListActivity extends SherlockListActivity implements View.OnClickListener {
 	
 	private ThreadItemsCursorAdapter adapter;
 	private ListView listview;
@@ -68,13 +72,27 @@ public class AllThreadsListActivity extends SherlockListActivity {
 			", " + DatabaseHandler.KEY_SHARER +
 			", " + DatabaseHandler.KEY_ID + " as _id" +
 			", " + DatabaseHandler.KEY_CONVO_TYPE +
-			", " + DatabaseHandler.KEY_CONVERSATION_FROM;	
+			", " + DatabaseHandler.KEY_CONVERSATION_FROM;
+	private Object sc;
+	private int counter;
+	private ShowcaseView showcaseView;	
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 
 	    setContentView(R.layout.threads_listactivity);
+	    
+		showcaseView = new ShowcaseView.Builder(this)
+        .setTarget(new ViewTarget(findViewById(R.id.my_conversation_tab)))
+			    .setContentTitle("Your text messages")
+			    .setContentText(
+			    		"All of your regular text messages are here. You can use Pull to text or share conversations")        
+        .setOnClickListener(this)
+        .singleShot(108)
+        .build();	    
+		showcaseView.setButtonText("Next");
+		
 	    mContext = getApplicationContext();
 	    store = new UserInfoStore(mContext);
 	    
@@ -107,9 +125,33 @@ public class AllThreadsListActivity extends SherlockListActivity {
 		mConfidantesEditor.setAdapter(mRecipientsAdapter);
 		mConversantsEditor = (RecipientsEditor)findViewById(R.id.recipient_editor);
 		mConversantsEditor.setAdapter(mRecipientsAdapter);    	
-
 		
 	}
+	
+	@Override
+	public void onClick(View v) {
+        switch (counter) {
+        case 0:
+            showcaseView.setShowcase(new ViewTarget(findViewById(R.id.shared_tab)), true);
+            showcaseView.setContentTitle("Shared texts");
+            showcaseView.setContentText(
+            		"Conversations you've shared or that have been shared with you are in this tab");  
+            break;
+        case 1:
+            showcaseView.setShowcase(new ViewTarget(findViewById(R.id.row)), true);
+            showcaseView.setContentTitle("Conversation threads");
+            showcaseView.setContentText(
+            		"Click a row to open an existing conversation");  
+            showcaseView.setButtonText("Finish");
+            break;
+
+        case 2:
+        	showcaseView.hide();
+            break;
+
+    }
+    counter++;
+}	
 	
 	@Override
 	protected void onResume() {
@@ -174,14 +216,8 @@ public class AllThreadsListActivity extends SherlockListActivity {
 		    setListAdapter(adapter); 
 		    mBox.setVisibility(View.GONE);
 		    hint.setVisibility(View.GONE);
-			ShowcaseView sc = new ShowcaseView.Builder(this)
-			    .setTarget(new ViewTarget(findViewById(R.id.my_conversation_tab)))
-			    .setContentTitle("Your existing text conversations")
-			    .setContentText("Click a row to open the conversation")
-			    .hideOnTouchOutside()
-			    .singleShot(System.currentTimeMillis())
-			    .build();		
-			sc.hideButton();
+
+
 		    return;
 		default: 
 			
@@ -372,5 +408,8 @@ public class AllThreadsListActivity extends SherlockListActivity {
 	protected void onPause(){
 		super.onPause();
 	}
+
+
+	
 
 } 
