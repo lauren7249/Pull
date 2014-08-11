@@ -1,7 +1,6 @@
 package com.Pull.pullapp.util;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -27,10 +26,7 @@ import com.Pull.pullapp.AllThreadsListActivity;
 import com.Pull.pullapp.FriendsActivity;
 import com.Pull.pullapp.MessageActivityCheckboxCursor;
 import com.Pull.pullapp.R;
-import com.Pull.pullapp.SharedConversationActivity;
-import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.SMSMessage;
-import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.threads.AlarmScheduler;
 import com.Pull.pullapp.threads.DailyShareSuggestion;
 import com.Pull.pullapp.threads.DownloadFriendPhoto;
@@ -44,9 +40,7 @@ import com.parse.SaveCallback;
 
 
 public class GeneralBroadcastReceiver extends BroadcastReceiver {
-	private SharedConversation sharedConvo;
 	private Context mContext;
-	protected Comment comment;
 	private TelephonyManager tmgr;
 	private DatabaseHandler db;
 	private UserInfoStore store;
@@ -376,22 +370,6 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 		notification.defaults|= Notification.DEFAULT_VIBRATE;		
 		mNotificationManager.notify(title.hashCode()+content.hashCode(), notification);		
 	}
-	private void getCommentFromParse(final String convoID, final String commentID) {
-    	ParseQuery<Comment> comments = ParseQuery.getQuery(Comment.class);
-    	comments.whereEqualTo("objectId", commentID);
-    	comments.findInBackground(new FindCallback<Comment>() {
-    	  public void done(List<Comment> comment_list, ParseException exception) {
-    		  if(exception == null && comment_list.size()>0) {
-    			  Log.i("got it","found comment!");
-    			  comment = comment_list.get(0);
-    			  Log.i("from convo",convoID);
-    			  saveNewComment(mContext, convoID);
-    			  notifyNewComment(convoID);
-    		  }
-    	  }
-    	});
-		
-	}
 
 	private ArrayList<String> convertJSON(JSONArray messageArray) {
     	ArrayList<String> messages = new ArrayList<String>();     
@@ -424,122 +402,8 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
     	});
 		
 	}
-	private void getNewConvoFromParse(String convoID) {
-    	ParseQuery<SharedConversation> convo = ParseQuery.getQuery(SharedConversation.class);
-    	convo.whereEqualTo("objectId", convoID);   
-    	convo.findInBackground(new FindCallback<SharedConversation>() {
-    	  public void done(List<SharedConversation> conversations, ParseException exception) {
-    		  if(exception == null && conversations.size()>0) {
-    			  sharedConvo = conversations.get(0);
-    			  sharedConvo.setType(TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
-    			  sharedConvo.setObjectId(sharedConvo.getObjectId());
-    			  Log.i("got it","found conversation with id " + sharedConvo.getObjectId());
-    			  getMessagesFromConvo(sharedConvo, true);
-    			  
-    		  }
-    	  }
-
-		private void getMessagesFromConvo(final SharedConversation s, final boolean isNew) {
-	    	ParseQuery<SMSMessage> messages = ParseQuery.getQuery(SMSMessage.class);
-	    	messages.whereEqualTo("parent", s);
-	    	messages.findInBackground(new FindCallback<SMSMessage>() {
-	    	  public void done(List<SMSMessage> message_list, ParseException exception) {
-	    		  if(exception == null && message_list.size()>0) {
-	    			  Log.i("got it","found messages!");
-	    			  Log.i("messages in comvo",message_list.size() + " messages in convo");
-	    			  s.setMessages(new TreeSet<SMSMessage>(message_list));
-	    			  getCommentsFromConvo(s, true);
-	    		  }
-	    	  }
-	    	});
-		}
-    	});
-	}
-
-	protected void getCommentsFromConvo(final SharedConversation s,
-			boolean isNew) {
-    	ParseQuery<Comment> messages = ParseQuery.getQuery(Comment.class);
-    	messages.whereEqualTo("parent", s);
-    	messages.findInBackground(new FindCallback<Comment>() {
-    	  public void done(List<Comment> comment_list, ParseException exception) {
-    		  if(exception == null && comment_list.size()>0) {
-    			  Log.i("got it","found comments!");
-    			  Log.i("comments in comvo",comment_list.size() + " comments in convo");
-    			  s.setComments((ArrayList<Comment>) comment_list);
-    			  saveNewShare(mContext,s);
-    		  }
-    		  else {
-    			  saveNewShare(mContext,s);
-    		  }
-    	  }
-    	});
-	}
 
 
-	private void saveNewShare(Context context, SharedConversation s) {
-		db = new DatabaseHandler(context);
-		db.addSharedConversation(s);
-		db.close();
-	}
-	private void saveNewComment(Context context, String convoID) {
-		db = new DatabaseHandler(context);
-		db.addComment(convoID, comment);
-		db.close();
-	}
-	private void notifyNewShare(Context context, String convoID, String person_shared) {
-		NotificationManager mNotificationManager = (NotificationManager) context
-				.getSystemService(Context.NOTIFICATION_SERVICE);
-		int icon;
-		icon = R.drawable.ic_launcher_gray;
-		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
-				context).setSmallIcon(icon).setContentTitle("Someone shared a convo")
-				.setContentText("Check out my conversation with " + person_shared)
-				.setPriority(NotificationCompat.PRIORITY_LOW)
-				.setOnlyAlertOnce(true);
-		// TODO: Optional light notification.
-		Intent ni = new Intent(context, SharedConversationActivity.class);
-		ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);		
-		ni.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
-		Log.i("putting extra convo id", convoID);
-		PendingIntent pi = PendingIntent.getActivity(context, 0,
-				ni, PendingIntent.FLAG_CANCEL_CURRENT);
-		mBuilder.setContentIntent(pi);
-		mBuilder.setAutoCancel(true);
-		Notification notification = mBuilder.build();
-		notification.sound = Uri.parse("android.resource://" + mContext.getPackageName() + "/" + R.raw.jackie_sound_1);
-		notification.defaults|= Notification.DEFAULT_LIGHTS;
-		notification.defaults|= Notification.DEFAULT_VIBRATE;		
-		mNotificationManager.notify(777, notification);
-		
-	}
-	private void notifyNewComment(String convoID) {
-		NotificationManager mNotificationManager = (NotificationManager) mContext
-				.getSystemService(Context.NOTIFICATION_SERVICE);
-		int icon;
-		icon = R.drawable.ic_launcher_gray;
-		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
-				mContext).setSmallIcon(icon).setContentTitle("New comment")
-				.setContentText(comment.getMessage())
-				.setPriority(NotificationCompat.PRIORITY_LOW)
-				.setOnlyAlertOnce(true);
-		// TODO: Optional light notification.
-		Intent ni = new Intent(mContext, SharedConversationActivity.class);
-		ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);		
-		ni.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
-		Log.i("putting extra convo id", convoID);
-		PendingIntent pi = PendingIntent.getActivity(mContext, 0,
-				ni, PendingIntent.FLAG_CANCEL_CURRENT);
-		mBuilder.setContentIntent(pi);
-		mBuilder.setAutoCancel(true);
-		Notification notification = mBuilder.build();
-		notification.defaults|= Notification.DEFAULT_SOUND;
-		notification.defaults|= Notification.DEFAULT_LIGHTS;
-		notification.defaults|= Notification.DEFAULT_VIBRATE;		
-		mNotificationManager.notify(777, notification);
-		
-	}
 	private boolean messagedAfterLaunch(Context context, String address, long launchTime) {
         Uri SMS_URI = Uri.parse("content://sms/inbox");
         String[] COLUMNS = new String[] {TextBasedSmsColumns.DATE,TextBasedSmsColumns.ADDRESS};

@@ -3,6 +3,7 @@ package com.Pull.pullapp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -11,7 +12,6 @@ import org.json.JSONException;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.FragmentTransaction;
 import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -38,7 +38,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -50,25 +49,20 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
-import com.Pull.pullapp.adapter.CommentListAdapter;
 import com.Pull.pullapp.adapter.MessageCursorAdapter;
 import com.Pull.pullapp.adapter.QueuedMessageAdapter;
 import com.Pull.pullapp.fragment.CustomDateTimePicker;
 import com.Pull.pullapp.fragment.RecipientsPopupWindow;
 import com.Pull.pullapp.fragment.RecipientsPopupWindow.ApproverDialogListener;
 import com.Pull.pullapp.fragment.SimplePopupWindow;
-import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.ShareSuggestion;
-import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.threads.DelayedSend;
 import com.Pull.pullapp.threads.ShareMessages;
-import com.Pull.pullapp.threads.ShareTagAction;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
@@ -76,6 +70,7 @@ import com.Pull.pullapp.util.LinearLayoutThatDetectsSoftKeyboard;
 import com.Pull.pullapp.util.RecipientList.Recipient;
 import com.Pull.pullapp.util.RecipientsAdapter;
 import com.Pull.pullapp.util.RecipientsEditor;
+import com.Pull.pullapp.util.SendUtils;
 import com.Pull.pullapp.util.UserInfoStore;
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
@@ -86,14 +81,14 @@ import com.github.amlcurran.showcaseview.ShowcaseView;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.FindCallback;
+import com.parse.FunctionCallback;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseInstallation;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
-import com.Pull.pullapp.util.*;
 import com.rockerhieu.emojicon.EmojiconGridFragment;
 import com.rockerhieu.emojicon.EmojiconsFragment;
-import com.Pull.pullapp.R;
 import com.rockerhieu.emojicon.emoji.Emojicon;
 
 public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
@@ -123,7 +118,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private LinearLayoutThatDetectsSoftKeyboard mLayout;
 	private BroadcastReceiver mBroadcastReceiver;
 	private String person_shared;
-	private SharedConversation mSharedConversation;
 	private int n_characters;
 	private SimplePopupWindow popup;
 	private BroadcastReceiver tickReceiver;
@@ -145,8 +139,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private String share_with_name;
 	protected ShareSuggestion suggestion;
 	private String[] confidantes;
-	private CommentListAdapter comments_adapter;
-	private ArrayList<Comment> comments;
 	private MixpanelAPI mixpanel;
 	private String shared_sender;
 	private String shared_convoID;
@@ -175,6 +167,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private Fragment emojiFragment;
 	private boolean inputtingEmoji;
 	private boolean keyboardShowing;
+	private MessageActivityCheckboxCursor activity;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -191,6 +184,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		
 		mContext = getApplicationContext();
 		mPrefs = mContext.getSharedPreferences(Constants.PREFERENCE_TIME_DELAY_PROMPT, Context.MODE_PRIVATE);
+		activity = this;
 		
 		store = new UserInfoStore(mContext);
 
@@ -211,8 +205,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			
 		messages = new ArrayList<SMSMessage>();
 		queue_adapter = new QueuedMessageAdapter(this,messages);
-		comments = new ArrayList<Comment>();
-		comments_adapter = new CommentListAdapter(mContext, comments, number, number);
 		merge_adapter = new MergeAdapter();		
 
 		mixpanel = MixpanelAPI.getInstance(mContext, Constants.MIXEDPANEL_TOKEN);
@@ -325,28 +317,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 						viewSwitcher.setDisplayedChild(1);
 					}		
 					return;
-				}
-				if(action.equals(Constants.ACTION_SHARE_COMPLETE)) {
-					int resultCode = intent.getIntExtra(Constants.EXTRA_SHARE_RESULT_CODE, 0);
-					switch(resultCode) {
-					case(0):
-						String convo_id = intent.getStringExtra(Constants.EXTRA_SHARED_CONVERSATION_ID);
-			            Intent finished = new Intent(mContext, SharedConversationActivity.class);
-			            finished.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convo_id);
-			            startActivity(finished);	
-			            break;
-					case(ParseException.CONNECTION_FAILED):
-						Toast.makeText(mContext, "Share failed: not connected", 
-								Toast.LENGTH_LONG).show();	
-						break;
-					default:
-						Toast.makeText(mContext, "Share failed with error code " + resultCode, 
-								Toast.LENGTH_LONG).show();
-					}
-					progress.dismiss(); 
-					share.setClickable(true);
-					return;
-				}				
+				}		
 				
 				String intent_number = intent.getStringExtra(Constants.EXTRA_RECIPIENT);
 				if(number==null) return;
@@ -435,7 +406,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
                 	delayPressed = true;
                 }
 
-				@SuppressWarnings("deprecation")
 				@Override
 				public void onSet(Dialog dialog, Calendar calendarSelected,
 						Date dateSelected, int year, String monthFullName,
@@ -570,7 +540,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		messages_adapter = new MessageCursorAdapter(mContext, messages_cursor, number, this, true);
 		merge_adapter.addAdapter(messages_adapter);
 		merge_adapter.addAdapter(queue_adapter);
-		merge_adapter.addAdapter(comments_adapter);
 		mListView.setAdapter(merge_adapter);	
 		mListView.setSelection(merge_adapter.getCount()-1);				
 	}
@@ -620,12 +589,45 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		});
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void sendComment(String commentText) throws JSONException {
 /*		Toast.makeText(mContext, commentText + " to " + shared_sender + " for " + shared_address, 
 				Toast.LENGTH_LONG).show();
-*/
+*/	
+		if(commentText.length() == 0) {
+			popup = new SimplePopupWindow(text);
+			popup.showLikeQuickAction();
+			popup.setMessage("There's no message here!");					
+			return;
+		}			
+    	if(!store.isFriend(shared_conversant)) {
+    		
+			View addFriendView = View.inflate(mContext, R.layout.add_friend, null);
+			AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+		    builder.setTitle("Send invite with your comment");
+		    builder.setMessage(store.getName(shared_conversant) + " isn't your friend on Pull yet. " + 
+		    " The comment you're sending may get sent as a regular text message.")
+	           .setCancelable(true)
+	           .setView(addFriendView)
+	           .setPositiveButton("Ignore", new DialogInterface.OnClickListener() {
+	               public void onClick(DialogInterface dialog, int id) 
+	               {
+	                    dialog.cancel();
+	               }
+	           })				           
+	           .setNegativeButton("Invite friend", new DialogInterface.OnClickListener() {
+	               public void onClick(DialogInterface dialog, int id)
+	               {
+
+	            	   SendUtils.inviteFriend(shared_conversant, mContext, activity);
+
+	               	}
+	           }) 
+	           .show();		
+    	} 
+    	  			
 		long currentDate = new Date().getTime();
-		SMSMessage comment = new SMSMessage(currentDate, commentText, 
+		final SMSMessage comment = new SMSMessage(currentDate, commentText, 
 				shared_address, person_shared, Constants.MESSAGE_TYPE_SENT_COMMENT, store, shared_sender);
 		//assume this is a conversation that was shared with us
 		comment.addConfidante(shared_conversant);
@@ -641,7 +643,17 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		hideKeyboard();
 		mListView.setSelection(mListView.getCount()-1);
 		comment.saveToParse();
-		
+		  HashMap<String, Object> params = new HashMap<String, Object>();
+		  params.put("phoneNumber", ContentUtils.addCountryCode(shared_confidante));
+		  ParseCloud.callFunctionInBackground("findUser", params, new FunctionCallback() {
+			@Override
+			public void done(Object arg0, ParseException e) {
+		         if (e != null) {
+		        	 	Log.i("nothing found", "going to send a text " + ContentUtils.addCountryCode(shared_confidante));
+			            SendUtils.commentViaSMS(mContext, person_shared, shared_confidante, comment);     
+			         }
+			}
+		  });			
 	}
 
 
@@ -871,17 +883,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		merge_adapter.notifyDataSetChanged();
 	}	
 
-	protected void shareConvo(TreeSet<SMSMessage> check_hash) {
-		mSharedConversation.setMessages(check_hash);
-        new ShareTagAction(mContext, mSharedConversation, shareType).start();					
-
-        if(suggestion != null) {
-        	suggestion.setSharedConvo(mSharedConversation);  
-        	suggestion.saveInBackground();
-        }
-		
-	}
-
 	public void shareMessages(View v) throws JSONException 
 	{
 
@@ -1062,8 +1063,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		mixpanel.flush();
 	    super.onDestroy();
 	}
-
-
 
 
 	@Override

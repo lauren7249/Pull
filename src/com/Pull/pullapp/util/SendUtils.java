@@ -22,6 +22,7 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.Pull.pullapp.model.Invite;
 import com.Pull.pullapp.model.SMSMessage;
 import com.parse.FunctionCallback;
 import com.parse.ParseACL;
@@ -145,7 +146,8 @@ public class SendUtils  {
 		});			
 		
 		Toast.makeText(context, "Invite sent", Toast.LENGTH_LONG).show();
-		
+		Invite inv = new Invite(ParseUser.getCurrentUser(),number);
+		inv.saveInBackground();
 	}
 
 	protected static void inviteViaSMS(String number, Context context) {
@@ -240,6 +242,14 @@ public class SendUtils  {
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
+		
+	}
+
+	public static void commentViaSMS(Context mContext, String person_shared,
+			String shared_confidante, SMSMessage comment) {  
+		String text = "[About my convo with " + person_shared + "]:" + comment.getMessage();
+		SendUtils.sendsms(mContext, shared_confidante,text, 
+				System.currentTimeMillis(), System.currentTimeMillis(), false);        
 		
 	}	
 

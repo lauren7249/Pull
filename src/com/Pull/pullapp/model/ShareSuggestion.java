@@ -25,8 +25,5 @@ public class ShareSuggestion extends ParseObject {
 		put("clickedAt", new Date(currentTimeMillis));
 		
 	}
-	public void setSharedConvo(SharedConversation mSharedConversation) {
-		put("sharedConvo",mSharedConversation);
-		
-	}	
+
 }

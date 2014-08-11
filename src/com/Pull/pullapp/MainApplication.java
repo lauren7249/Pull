@@ -19,14 +19,11 @@ import android.graphics.Color;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-import com.Pull.pullapp.model.Channels;
-import com.Pull.pullapp.model.Comment;
 import com.Pull.pullapp.model.FacebookUser;
-import com.Pull.pullapp.model.Hashtag;
+import com.Pull.pullapp.model.Invite;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.ShareEvent;
 import com.Pull.pullapp.model.ShareSuggestion;
-import com.Pull.pullapp.model.SharedConversation;
 import com.Pull.pullapp.model.TwilioNumber;
 import com.Pull.pullapp.threads.AlarmScheduler;
 import com.Pull.pullapp.threads.UploadMyPhoto;
@@ -66,13 +63,10 @@ public class MainApplication extends Application {
 		prefs = getSharedPreferences(MainApplication.class.getSimpleName(), Context.MODE_PRIVATE);
 		editor = prefs.edit();
 		
-		ParseObject.registerSubclass(SharedConversation.class);
-		ParseObject.registerSubclass(Comment.class);
 		ParseObject.registerSubclass(SMSMessage.class);
-		ParseObject.registerSubclass(Hashtag.class);
 		ParseObject.registerSubclass(FacebookUser.class);
 		ParseObject.registerSubclass(ShareSuggestion.class);
-		ParseObject.registerSubclass(Channels.class);
+		ParseObject.registerSubclass(Invite.class);
 		ParseObject.registerSubclass(ShareEvent.class);
 		ParseObject.registerSubclass(TwilioNumber.class);
 		
