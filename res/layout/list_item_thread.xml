@@ -63,6 +63,7 @@
 	         android:background="@drawable/share"
 	         android:paddingLeft="4dp"
 	         android:paddingRight="4dp"
+	         android:visibility="gone"
 	         android:textSize="12sp" />		             
 	</LinearLayout>
 
