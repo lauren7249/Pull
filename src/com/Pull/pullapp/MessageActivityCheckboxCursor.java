@@ -173,6 +173,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private ViewPager emojisPager;
 	private FragmentManager fm;
 	private Fragment emojiFragment;
+	private boolean inputtingEmoji;
+	private boolean keyboardShowing;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -589,7 +591,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		viewSwitcher.setDisplayedChild(0);
 		mButtonsBar.setVisibility(View.GONE);
 		pickDelay.setVisibility(View.GONE);
-		text.setHint("Write a comment to " + store.getName(shared_conversant));
+		text.setHint("Comment to " + store.getName(shared_conversant));
 		text.removeTextChangedListener(watcher);
 		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.comment_indicator));
 		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
@@ -725,6 +727,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		case R.id.menu_contacts:
             Intent intent = new Intent(Intent.ACTION_INSERT);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
             intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
             intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
             startActivity(intent);            	
@@ -736,7 +739,16 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			return false;
 		}
 	}	
-
+	
+	@Override
+	public void onBackPressed() {
+	    if(!keyboardShowing && !inputtingEmoji) super.onBackPressed();
+	    else {
+			inputtingEmoji = false;
+	    	hideKeyboard();
+	    }
+	}
+	
 	private SMSMessage getNextOutboxMessage(Cursor c) {
 		String body="";
 		body = c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.BODY)).toString();
@@ -901,9 +913,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
         share.setClickable(false);		
 		mConfidantesEditor.setText("");						
 		viewSwitcher.setDisplayedChild(0);
-		hideKeyboard();
-		
-		
+
 		shared_sender = ParseUser.getCurrentUser().getUsername();
 		person_shared = name;
 		shared_address = number;
@@ -929,7 +939,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 					name, number,  messagesHash).start();	  
 			populateSharedMessages(shared_convoID);
 		}	
-        
+		hideKeyboard();
+		text.clearFocus();
+
 		name = null;
 		number = null;
 		confidantes = null;			
@@ -948,7 +960,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		
 		share.setClickable(true);	
 		
-		mButtonsBar.setVisibility(View.GONE);
+		//mButtonsBar.setVisibility(View.GONE);
 		
 	}	    
 	
@@ -1040,17 +1052,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
   }		
 	private void hideKeyboard(){
-		
-		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 		imm.hideSoftInputFromWindow(text.getWindowToken(), 0);	
 		mButtonsBar.setVisibility(View.GONE);
-        android.support.v4.app.FragmentTransaction ft = fm.beginTransaction();
-        if (emojiFragment== null) {
-            ft.add(R.id.emojicons, new com.rockerhieu.emojicon.EmojiconsFragment());
-            ft.commit();
-        }	
-		ft.hide(emojiFragment).commit();	
-		text.setLines(2);
+		inputtingEmoji = false;
 	}	
 		
 	@Override
@@ -1156,22 +1160,23 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 	@Override
 	public void onSoftKeyboardShown(boolean isShowing) {
+		keyboardShowing = isShowing;
 		if(isShowing) {
-	        android.support.v4.app.FragmentTransaction ft = fm.beginTransaction();
-	        if (emojiFragment== null) {
-	            ft.add(R.id.emojicons, new com.rockerhieu.emojicon.EmojiconsFragment());
-	            ft.commit();
-	        }				
+	        android.support.v4.app.FragmentTransaction ft = fm.beginTransaction();			
 			ft.show(emojiFragment).commit();
 			text.setLines(3);
-		//	emojisPager.setLayoutParams(new android.widget.RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, 5));
 		} 	
+		else if(!inputtingEmoji) {
+	        android.support.v4.app.FragmentTransaction ft = fm.beginTransaction();			
+			ft.hide(emojiFragment).commit();
+			text.setLines(2);			
+		}
 		
 	}
 
 	@Override
 	public void onEmojiconTabClicked() {
+		inputtingEmoji = true;
 		imm.hideSoftInputFromWindow(text.getWindowToken(), 0);	
-		//emojisPager.setLayoutParams(new android.widget.RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 	}
 }
