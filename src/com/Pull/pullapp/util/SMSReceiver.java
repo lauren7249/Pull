@@ -49,7 +49,7 @@ public class SMSReceiver extends BroadcastReceiver {
 					messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
 					sb.append(messages[i].getMessageBody());
 				}
-				String sender = messages[0].getOriginatingAddress();
+				String sender = ContentUtils.addCountryCode(messages[0].getOriginatingAddress());
 
 				// Contact not in address book: log message and don't let it through.
 				String message = sb.toString();	        
@@ -93,7 +93,7 @@ public class SMSReceiver extends BroadcastReceiver {
 					ni.putExtra(Constants.EXTRA_THREAD_ID,threadID);
 					ni.putExtra(Constants.EXTRA_NAME,name);
 			        //Log.i("sender",ContentUtils.addCountryCode(sender));
-			        ni.putExtra(Constants.EXTRA_NUMBER,ContentUtils.addCountryCode(sender));
+			        ni.putExtra(Constants.EXTRA_NUMBER,sender);
 					ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 					ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 					PendingIntent pi = PendingIntent.getActivity(context, 0,
@@ -104,7 +104,7 @@ public class SMSReceiver extends BroadcastReceiver {
 					notification.defaults|= Notification.DEFAULT_SOUND;
 					notification.defaults|= Notification.DEFAULT_LIGHTS;
 					notification.defaults|= Notification.DEFAULT_VIBRATE;		
-					mNotificationManager.notify(111, notification);
+					mNotificationManager.notify(sender.hashCode(),notification);
 				}
 			}
 			return;

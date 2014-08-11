@@ -264,9 +264,6 @@ public class MainApplication extends Application {
 	}	
 
 	private void saveInstallation(){
-		Channels c = new Channels(ContentUtils.setChannel(getUserName()));
-		if(ParseUser.getCurrentUser().getObjectId()!=null) c.put("user", ParseUser.getCurrentUser());
-		c.saveInBackground();
 		ParseInstallation installation = ParseInstallation.getCurrentInstallation();
 		if(ParseUser.getCurrentUser().getObjectId()!=null) installation.put("user", ParseUser.getCurrentUser());
 		installation.addAllUnique("channels", Arrays.asList(ContentUtils.setChannel(getUserName())));

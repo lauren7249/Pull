@@ -11,6 +11,7 @@ import org.json.JSONException;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -22,7 +23,6 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
-import android.provider.Telephony.Sms.Intents;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.FragmentManager;
@@ -47,7 +47,6 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
-import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
@@ -86,9 +85,13 @@ import com.parse.ParseException;
 import com.parse.ParseInstallation;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.rockerhieu.emojicon.EmojiconGridFragment;
+import com.rockerhieu.emojicon.EmojiconsFragment;
+import com.rockerhieu.emojicon.emoji.Emojicon;
 
 public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
-	implements ApproverDialogListener, View.OnClickListener{
+	implements ApproverDialogListener, View.OnClickListener, EmojiconGridFragment.OnEmojiconClickedListener,
+	EmojiconsFragment.OnEmojiconBackspaceClickedListener{
 	
 	protected static final int CONTEXTMENU_CONTACTITEM = 1;	
 	protected static final int CONTEXTMENU_SHARE_SECTION = 2;	
@@ -264,13 +267,15 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				String action = intent.getAction();
+				String action = intent.getAction();					
 				if(action.equals(Constants.ACTION_SMS_INBOXED)) {
-					messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
-					messages_adapter.swapCursor(messages_cursor);							
-					messages_adapter.notifyDataSetChanged();
-					merge_adapter.notifyDataSetChanged();
-					mListView.setSelection(mListView.getCount()-1);
+					if(intent.getStringExtra(Constants.EXTRA_NUMBER).equals(number)) {
+						messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
+						messages_adapter.swapCursor(messages_cursor);							
+						messages_adapter.notifyDataSetChanged();
+						merge_adapter.notifyDataSetChanged();
+						mListView.setSelection(mListView.getCount()-1);								
+					}
 					return;
 				}				
 				if(action.equals(Constants.ACTION_DATABASE_UPDATE) && shared_convoID!=null){
@@ -514,13 +519,18 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		intentFilter.addAction(Constants.ACTION_SHARE_COMPLETE);	
 		intentFilter.addAction(Constants.ACTION_SHARE_STATE_CHANGED);	
 		intentFilter.addAction(Constants.ACTION_DATABASE_UPDATE);
-		intentFilter.addAction(Intents.SMS_RECEIVED_ACTION);
+		intentFilter.addAction(Constants.ACTION_SMS_INBOXED);
 		registerReceiver(mBroadcastReceiver, intentFilter);	
 		
 		if(merge_adapter!=null && queue_adapter!=null && messages_adapter!=null) {
 			queue_adapter.notifyDataSetChanged();
 			messages_adapter.notifyDataSetChanged();
 			merge_adapter.notifyDataSetChanged();
+		}
+		
+		if(number!=null) {
+			NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+			notificationManager.cancel(number.hashCode());			
 		}
 		
 		calendar.get(Calendar.HOUR_OF_DAY);
@@ -624,7 +634,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	@Override
 	protected void onPause() {
 		super.onPause();
-		unregisterReceiver(mBroadcastReceiver);	
+		//unregisterReceiver(mBroadcastReceiver);	
 		unregisterReceiver(tickReceiver);
 	}
 	
@@ -1083,7 +1093,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
             showcaseView.setShowcase(new ViewTarget(findViewById(R.id.buttons_box)), true);
             showcaseView.setContentTitle("Schedule texts");
             showcaseView.setContentText(
-            		"Schedule your texts to send in the future, with the option to change them");  
+            		"Schedule your texts to send in the future, with the option to change them." +
+            " If you receive a text from the person before yours goes out, yours will be canceled.");  
                  
             break;
         case 1:
@@ -1101,6 +1112,18 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
     }
     counter++;
+		
+	}
+
+	@Override
+	public void onEmojiconBackspaceClicked(View v) {
+		EmojiconsFragment.backspace(text);
+		
+	}
+
+	@Override
+	public void onEmojiconClicked(Emojicon emojicon) {
+		EmojiconsFragment.input(text, emojicon);
 		
 	}
 }

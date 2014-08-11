@@ -141,6 +141,7 @@ public class Constants {
 	public static final String ACTION_NUMBER_VERIFIED = PACKAGE_NAME + ".util.ACTION_NUMBER_VERIFIED";
 	public static final String ACTION_NUMBER_NOT_VERIFIED = PACKAGE_NAME + ".util.ACTION_NOT_VERIFIED";
 	public static final String USER_PASSWORD_SALT = "PULL_PASSWORD_SALT";
+	public static final String SMS_RECEIVED_ACTION = PACKAGE_NAME + ".util.SMS_RECEIVED_ACTION";
 	
 	
 	
