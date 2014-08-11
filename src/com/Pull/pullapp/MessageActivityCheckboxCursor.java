@@ -11,6 +11,7 @@ import org.json.JSONException;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.FragmentTransaction;
 import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -25,8 +26,10 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NavUtils;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -68,6 +71,7 @@ import com.Pull.pullapp.threads.ShareTagAction;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
+import com.Pull.pullapp.util.LinearLayoutThatDetectsSoftKeyboard;
 import com.Pull.pullapp.util.RecipientList.Recipient;
 import com.Pull.pullapp.util.RecipientsAdapter;
 import com.Pull.pullapp.util.RecipientsEditor;
@@ -85,13 +89,16 @@ import com.parse.ParseException;
 import com.parse.ParseInstallation;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.Pull.pullapp.util.*;
 import com.rockerhieu.emojicon.EmojiconGridFragment;
 import com.rockerhieu.emojicon.EmojiconsFragment;
+import com.Pull.pullapp.R;
 import com.rockerhieu.emojicon.emoji.Emojicon;
 
 public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	implements ApproverDialogListener, View.OnClickListener, EmojiconGridFragment.OnEmojiconClickedListener,
-	EmojiconsFragment.OnEmojiconBackspaceClickedListener{
+	EmojiconsFragment.OnEmojiconBackspaceClickedListener, 
+	EmojiconsFragment.OnEmojiconTabClickedListener, LinearLayoutThatDetectsSoftKeyboard.Listener {
 	
 	protected static final int CONTEXTMENU_CONTACTITEM = 1;	
 	protected static final int CONTEXTMENU_SHARE_SECTION = 2;	
@@ -112,7 +119,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private RecipientsAdapter mRecipientsAdapter;
 	private String[] recipients;
 	private ListView mListView;
-	private RelativeLayout mLayout;
+	private LinearLayoutThatDetectsSoftKeyboard mLayout;
 	private BroadcastReceiver mBroadcastReceiver;
 	private String person_shared;
 	private SharedConversation mSharedConversation;
@@ -161,6 +168,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private TextWatcher watcher;
 	private ShowcaseView showcaseView;
 	private int counter;
+	private InputMethodManager imm;
+	private ViewPager emojisPager;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -185,8 +194,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		mListView.setFocusableInTouchMode(true);	
 		mListView.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
 		mButtonsBar = (LinearLayout) findViewById(R.id.buttons_box);
-		mLayout = (RelativeLayout) findViewById(R.id.main_layout);
-			
+		mLayout = (LinearLayoutThatDetectsSoftKeyboard) findViewById(R.id.main_layout);
+		mLayout.setListener(this);
+		
 		delayPressed = false;
 		loader = new GetOutboxMessages();
 		
@@ -210,6 +220,10 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		viewSwitcher = (ViewSwitcher) this.findViewById(R.id.viewSwitcher);
 		text = (EditText) this.findViewById(R.id.text);
 		mTextIndicatorButton = (ImageButton) findViewById(R.id.textIndicatorButton);
+		
+		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+		imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+		emojisPager = (ViewPager) findViewById(R.id.emojis_pager);
 		
 		approver = "";
 		if(getIntent() != null && !isPopulated) {
@@ -634,7 +648,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	@Override
 	protected void onPause() {
 		super.onPause();
-		//unregisterReceiver(mBroadcastReceiver);	
+		unregisterReceiver(mBroadcastReceiver);	
 		unregisterReceiver(tickReceiver);
 	}
 	
@@ -1020,7 +1034,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
   }		
 	private void hideKeyboard(){
-		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 		imm.hideSoftInputFromWindow(text.getWindowToken(), 0);	
 		mButtonsBar.setVisibility(View.GONE);
@@ -1125,5 +1138,36 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	public void onEmojiconClicked(Emojicon emojicon) {
 		EmojiconsFragment.input(text, emojicon);
 		
+	}
+		
+
+	@Override
+	public void onSoftKeyboardShown(boolean isShowing) {
+		
+    /**    FragmentManager fm = getSupportFragmentManager();
+
+        Fragment fragment = fm.findFragmentById(R.id.emojicons);
+        android.support.v4.app.FragmentTransaction ft = fm.beginTransaction();
+        if (fragment== null) {
+            ft.add(R.id.emojicons, new com.rockerhieu.emojicon.EmojiconsFragment());
+            ft.commit();
+        }	**/	
+
+		if(isShowing) {
+
+			//final ViewPager emojisPager = (ViewPager) findViewById(R.id.emojis_pager);
+			//emojisPager.setVisibility(View.GONE);
+			
+		} else {
+			//ft.show(fm.findFragmentById(R.id.emojicons)).commit();
+		}
+
+		
+	}
+
+	@Override
+	public void onEmojiconTabClicked() {
+		imm.hideSoftInputFromWindow(text.getWindowToken(), 0);	
+		emojisPager.setVisibility(View.VISIBLE);		
 	}
 }

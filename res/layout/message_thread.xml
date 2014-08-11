@@ -14,180 +14,189 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-	<RelativeLayout 
+	<com.Pull.pullapp.util.LinearLayoutThatDetectsSoftKeyboard 
 	    android:id="@+id/main_layout"
 	    android:layout_width="match_parent"
 	    android:layout_height="match_parent"
 	    android:background="@color/messageDefaultBackground"
 	    android:gravity="bottom"
 	    android:orientation="vertical" >
-	    <View
-	        android:id="@+id/separator"
-	        android:layout_width="200dp"
-	        android:layout_height="200dp"
-	        android:layout_above="@+id/list"
-	        android:visibility="gone"/>	
-	    <ListView
-	        android:id="@id/list"
-	        android:layout_width="fill_parent"
-	        android:layout_height="match_parent"
-	        android:layout_above="@+id/viewSwitcher"
-	        android:layout_marginBottom="-18dp"
-	        android:clipToPadding="false"
-	        android:divider="#00000000"
-	        android:gravity="clip_vertical"
-	        android:listSelector="#00000000"
-	        android:paddingBottom="20dp"
-	        android:paddingTop="10dp"
-	        android:color="@android:color/white" >
-	
-	    </ListView>
-	
-	    <ViewSwitcher
-	        android:id="@+id/viewSwitcher"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:layout_alignParentBottom="true"
-	        android:layout_alignParentEnd="true"
-	        android:layout_alignParentLeft="true"
-	        android:measureAllChildren="false" >
-	        <LinearLayout
-	            android:id="@+id/bottom_compose_box"
-	            android:layout_width="fill_parent"
-	            android:layout_height="wrap_content"
-	            android:orientation="vertical" >	
+		<RelativeLayout
+		    android:layout_width="match_parent"
+		    android:layout_height="match_parent">	    
+		    <View
+		        android:id="@+id/separator"
+		        android:layout_width="200dp"
+		        android:layout_height="200dp"
+		        android:layout_above="@+id/list"
+		        android:visibility="gone"/>	
+		    <ListView
+		        android:id="@id/list"
+		        android:layout_width="fill_parent"
+		        android:layout_height="match_parent"
+		        android:layout_above="@+id/viewSwitcher"
+		        android:layout_marginBottom="-18dp"
+		        android:clipToPadding="false"
+		        android:divider="#00000000"
+		        android:gravity="clip_vertical"
+		        android:listSelector="#00000000"
+		        android:paddingBottom="20dp"
+		        android:paddingTop="10dp"
+		        android:color="@android:color/white" >
+		
+		    </ListView>
+		
+		    <ViewSwitcher
+		        android:id="@+id/viewSwitcher"
+		        android:layout_width="match_parent"
+		        android:layout_height="wrap_content"
+		        android:layout_alignParentBottom="true"
+		        android:layout_alignParentEnd="true"
+		        android:layout_alignParentLeft="true"
+		        android:measureAllChildren="false" >
 		        <LinearLayout
+		            android:id="@+id/bottom_compose_box"
 		            android:layout_width="fill_parent"
 		            android:layout_height="wrap_content"
-		            android:background="@drawable/compose_box_background"
+		            android:orientation="vertical" >	
+			        <LinearLayout
+			            android:layout_width="fill_parent"
+			            android:layout_height="wrap_content"
+			            android:background="@drawable/compose_box_background"
+			            android:orientation="horizontal" >
+			
+			            <LinearLayout
+			                android:id="@+id/bottom_bar"
+			                android:layout_width="0dp"
+			                android:layout_height="wrap_content"
+			                android:layout_weight="0.96"
+			                android:orientation="vertical"
+			                android:color="@android:color/white" >
+			
+			                <ImageButton
+			                    android:id="@+id/textIndicatorButton"
+			                    android:layout_width="wrap_content"
+			                    android:layout_height="wrap_content"
+			                    android:layout_marginLeft="14dp"
+			                    android:layout_marginTop="3dp"
+			                    android:color="@android:color/white"
+			                    android:background="@drawable/pendinh_indicator" />
+						    <com.rockerhieu.emojicon.EmojiconEditText
+					            android:id="@+id/text"
+					            android:hint="Write here"
+					            emojicon:emojiconSize="28sp"
+			                    android:layout_width="fill_parent"
+			                    android:layout_height="wrap_content"
+			                    android:layout_marginLeft="5dp"
+			                    android:autoText="true"
+			                    android:capitalize="sentences"
+			                    android:gravity="center_vertical|left"
+			                    android:inputType="textShortMessage|textAutoCorrect|textCapSentences|textMultiLine"
+			                    android:isScrollContainer="true"
+			                    android:maxLength="2000"
+			                    android:maxLines="3"
+			                    android:lines="2"
+			                    android:textColor="@color/textFieldColor"
+			                    android:textSize="20dp"
+			                    android:color="@android:color/white" />				            
+			            </LinearLayout>
+			            <Button
+			                android:id="@+id/send_button"
+			                android:layout_width="wrap_content"
+			                android:layout_height="match_parent"
+			                android:layout_marginTop="14dp"
+			                android:background="@drawable/send"
+			                android:onClick="sendMessage" />            
+			        </LinearLayout>
+	
+			        <LinearLayout
+			            android:id="@+id/buttons_box"
+			            android:layout_width="fill_parent"
+			            android:layout_height="fill_parent"
+			            android:orientation="vertical"
+			            android:visibility="visible">	     
+				        <LinearLayout
+				            android:layout_width="fill_parent"
+				            android:layout_height="fill_parent"
+				            android:orientation="horizontal"
+				            android:visibility="visible">	 			            	              
+						    <Button
+						        android:id="@+id/time_delay_button"
+						        android:layout_width="fill_parent"
+						        android:layout_height="wrap_content"
+						        android:layout_margin="3dp"
+						        android:background="@drawable/select_time"
+						        android:freezesText="true"                      
+						        android:minHeight="40dp"
+						        android:onClick="pickTime"
+						        android:text="Schedule Text"
+						        android:textColor="@android:color/white"
+						        android:textSize="14sp"
+						        android:color="@android:color/white" />
+						</LinearLayout>
+					    <Button
+					        android:id="@+id/approvers_button"
+					        android:layout_width="fill_parent"
+					        android:layout_height="wrap_content"
+					        android:layout_margin="3dp"
+					        android:background="@drawable/select_ppl"
+					        android:freezesText="true"
+					        android:minHeight="40dp"
+					        android:onClick="pickApprover"
+					        android:text="Approver"
+					        android:visibility="gone"
+					        android:textColor="@android:color/white"
+					        android:textSize="14sp"
+					        android:color="@android:color/white" />	
+					    <fragment
+				            android:id="@+id/emojicons"
+				            android:layout_width="match_parent"
+				            android:layout_height="wrap_content"
+				            class="com.rockerhieu.emojicon.EmojiconsFragment"/>					        
+					</LinearLayout>		
+				</LinearLayout>		        
+		        <LinearLayout
+		            android:id="@+id/bottom_share_box"
+		            android:layout_width="fill_parent"
+		            android:layout_height="fill_parent"
+		            android:background="@drawable/share_box_background"
 		            android:orientation="horizontal" >
 		
 		            <LinearLayout
-		                android:id="@+id/bottom_bar"
+		                android:id="@+id/LinearLayout02"
 		                android:layout_width="0dp"
-		                android:layout_height="wrap_content"
+		                android:layout_height="fill_parent"
+		                android:layout_marginTop="15dp"
 		                android:layout_weight="0.96"
 		                android:orientation="vertical"
 		                android:color="@android:color/white" >
 		
-		                <ImageButton
-		                    android:id="@+id/textIndicatorButton"
-		                    android:layout_width="wrap_content"
-		                    android:layout_height="wrap_content"
-		                    android:layout_marginLeft="14dp"
-		                    android:layout_marginTop="3dp"
-		                    android:color="@android:color/white"
-		                    android:background="@drawable/pendinh_indicator" />
-					    <com.rockerhieu.emojicon.EmojiconEditText
-				            android:id="@+id/text"
-				            android:hint="Write here"
-				            emojicon:emojiconSize="28sp"
+		                <com.Pull.pullapp.util.RecipientsEditor
+		                    android:id="@+id/confidantes_editor"
 		                    android:layout_width="fill_parent"
-		                    android:layout_height="wrap_content"
-		                    android:layout_marginLeft="5dp"
-		                    android:autoText="true"
-		                    android:capitalize="sentences"
-		                    android:gravity="center_vertical|left"
-		                    android:inputType="textShortMessage|textAutoCorrect|textCapSentences|textMultiLine"
+		                    android:layout_height="fill_parent"
+		                    android:layout_weight="1"
+		                    android:completionThreshold="1"
+		                    android:hint="Share with"
 		                    android:isScrollContainer="true"
-		                    android:maxLength="2000"
-		                    android:maxLines="3"
-		                    android:lines="2"
-		                    android:textColor="@color/textFieldColor"
-		                    android:textSize="20dp"
-		                    android:color="@android:color/white" />				            
+		                    android:textSize="20sp" />
+		
 		            </LinearLayout>
+		
 		            <Button
-		                android:id="@+id/send_button"
-		                android:layout_width="wrap_content"
-		                android:layout_height="match_parent"
-		                android:layout_marginTop="14dp"
-		                android:background="@drawable/send"
-		                android:onClick="sendMessage" />            
+		                android:id="@+id/share_button"
+		                android:layout_width="90dp"
+		                android:layout_height="90dp"
+		                android:layout_gravity="top"
+		                android:layout_marginLeft="10dp"
+		                android:layout_marginRight="10dp"
+		                android:layout_marginTop="7dp"
+		                android:background="@drawable/share"
+		                android:onClick="shareMessages" />
 		        </LinearLayout>
-
-		        <LinearLayout
-		            android:id="@+id/buttons_box"
-		            android:layout_width="fill_parent"
-		            android:layout_height="fill_parent"
-		            android:orientation="vertical"
-		            android:visibility="visible">	     	              
-				    <Button
-				        android:id="@+id/time_delay_button"
-				        android:layout_width="fill_parent"
-				        android:layout_height="wrap_content"
-				        android:layout_margin="3dp"
-				        android:background="@drawable/select_time"
-				        android:freezesText="true"                      
-				        android:minHeight="40dp"
-				        android:onClick="pickTime"
-				        android:text="Schedule Text"
-				        android:textColor="@android:color/white"
-				        android:textSize="14sp"
-				        android:color="@android:color/white" />
-				    <Button
-				        android:id="@+id/approvers_button"
-				        android:layout_width="fill_parent"
-				        android:layout_height="wrap_content"
-				        android:layout_margin="3dp"
-				        android:background="@drawable/select_ppl"
-				        android:freezesText="true"
-				        android:minHeight="40dp"
-				        android:onClick="pickApprover"
-				        android:text="Approver"
-				        android:visibility="gone"
-				        android:textColor="@android:color/white"
-				        android:textSize="14sp"
-				        android:color="@android:color/white" />	
-				    <fragment
-			            android:id="@+id/emojicons"
-			            android:layout_width="match_parent"
-			            android:layout_height="220dp"
-			            class="com.rockerhieu.emojicon.EmojiconsFragment"/>					        
-				</LinearLayout>				        
-
-		    </LinearLayout>
-	        <LinearLayout
-	            android:id="@+id/bottom_share_box"
-	            android:layout_width="fill_parent"
-	            android:layout_height="fill_parent"
-	            android:background="@drawable/share_box_background"
-	            android:orientation="horizontal" >
+		
+		    </ViewSwitcher>
+		</RelativeLayout>
+	</com.Pull.pullapp.util.LinearLayoutThatDetectsSoftKeyboard>
 	
-	            <LinearLayout
-	                android:id="@+id/LinearLayout02"
-	                android:layout_width="0dp"
-	                android:layout_height="fill_parent"
-	                android:layout_marginTop="15dp"
-	                android:layout_weight="0.96"
-	                android:orientation="vertical"
-	                android:color="@android:color/white" >
-	
-	                <com.Pull.pullapp.util.RecipientsEditor
-	                    android:id="@+id/confidantes_editor"
-	                    android:layout_width="fill_parent"
-	                    android:layout_height="fill_parent"
-	                    android:layout_weight="1"
-	                    android:completionThreshold="1"
-	                    android:hint="Share with"
-	                    android:isScrollContainer="true"
-	                    android:textSize="20sp" />
-	
-	            </LinearLayout>
-	
-	            <Button
-	                android:id="@+id/share_button"
-	                android:layout_width="90dp"
-	                android:layout_height="90dp"
-	                android:layout_gravity="top"
-	                android:layout_marginLeft="10dp"
-	                android:layout_marginRight="10dp"
-	                android:layout_marginTop="7dp"
-	                android:background="@drawable/share"
-	                android:onClick="shareMessages" />
-	        </LinearLayout>
-	
-	    </ViewSwitcher>
-	
-	</RelativeLayout>
 </android.support.v4.widget.DrawerLayout>
