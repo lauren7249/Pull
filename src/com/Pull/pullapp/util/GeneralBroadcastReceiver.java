@@ -134,34 +134,6 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
             return;
         }          
         
-        /**if (action.equals(Constants.ACTION_RECEIVE_SHARE_TAG)) {
-        	Log.i("received broadcast","ACTION_RECEIVE_SHARE_TAG");
-            try {
-                JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
-                String convoID = json.getString("convoID");
-                int type = json.getInt("type");
-                String person_shared = json.getString("person_shared");
-                db = new DatabaseHandler(context);
-                if(!db.contains(convoID)) type = Constants.NOTIFICATION_NEW_SHARE;
-                switch(type) {
-                case(Constants.NOTIFICATION_NEW_SHARE):
-                	getNewConvoFromParse(convoID);
-                	notifyNewShare(context, convoID, person_shared);
-                	return;
-                case(Constants.NOTIFICATION_UPDATE_SHARE):
-                	JSONArray sms_ids = json.getJSONArray("message_ids");
-                	getExistingConvoFromParse(sms_ids, convoID);
-                	notifyNewShare(context, convoID, person_shared); 
-                	return;
-                default:
-                	return;
-                }
-              } catch (JSONException e) {
-            	  Log.i("exception",e.getMessage());
-              }
-            return;
-        }   **/
-        
         //CURRENT METHOD FOR RECEIVING EVERYTHING. COMES FROM CLOUD PUSH NOTIFICATION
         if (action.equals(Constants.ACTION_RECEIVE_SHARED_MESSAGES)) {
         	
@@ -210,19 +182,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
               }
             return;
         }           
-  /**      if (action.equals(Constants.ACTION_RECEIVE_COMMENT)) {
-        	Log.i("received broadcast","ACTION_RECEIVE_COMMENT");
-            try {
-                JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
-                String convoID = json.getString("convoID");
-                String commentID = json.getString("commentID");
-                Log.i("comment id",commentID);
-            	getCommentFromParse(convoID, commentID);                
-              } catch (JSONException e) {
-            	  Log.i("exception",e.getMessage());
-              }
-            return;
-        }           **/
+
         
         if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
             // avoid starting the alarm scheduler if the app hasn't even been run yet
@@ -252,8 +212,9 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 				.getSystemService(Context.NOTIFICATION_SERVICE);
 		int icon;
 		icon = R.drawable.explosion;
+		String title = name + " is now your friend ";
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
-				mContext).setSmallIcon(icon).setContentTitle(name + " is now your friend ")
+				mContext).setSmallIcon(icon).setContentTitle(title)
 				.setContentText("Maybe share something?")
 				.setPriority(NotificationCompat.PRIORITY_LOW)
 				.setOnlyAlertOnce(true);
@@ -269,7 +230,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 		notification.defaults|= Notification.DEFAULT_SOUND;
 		notification.defaults|= Notification.DEFAULT_LIGHTS;
 		notification.defaults|= Notification.DEFAULT_VIBRATE;		
-		mNotificationManager.notify(1, notification);
+		mNotificationManager.notify(title.hashCode(), notification);
 	}
 
 
@@ -277,9 +238,10 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 		NotificationManager mNotificationManager = (NotificationManager) mContext
 				.getSystemService(Context.NOTIFICATION_SERVICE);
 		int icon;
+		String title = name + " friend requested you ";
 		icon = R.drawable.explosion;
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
-				mContext).setSmallIcon(icon).setContentTitle(name + " friend requested you ")
+				mContext).setSmallIcon(icon).setContentTitle(title)
 				.setContentText("Will you accept?")
 				.setPriority(NotificationCompat.PRIORITY_LOW)
 				.setOnlyAlertOnce(true);
@@ -298,7 +260,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 		notification.defaults|= Notification.DEFAULT_SOUND;
 		notification.defaults|= Notification.DEFAULT_LIGHTS;
 		notification.defaults|= Notification.DEFAULT_VIBRATE;		
-		mNotificationManager.notify(0, notification);
+		mNotificationManager.notify((title+number).hashCode(), notification);
 		
 	}
 

@@ -29,7 +29,6 @@ import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NavUtils;
-import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -89,6 +88,7 @@ import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.rockerhieu.emojicon.EmojiconGridFragment;
 import com.rockerhieu.emojicon.EmojiconsFragment;
+import com.rockerhieu.emojicon.ViewPager;
 import com.rockerhieu.emojicon.emoji.Emojicon;
 
 public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
@@ -168,6 +168,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private boolean inputtingEmoji;
 	private boolean keyboardShowing;
 	private MessageActivityCheckboxCursor activity;
+	private boolean isMine;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -536,31 +537,36 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private void populateMessages(){
 		loader.execute(); 
 		isPopulated = true;
+		text.setHint("Text " + name);
 		messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
-		messages_adapter = new MessageCursorAdapter(mContext, messages_cursor, number, this, true);
+		messages_adapter = new MessageCursorAdapter(mContext, messages_cursor, number, this);
 		merge_adapter.addAdapter(messages_adapter);
 		merge_adapter.addAdapter(queue_adapter);
 		mListView.setAdapter(merge_adapter);	
 		mListView.setSelection(merge_adapter.getCount()-1);				
 	}
 	private void populateSharedMessages(final String shared_convoID) {
-		Log.i("shared convo type",""+shared_convo_type);
+		/*Log.i("shared convo type",""+shared_convo_type);
 		Log.i("shared_sender",shared_sender);
-		Log.i("shared_confidante",shared_confidante);
-		if(shared_convo_type==TextBasedSmsColumns.MESSAGE_TYPE_INBOX) 
+		Log.i("shared_confidante",shared_confidante);*/
+		if(shared_convo_type==TextBasedSmsColumns.MESSAGE_TYPE_INBOX) {
 			shared_conversant = shared_sender;
-		else 
-			shared_conversant = shared_confidante;		
+			isMine = false;
+		}
+		else {
+			shared_conversant = shared_confidante;	
+			isMine = true;
+		}
 		dh = new DatabaseHandler(mContext);
 		messages_cursor = dh.getSharedMessagesCursor(shared_convoID);
-		messages_adapter = new MessageCursorAdapter(mContext, messages_cursor, this, false, 
-				shared_conversant, shared_address, person_shared);
+		messages_adapter = new MessageCursorAdapter(mContext, messages_cursor, this, 
+				shared_conversant, shared_address, person_shared, isMine);
 		mListView.setAdapter(messages_adapter);	
 		mListView.setSelection(messages_adapter.getCount()-1);		
 		viewSwitcher.setDisplayedChild(0);
 		mButtonsBar.setVisibility(View.GONE);
 		pickDelay.setVisibility(View.GONE);
-		text.setHint("Comment to " + store.getName(shared_conversant));
+		text.setHint("Message " + store.getName(shared_conversant));
 		text.removeTextChangedListener(watcher);
 		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.comment_indicator));
 		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
@@ -706,15 +712,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			pickDelay.setText(date);	
 		}
 	}
-	
-    /* Called whenever we call invalidateOptionsMenu() 
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        // If the nav drawer is open, hide action items related to the content view
-        boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerLinearLayout);
-        menu.findItem(R.id.menu_contacts).setVisible(!drawerOpen);
-        return super.onPrepareOptionsMenu(menu);
-    }	**/
+
 	// make the menu work
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -820,11 +818,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
         	if(Constants.DEBUG==false) this.setTitle(name);
         	populateMessages();
         }
-		
-		/**if(!delayPressed && mPrefs.getBoolean(Constants.PREFERENCE_TIME_DELAY_PROMPT, true)) {
-			askAboutTimeDelay();
-			return;
-		}     **/          
+ 
         new DelayedSend(mContext, number, newMessage, sendDate, System.currentTimeMillis(), approver).start();
         
     	text.setText("");
@@ -1168,6 +1162,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		else if(!inputtingEmoji) {
 	        android.support.v4.app.FragmentTransaction ft = fm.beginTransaction();			
 			ft.hide(emojiFragment).commit();
+		
 			text.setLines(2);			
 		}
 		

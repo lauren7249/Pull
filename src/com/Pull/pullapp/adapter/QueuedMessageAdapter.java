@@ -2,12 +2,12 @@ package com.Pull.pullapp.adapter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -52,7 +52,7 @@ public class QueuedMessageAdapter extends BaseAdapter{
 	@SuppressLint("ResourceAsColor")
 	public View getView(final int position, View convertView, ViewGroup parent) {
 		final SMSMessage message = this.getItem(getCount() - position - 1);
-
+		if(message == null) Log.i("message is null","message is null " + getCount() + " " + position);
 		final ViewHolder holder; 
 		if(convertView == null)
 		{

@@ -17,7 +17,6 @@ import android.net.Uri;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.widget.CursorAdapter;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,6 +29,7 @@ import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 
 import com.Pull.pullapp.R;
+import com.Pull.pullapp.fragment.SimplePopupWindow;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
@@ -46,13 +46,15 @@ public class MessageCursorAdapter extends CursorAdapter {
 	private String other_person, other_person_name;
 	private Activity activity;
 	private UserInfoStore store;
-	private boolean isMyConversation;
+	private boolean isTextConvo;
 	private ContentUtils cu;
 	private String conversant;
-	
+	private SimplePopupWindow popup;
+	private boolean isMine;
+	private String conversant_name;
     @SuppressWarnings("deprecation")
 	public MessageCursorAdapter(Context context, Cursor cursor, String number, 
-			Activity activity, boolean isMine) {
+			Activity activity) {
     	super(context, cursor, FLAG_REGISTER_CONTENT_OBSERVER);
     	check_hash = new TreeSet<SMSMessage>();
     	delayedMessages = new HashMap<Long,Integer>();
@@ -60,39 +62,41 @@ public class MessageCursorAdapter extends CursorAdapter {
     	other_person = ContentUtils.addCountryCode(number);
     	other_person_name = store.getName(other_person);
 		this.activity = activity;
-		this.isMyConversation = isMine;
+		this.isTextConvo = true;
 		cu  = new ContentUtils();
    	    	
     }
 	public MessageCursorAdapter(Context context, Cursor cursor, Activity activity, 
-			boolean isMyConversation, String conversant, String other_person, String person_shared) {
+			String conversant, String other_person, String person_shared, boolean isMine) {
     	super(context, cursor);
     	check_hash = new TreeSet<SMSMessage>();
     	delayedMessages = new HashMap<Long,Integer>();
     	store = new UserInfoStore(context);
     	this.conversant = conversant;
+    	this.conversant_name = store.getName(conversant);
     	this.other_person = other_person;
     	this.other_person_name = person_shared;
 		this.activity = activity;
-		this.isMyConversation = isMyConversation;
+		this.isTextConvo = false;
+		this.isMine = isMine;
 		cu  = new ContentUtils();
     }
 	
 	@Override
 	public void bindView(View v, Context context, Cursor c) {
-		if(isMyConversation) populateMine(context, c, v, false);
-		else populateTheirs(context, c, v, false);
+		if(isTextConvo) populateTextConvo(context, c, v, false);
+		else populateSharedConvo(context, c, v, false);
 	}
 
 	@Override
 	public View newView(Context context, Cursor c, ViewGroup parent) {
 		final LayoutInflater inflater = LayoutInflater.from(context);
 		View v = inflater.inflate(R.layout.sms_row, parent, false);
-		if(isMyConversation) populateMine(context, c, v, true);
-		else populateTheirs(context, c, v, true);
+		if(isTextConvo) populateTextConvo(context, c, v, true);
+		else populateSharedConvo(context, c, v, true);
 		return v;
 	}
-	private void populateTheirs(Context context, Cursor c, View v, boolean isnew) {
+	private void populateSharedConvo(Context context, Cursor c, View v, boolean isnew) {
 		String body="";
 		final String address;
 		long date;
@@ -119,14 +123,17 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.time = (TextView) v.findViewById(R.id.message_time);
 		holder.edit = (Button) v.findViewById(R.id.edit_message_button);	
 		holder.their_pic = (CircularImageView) v.findViewById(R.id.contact_image);
+		holder.their_initials = (TextView) v.findViewById(R.id.contact_initials);
+		holder.my_initials = (TextView) v.findViewById(R.id.my_initials);
 		holder.my_pic = (ImageView) v.findViewById(R.id.my_image);
 		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);
 
 		holder.addPPl.setVisibility(View.GONE);
     	
     	holder.message.setTypeface(Typeface.SANS_SERIF, Typeface.NORMAL);
-    	
+    	holder.my_initials.setVisibility(View.GONE);
     	LayoutParams layoutParams=(LayoutParams) holder.addPPl.getLayoutParams();
+    	LayoutParams lp = (LayoutParams) holder.messageBox.getLayoutParams();
 		if(message.isSentByMe()) {
 			if(type == Constants.MESSAGE_TYPE_SENT_COMMENT) {
 				holder.messageBox.setBackgroundResource(R.drawable.blank_outgoing);
@@ -135,44 +142,91 @@ public class MessageCursorAdapter extends CursorAdapter {
 				holder.time.setTextColor(Color.GRAY);						
 			} else {
 				holder.messageBox.setBackgroundResource(R.drawable.outgoing);
+				if(!isMine) {
+					holder.my_initials.setVisibility(View.VISIBLE);
+		    		holder.my_initials.setText(getInitials(conversant_name));
+		    		holder.my_initials.setOnClickListener(new OnClickListener(){
+						@Override
+						public void onClick(View v) {
+							popup = new SimplePopupWindow(v);
+							popup.showLikePopDownMenu();
+							popup.setMessage(conversant_name);	
+							
+						}
+		    			
+		    		});	 					
+				}else {
+					
+				}
 			}
 			layoutParams.gravity = Gravity.LEFT;
 			holder.message.setGravity(Gravity.RIGHT);
-			holder.time.setGravity(Gravity.RIGHT);				
+			holder.time.setGravity(Gravity.RIGHT);		
+			holder.their_pic.setVisibility(View.GONE);
+			holder.their_initials.setVisibility(View.GONE);
+			lp.gravity = Gravity.RIGHT;			
 		}else {
+			lp.gravity = Gravity.LEFT;			
 			if(type == Constants.MESSAGE_TYPE_RECEIVED_COMMENT) {
 				holder.messageBox.setBackgroundResource(R.drawable.blank_incoming);
 				holder.message.setTypeface(Typeface.SANS_SERIF, Typeface.ITALIC);
-			}else
+		    	if(conversant!=null && store.getPhotoPath(conversant)!=null) {
+	 	    		cu.loadBitmap(mContext, store.getPhotoPath(conversant),holder.their_pic, 0);
+	 	    		holder.their_initials.setVisibility(View.GONE);
+		    		holder.their_pic.setVisibility(View.VISIBLE);
+		    		holder.their_pic.setOnClickListener(new OnClickListener(){
+						@Override
+						public void onClick(View v) {
+							popup = new SimplePopupWindow(v);
+							popup.showLikePopDownMenu();
+							popup.setMessage(conversant_name);	
+							
+						}
+		    			
+		    		});
+
+		    	}
+		    	else if(conversant_name!=null && conversant_name.length()>0) {
+		    		holder.their_pic.setVisibility(View.GONE);	
+		    		holder.their_initials.setVisibility(View.VISIBLE);
+		    		holder.their_initials.setText(getInitials(conversant_name));
+		    		holder.their_initials.setOnClickListener(new OnClickListener(){
+						@Override
+						public void onClick(View v) {
+							popup = new SimplePopupWindow(v);
+							popup.showLikePopDownMenu();
+							popup.setMessage(conversant_name);	
+							
+						}
+		    			
+		    		});	    		
+		    	}		
+		    	else {
+		    		holder.their_pic.setVisibility(View.GONE);	
+		    		holder.their_initials.setVisibility(View.GONE);		    		
+		    	}
+			}else {
 				holder.messageBox.setBackgroundResource(R.drawable.incoming);
+				holder.their_pic.setVisibility(View.GONE);
+	    		holder.their_initials.setVisibility(View.VISIBLE);
+	    		holder.their_initials.setText(getInitials(other_person_name));
+	    		holder.their_initials.setOnClickListener(new OnClickListener(){
+					@Override
+					public void onClick(View v) {
+						popup = new SimplePopupWindow(v);
+						popup.showLikePopDownMenu();
+						popup.setMessage(other_person_name);	
+						
+					}
+	    			
+	    		});	  				
+			}
 			layoutParams.gravity = Gravity.RIGHT;
 			holder.message.setGravity(Gravity.LEFT);
 			holder.time.setGravity(Gravity.LEFT);					
 		}		
 		v.setTag(holder);		
 		holder.message.setText(message.getMessage());	
-		LayoutParams lp = (LayoutParams) holder.messageBox.getLayoutParams();
-
-		if(message.isSentByMe())
-		{
-			holder.their_pic.setVisibility(View.GONE);	
-			lp.gravity = Gravity.RIGHT;
-			
-		}
-		else
-		{
-	    	if(conversant!=null && store.getPhotoPath(conversant)!=null 
-	    			&& message.getType()==Constants.MESSAGE_TYPE_RECEIVED_COMMENT) {
- 	    		cu.loadBitmap(mContext, store.getPhotoPath(conversant),holder.their_pic, 0);
-	    		holder.their_pic.setVisibility(View.VISIBLE);
-	    	}
-	    	else if(false) {
-	    		
-	    	}
-	    	else holder.their_pic.setVisibility(View.GONE);				
-			lp.gravity = Gravity.LEFT;
-		}
-		
 		holder.their_pic.setScaleType(ImageView.ScaleType.CENTER_CROP);
 		holder.their_pic.setAdjustViewBounds(true);
 		
@@ -219,7 +273,16 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.messageBox.setLayoutParams(lp);		
 	}
 
-	private void populateMine(final Context context, Cursor c, View v, boolean isnew) {
+	private CharSequence getInitials(String name) {
+		String initials = "";
+		if(name==null || name.isEmpty()) return initials;
+		String[] i = name.split(" ");
+		for(String chunk : i) {
+			initials = initials + chunk.substring(0,1);
+		}
+		return initials;
+	}
+	private void populateTextConvo(final Context context, Cursor c, View v, boolean isnew) {
 		String body="";
 		final String address;
 		long date;
@@ -351,6 +414,8 @@ public class MessageCursorAdapter extends CursorAdapter {
 	}
 	private static class ViewHolder
 	{
+		public TextView my_initials;
+		public TextView their_initials;
 		public ImageView my_pic;
 		TextView message, time;
 		LinearLayout messageBox;

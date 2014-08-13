@@ -16,7 +16,16 @@
        	android:layout_height="60dp"
        	android:layout_gravity="left"   	
        	android:visibility="gone"/>
-     <LinearLayout
+	<TextView 
+		android:id="@+id/contact_initials"
+		android:layout_width="60dp"
+		android:layout_height="60dp"
+		android:background="@drawable/circle"
+		android:layout_gravity="left" 
+		android:gravity="center"
+		android:textSize="20dp"
+		android:textColor="@color/textColor"
+		android:visibility="gone"/>     <LinearLayout
          android:id="@+id/message_box"
          android:layout_width="0dp"
          android:layout_weight="1"
@@ -75,4 +84,14 @@
 	        android:layout_height="60dp"
 	        android:layout_gravity="right"
 	        android:visibility="gone" /> 
+	<TextView 
+		android:id="@+id/my_initials"
+		android:layout_width="60dp"
+		android:layout_height="60dp"
+		android:background="@drawable/circle"
+		android:layout_gravity="right" 
+		android:gravity="center"
+		android:textSize="20dp"
+		android:textColor="@color/textColor"
+		android:visibility="gone"/>	        
 </LinearLayout>
