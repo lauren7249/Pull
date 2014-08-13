@@ -35,7 +35,7 @@
 	    <item name="android:animation">@android:anim/slide_in_left</item>
 		<item name="android:windowEnterAnimation">@android:anim/slide_in_left</item>
 		<item name="android:windowExitAnimation">@android:anim/slide_out_right</item>	    
-	    <item name="android:windowBackground">@drawable/logotext</item>     
+	    <item name="android:windowBackground">@drawable/background</item>     
 	    <item name="android:colorBackground">@android:color/white</item>
 	</style>       
 </resources>
