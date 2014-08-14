@@ -1,7 +1,10 @@
 package com.Pull.pullapp.util;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.TimeZone;
+
+import org.json.JSONException;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -23,6 +26,7 @@ import android.util.Log;
 import com.Pull.pullapp.MessageActivityCheckboxCursor;
 import com.Pull.pullapp.R;
 import com.Pull.pullapp.model.SMSMessage;
+import com.parse.ParseUser;
 
 public class SMSReceiver extends BroadcastReceiver {
 	public SMSReceiver() {
@@ -66,7 +70,7 @@ public class SMSReceiver extends BroadcastReceiver {
 		        }
 		        boolean receive = sharedPrefs.getBoolean("prefReceiveTexts", false);
 				if (receive) {
-					abortBroadcast();
+					abortBroadcast();					
 						// Prevent other broadcast receivers from receiving broadcast.
 					
 					SimpleDateFormat dateFormat = new SimpleDateFormat(
@@ -79,7 +83,17 @@ public class SMSReceiver extends BroadcastReceiver {
 						threadID = ContentUtils.getNextThreadID(context,sender);
 						Log.i("thread id",threadID);
 					}
-					pushMessage(context,message,sender,threadID);
+					pushMessage(context,message,sender,threadID);		
+					SMSMessage m = new SMSMessage(new Date().getTime(), message, sender, 
+							name, TextBasedSmsColumns.MESSAGE_TYPE_INBOX, store, 
+							ParseUser.getCurrentUser().getUsername());
+					try {
+						m.saveToParse();
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
 					NotificationManager mNotificationManager = (NotificationManager) context
 							.getSystemService(Context.NOTIFICATION_SERVICE);
 					int icon;
@@ -123,6 +137,7 @@ public class SMSReceiver extends BroadcastReceiver {
 	    Intent intent = new Intent(Constants.ACTION_SMS_INBOXED);
 	    intent.putExtra(Constants.EXTRA_NUMBER, number);
 	    context.sendBroadcast(intent);	
+
 	}	
 
 }
