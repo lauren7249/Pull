@@ -6,6 +6,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.Timer;
 
 import org.json.JSONException;
@@ -313,6 +314,7 @@ public class ViewPagerSignIn extends BaseActivity {
 	
     }
 	private void displayPhoneNumberConfirmation() {
+		final Random randomGenerator = new Random();
 		mWatcher = new PhoneNumberFormattingTextWatcher();
 		mUserID.setVisibility(View.VISIBLE);
 		mUserID.addTextChangedListener(mWatcher);
@@ -329,10 +331,11 @@ public class ViewPagerSignIn extends BaseActivity {
 			@SuppressWarnings("unchecked")
 			@Override
 			public void onClick(final View v) {
+				mixpanel.track("user attempts to confirm phone number", jsonUser);
 				mAssurance.setVisibility(View.VISIBLE);
 				mPhoneNumber = ContentUtils.addCountryCode(
 						PhoneNumberUtils.stripSeparators(mUserID.getText().toString()));
-				mVerificationCode = "5555";
+				mVerificationCode = Integer.toString(randomGenerator.nextInt(100000));
 				store.saveVerificationCode(mVerificationCode);
 				if(PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber) &&
 						PhoneNumberUtils.isGlobalPhoneNumber(mPhoneNumber)) {
@@ -362,12 +365,15 @@ public class ViewPagerSignIn extends BaseActivity {
 											
 											@Override
 											public void onClick(View v) {
+												
 												String code = mUserID.getText().toString();
 									        	if(code.equals(store.getVerificationCode())) {
+									        		mixpanel.track("user enters correct verification code", jsonUser);
 									        	    Intent intent = new Intent(Constants.ACTION_NUMBER_VERIFIED);
 									        	    mContext.sendBroadcast(intent);		
 									        	}	
 									        	else {
+									        		mixpanel.track("user enters incorrect verification code", jsonUser);
 													mAssurance.setText("Incorrect code. Please re-enter");
 													mAssurance.setTextColor(Color.RED);								        		
 									        	}
@@ -487,7 +493,6 @@ public class ViewPagerSignIn extends BaseActivity {
 	}
 	
 	public void basicLogin(View v){
-		mixpanel.track("Alternate login button clicked" , jsonUser);
 	    if(progressDialog==null || !progressDialog.isShowing()) progressDialog = ProgressDialog.show(
 	    		ViewPagerSignIn.this, "", "Signing up...", true);	
 		try {
@@ -512,19 +517,11 @@ public class ViewPagerSignIn extends BaseActivity {
 		mGenericSignInButton.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick(View v) {
+				mixpanel.track("Alternate login button clicked" , jsonUser);
 				basicLogin(v);
 				
 			}
 		});		
-	/**	if(!PhoneNumberUtils.isWellFormedSmsAddress(mPhoneNumber)) {
-			mAssurance.setText("Confirm Phone Number");
-			mUserID.setVisibility(View.VISIBLE);
-			mixpanel.track("Internal phone number is not well formed " + mPhoneNumber , jsonUser);
-		}
-		else {
-			mAssurance.setText("");
-			mixpanel.track("Internal phone number is well formed" , jsonUser);
-		}**/
 	}
 	
 	public void toggleGenericLogin(View v) {
@@ -542,6 +539,7 @@ public class ViewPagerSignIn extends BaseActivity {
 		mGenericSignInButton.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick(View v) {  
+				mixpanel.track("Alternate login button clicked" , jsonUser);
 				basicLogin(v);
 				
 			}

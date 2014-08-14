@@ -34,7 +34,9 @@ import com.github.amlcurran.showcaseview.ShowcaseView.Builder;
 
 import com.github.amlcurran.showcaseview.targets.Target;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
+import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.ParseAnalytics;
+import com.parse.ParseInstallation;
 import com.parse.ParseUser;
 
 public class AllThreadsListActivity extends SherlockListActivity implements View.OnClickListener {
@@ -45,15 +47,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	private RadioGroup radioGroup;
     protected static final int CONTEXTMENU_DELETEITEM = 0;
     protected static final int CONTEXTMENU_CONTACTITEM = 1;	
-	private String mPhoneNumber;
-	private TelephonyManager tMgr;
-	private int errorCode;
-	private MainApplication mApp;	
-	private GraphUser mGraphUser;
-	private String mFacebookID;	
-	private ParseUser currentUser;
 	private Cursor threads_cursor;
-	private String mPassword;
 	private int currentTab;
 	private DatabaseHandler dbHandler;
     private RecipientsEditor mConfidantesEditor;
@@ -64,7 +58,6 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	private String[] conversants;
 	private String conversant;
 	private String recipient;
-	private boolean visible;	
 	private Button hint;
 	private UserInfoStore store;
 	private final String columns = DatabaseHandler.KEY_SHARED_WITH + 
@@ -73,9 +66,9 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 			", " + DatabaseHandler.KEY_ID + " as _id" +
 			", " + DatabaseHandler.KEY_CONVO_TYPE +
 			", " + DatabaseHandler.KEY_CONVERSATION_FROM;
-	private Object sc;
 	private int counter;
-	private ShowcaseView showcaseView;	
+	private ShowcaseView showcaseView;
+	private MixpanelAPI mixpanel;	
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -98,9 +91,6 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	    
 	    ParseAnalytics.trackAppOpened(getIntent());
 	    dbHandler = new DatabaseHandler(mContext);
-	    mApp = (MainApplication) this.getApplication();
-	    mPhoneNumber = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();
-	    
 	    hint = (Button) findViewById(R.id.hint);   
 	    hint.setVisibility(View.VISIBLE);
 	    listview = getListView();
@@ -114,6 +104,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 			    	
 			@Override
 			public void onCheckedChanged(RadioGroup group, int checkedId) {
+				
 				currentTab = checkedId;		
 				populateList();
 			}
@@ -126,18 +117,32 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		mConversantsEditor = (RecipientsEditor)findViewById(R.id.recipient_editor);
 		mConversantsEditor.setAdapter(mRecipientsAdapter);    	
 		
+		mixpanel = MixpanelAPI.getInstance(getBaseContext(), Constants.MIXEDPANEL_TOKEN);
+		mixpanel.identify(ParseInstallation.getCurrentInstallation().getObjectId());
+		
+		mixpanel.track("AllThreadsListActivity created ", null);		
+		
 	}
 	
 	@Override
+	protected void onDestroy() {
+		mixpanel.flush();
+	    super.onDestroy();
+	}		
+	
+	@Override
 	public void onClick(View v) {
+		mixpanel.track("Allthreadslistactivity Showcaseview next button", null);
         switch (counter) {
         case 0:
+        	mixpanel.track("Showcasing shared texts tab", null);
             showcaseView.setShowcase(new ViewTarget(findViewById(R.id.shared_tab)), true);
             showcaseView.setContentTitle("Shared texts");
             showcaseView.setContentText(
             		"Conversations you've shared or that have been shared with you are in this tab");  
             break;
         case 1:
+        	mixpanel.track("Showcasing conversations threads tab", null);
             showcaseView.setShowcase(new ViewTarget(findViewById(R.id.row)), true);
             showcaseView.setContentTitle("Conversation threads");
             showcaseView.setContentText(
@@ -165,6 +170,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
     @Override  
     public void onCreateContextMenu(ContextMenu menu, View v,ContextMenuInfo menuInfo) {  
     super.onCreateContextMenu(menu, v, menuInfo);  
+    	mixpanel.track("threadslist long press list item", null);
         if(currentTab==R.id.shared_tab) menu.add(0, v.getId(), 0, "Delete Thread");  
         else menu.add(0, v.getId(), 0, "Add to Contacts");  
     }  
@@ -177,6 +183,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
         Cursor threads  = (Cursor) getListView().getItemAtPosition(info.position);
   		switch(currentTab) {
   		case R.id.shared_tab:
+  			mixpanel.track("Sharedconvo deleted", null);
   			String convoID = threads.getString(threads.getColumnIndex("_id"));
   			int rows = dbHandler.deleteShared(convoID);
   			threads_cursor = dbHandler.getSharedConversationCursor(columns);
@@ -184,11 +191,13 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
   			adapter.notifyDataSetChanged();
   		    return true;
   		case R.id.my_conversation_tab: 
+  			mixpanel.track("add to contacts from threadslistactivity", null);
 			String recipientId = threads.getString(threads
 				      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS));		
 			String number = store.getPhoneNumber(recipientId);
             Intent intent = new Intent(Intent.ACTION_INSERT);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
             intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
             intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
             startActivity(intent);       			
@@ -203,6 +212,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	private void populateList() {
 		switch(currentTab) {
 		case R.id.shared_tab:
+			mixpanel.track("Shared tab clicked ", null);	
 			threads_cursor = dbHandler.getSharedConversationCursor(columns);
 		    adapter = new ThreadItemsCursorAdapter(mContext, threads_cursor, currentTab, this);
 		    setListAdapter(adapter);  	
@@ -211,6 +221,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		    
 		    return;
 		case R.id.my_conversation_tab: 
+			mixpanel.track("My texts tab clicked ", null);
 		    threads_cursor = ContentUtils.getThreadsCursor(mContext);
 		    adapter = new ThreadItemsCursorAdapter(mContext, threads_cursor, currentTab, this);
 		    setListAdapter(adapter); 
@@ -231,6 +242,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		Class c;
 		switch (item.getItemId()) {   
 		case R.id.new_message:
+			mixpanel.track("new message button clicked", null);
 			switch(currentTab) {
 				case R.id.my_conversation_tab: 
 					c = MessageActivityCheckboxCursor.class;
@@ -243,6 +255,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 
 			return true;	
 		case R.id.settings:
+			mixpanel.track("settings button clicked", null);
             intent = new Intent(mContext, UserSettings.class);
             startActivity(intent);
 			return true;				
@@ -266,6 +279,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
         // clicked and load the data from the cursor.
         // (ConversationListAdapter extends CursorAdapter, so getItemAtPosition() should
         // return the cursor object, which is moved to the position passed in)
+    	mixpanel.track("thread clicked", null);
     	Cursor threads  = (Cursor) getListView().getItemAtPosition(position);
     	Intent intent;
 		switch(currentTab) {
@@ -316,7 +330,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
     }   
     
 	public void startShare(View v) {			
-
+		mixpanel.track("startshare clicked from threadslist", null);
 		if(mConversantsEditor.constructContactsFromInput(false).getNumbers().length==0) {
 			Toast.makeText(mContext, "No converstions selected", Toast.LENGTH_LONG).show();
 			return;
@@ -374,30 +388,6 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		return true;
 	}		
 	
-
-/**
-    public boolean onContextItemSelected(MenuItem aItem) {
-    	Toast.makeText(mContext, " + ", Toast.LENGTH_LONG).show();
-        AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) aItem.getMenuInfo();
-        int position = menuInfo.position;
-        String recipientID = adapter.number_hash.get(position);
-        String number = ContentUtils.getAddressFromID(mContext, recipientID);
-        //Toast.makeText(mContext, " + "+  number, Toast.LENGTH_LONG).show();
-        switch (aItem.getItemId()) {
-            case CONTEXTMENU_DELETEITEM:
-                Toast.makeText(mContext, "not yet implemented", Toast.LENGTH_LONG).show();
-                return true;
-            case CONTEXTMENU_CONTACTITEM:
-            	
-                Intent intent = new Intent(Intent.ACTION_INSERT);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
-                intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
-                startActivity(intent);            	
-                return true;
-        }
-        return false;
-    }	**/  
 
 	@Override
 	protected void onStart() {

@@ -30,6 +30,8 @@ import com.Pull.pullapp.threads.UploadMyPhoto;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.Transformation;
 import com.Pull.pullapp.util.UserInfoStore;
+import com.mixpanel.android.mpmetrics.MixpanelAPI;
+import com.parse.ParseInstallation;
 import com.parse.ParseUser;
  
 public class ImagePickerActivity extends Activity {
@@ -43,6 +45,7 @@ public class ImagePickerActivity extends Activity {
 	private static Context mContext;
 	private Bitmap bitmap;
 	private Button pickImage;
+	private MixpanelAPI mixpanel;
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +59,10 @@ public class ImagePickerActivity extends Activity {
         
         pickImage = (Button) findViewById(R.id.btn_pick);
         pickImage.setBackgroundResource(R.drawable.bad_indicator);
+		mixpanel = MixpanelAPI.getInstance(getBaseContext(), Constants.MIXEDPANEL_TOKEN);
+		mixpanel.identify(ParseInstallation.getCurrentInstallation().getObjectId());
+		
+		mixpanel.track("ImagePickerActivity created", null);        
         pickImage.setOnClickListener(new OnClickListener() {
        	 
 			private SimplePopupWindow popup;
@@ -209,4 +216,9 @@ public class ImagePickerActivity extends Activity {
      
 
       }    
+	@Override
+	protected void onDestroy() {
+		mixpanel.flush();
+	    super.onDestroy();
+	}	    
 }

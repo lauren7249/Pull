@@ -378,6 +378,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 					}
 
 				} else if(action.equals(Constants.ACTION_SMS_UNOUTBOXED)) {
+					mixpanel.track("sms canceled", null);
 					if(scheduledFor-scheduledOn <= 6000) 
 						sendDate = new Date(Math.max(scheduledFor,scheduledOn) + 6000);
 					else 
@@ -404,6 +405,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
                 @Override
                 public void onCancel() {
+                	mixpanel.track("timepicker canceled", null);
                 	delayPressed = true;
                 }
 
@@ -414,6 +416,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 						String weekDayFullName, String weekDayShortName,
 						int hour24, int hour12, int min, int sec,
 						String AM_PM) {
+					mixpanel.track("timepicker set", null);
 					sendDate = dateSelected;
 					updateDelayButton();
 					delayPressed = true;
@@ -498,6 +501,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				} 
 			}
 		});		    
+		
+		
 	}
 
 
@@ -599,7 +604,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	protected void sendComment(String commentText) throws JSONException {
 /*		Toast.makeText(mContext, commentText + " to " + shared_sender + " for " + shared_address, 
 				Toast.LENGTH_LONG).show();
-*/	
+*/		mixpanel.track("send comment button pressed", null);
 		if(commentText.length() == 0) {
 			popup = new SimplePopupWindow(text);
 			popup.showLikeQuickAction();
@@ -615,10 +620,11 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		    " The comment you're sending may get sent as a regular text message.")
 	           .setCancelable(true)
 	           .setView(addFriendView)
-	           .setPositiveButton("Ignore", new DialogInterface.OnClickListener() {
+	           .setPositiveButton("OK", new DialogInterface.OnClickListener() {
 	               public void onClick(DialogInterface dialog, int id) 
 	               {
 	                    dialog.cancel();
+	                    mixpanel.track("user did not invite friend", null);
 	               }
 	           })				           
 	           .setNegativeButton("Invite friend", new DialogInterface.OnClickListener() {
@@ -626,7 +632,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	               {
 
 	            	   SendUtils.inviteFriend(shared_conversant, mContext, activity);
-
+	            	   mixpanel.track("user invited friend", null);
 	               	}
 	           }) 
 	           .show();		
@@ -718,6 +724,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 		//actionbar menu
+		mixpanel.track("message activity create options", null);
 		getSupportMenuInflater().inflate(R.menu.thread_menu, menu);
 		/*menu.add(0, CONTEXTMENU_CONTACTITEM, 0, "Add to Contacts");
 		//menu.add(1, CONTEXTMENU_SHARE_PERSISTENT, 0, "Share Conversation");
@@ -735,9 +742,10 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
             NavUtils.navigateUpFromSameTask(this);
             return true;	
 		case R.id.menu_contacts:
+			mixpanel.track("add to contacts", null);
             Intent intent = new Intent(Intent.ACTION_INSERT);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
             intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
             intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
             startActivity(intent);            	
@@ -752,6 +760,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	
 	@Override
 	public void onBackPressed() {
+		mixpanel.track("back button pressed", null);
 	    if(!keyboardShowing && !inputtingEmoji) super.onBackPressed();
 	    else {
 			inputtingEmoji = false;
@@ -778,7 +787,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 	public void sendMessage(View v)
 	{
-
+		mixpanel.track("send message click", null);
 		newMessage = text.getText().toString().trim(); 
 		hideKeyboard();
 		text.clearFocus();
@@ -879,7 +888,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 	public void shareMessages(View v) throws JSONException 
 	{
-
+		mixpanel.track("share messages clicked in message activity", null);
 		if(mConfidantesEditor.constructContactsFromInput(false).getNumbers().length==0 
 				&& (confidantes==null || confidantes.length==0)) {
 			popup = new SimplePopupWindow(v);
@@ -1110,6 +1119,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 	@Override
 	public void onClick(View v) {
+		mixpanel.track("showcase view next button clicked", null);
         switch (counter) {
         case 0:
         	mButtonsBar.setVisibility(View.VISIBLE);
