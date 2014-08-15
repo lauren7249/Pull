@@ -153,8 +153,8 @@ public class SendUtils  {
 	protected static void inviteViaSMS(String number, Context context) {
 		// TODO Make this use Twilio? but maybe not because the recipient would not trust it
 		SendUtils.sendsms(context, number,
-				"Join me on Pull, the new Android app for sharing text conversations with friends. " 
-				+ Constants.GOOGLE_PLAY_LINK, System.currentTimeMillis(), System.currentTimeMillis(), false);
+				"I'm inviting you to be my friend on Pull, so we can share texts without taking screenshots. Learn more at " 
+				+ Constants.WEB_LINK, System.currentTimeMillis(), System.currentTimeMillis(), false);
 		
 	}
 
@@ -180,7 +180,7 @@ public class SendUtils  {
 		DatabaseHandler db = new DatabaseHandler(parent);
 		String app_plug, text;
 		if(true) {
-			app_plug = "Hey, check out my conversation with " + person_shared + ". " 
+			app_plug = "I'm using the Pull app to share my conversation with " + person_shared + ". " 
 					+ Constants.APP_PLUG_END;
 		}
 		else {
