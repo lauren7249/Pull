@@ -203,7 +203,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	if(type == TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
     		number = confidante;
     		other_pic = other_pic_mine;
-    		friend_name = ContentUtils.getContactDisplayNameByNumber(context, number);
+    		friend_name = store.getName(number);
     		other_pic_theirs.setVisibility(View.GONE);
     		other_pic.setVisibility(View.VISIBLE);
     		row.setGravity(Gravity.RIGHT);
@@ -214,7 +214,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	} else {
     		number = sharer;
     		other_pic = other_pic_theirs;
-    		friend_name = ContentUtils.getContactDisplayNameByNumber(context, number);
+    		friend_name = store.getName(number);
     		other_pic_mine.setVisibility(View.GONE);
     		other_pic.setVisibility(View.VISIBLE);
     		name_view.setGravity(Gravity.LEFT);
@@ -222,8 +222,6 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     		snippet_view.setText(originalRecipientName + " doesn't know " 
     		+ friend_name + " shared");
     	}
-    	
-    	
     	
     	name = store.getName(number);
     	if(name.length()==0 || name.equals(number)) {

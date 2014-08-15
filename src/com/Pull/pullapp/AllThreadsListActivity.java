@@ -154,9 +154,9 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
         	showcaseView.hide();
             break;
 
-    }
-    counter++;
-}	
+	    }
+	    counter++;
+	}	
 	
 	@Override
 	protected void onResume() {

@@ -144,11 +144,16 @@
 					        android:color="@android:color/white" />	
 			        
 					</LinearLayout>		
-				    <fragment
-			            android:id="@+id/emojicons"
+					<LinearLayout
+					    android:id="@+id/emojicons_area"
 			            android:layout_width="match_parent"
-			            android:layout_height="wrap_content"
-			            class="com.rockerhieu.emojicon.EmojiconsFragment"/>							
+			            android:layout_height="wrap_content">			    
+					    <fragment
+				            android:id="@+id/emojicons"
+				            android:layout_width="match_parent"
+				            android:layout_height="wrap_content"
+				            class="com.rockerhieu.emojicon.EmojiconsFragment"/>			
+				   </LinearLayout>		       				
 				</LinearLayout>		        
 		        <LinearLayout
 		            android:id="@+id/bottom_share_box"

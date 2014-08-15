@@ -30,7 +30,6 @@ import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.threads.AlarmScheduler;
 import com.Pull.pullapp.threads.DailyShareSuggestion;
 import com.Pull.pullapp.threads.DownloadFriendPhoto;
-import com.Pull.pullapp.threads.SmsLogger;
 import com.parse.FindCallback;
 import com.parse.ParseACL;
 import com.parse.ParseException;
@@ -52,10 +51,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         store = new UserInfoStore(context);
         db = new DatabaseHandler(context);
         tmgr = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        if (action.equals(Constants.ACTION_CHECK_OUT_SMS) && Constants.LOG_SMS) {
-            new SmsLogger(context).start();
-            return;
-        }
+
         if (action.equals(Constants.ACTION_INVITE_FRIEND)) {
             try {
                 JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));

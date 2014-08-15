@@ -172,4 +172,13 @@ public class UserInfoStore {
 		// TODO Auto-generated method stub
 		return mPrefs.getString("mVerificationCode", null);
 	}
+	public void putPosition(String number, int position) {
+		Editor editor = mPrefs.edit();
+		editor.putInt(number+"position", position);	
+		Log.i(number+position,"cool");
+		editor.commit();	
+	}
+	public int getPosition(String number) {
+		return mPrefs.getInt(number+"position", -1);
+	}
 }
