@@ -498,15 +498,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		isIdealLength = false;
 		watcher = getTextWatcher();
 	    text.addTextChangedListener(watcher); 	
-		mLayout.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
-			@Override
-			public void onGlobalLayout() {
-				if ((mLayout.getRootView().getHeight() - mLayout.getHeight()) > mLayout.getRootView().getHeight() / 3) {
-					mButtonsBar.setVisibility(View.VISIBLE);
-				} 
-			}
-		});		    
-		
 		
 	}
 
@@ -811,10 +802,10 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	{
 		mixpanel.track("send message click", null);
 		newMessage = text.getText().toString().trim(); 
-		hideKeyboard();
 		text.setText("");
 		text.clearFocus();
-		mButtonsBar.setVisibility(View.GONE);
+		hideKeyboard();
+	
 		if(mListView.getCount()>0) mListView.setSelection(mListView.getCount()-1);
 		
 		if(newMessage.length() == 0) {
@@ -870,7 +861,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
     		//TODO: MAKE IT SO THAT YOU CANT DO THE PAST
     	}
     	newMessage = "";
-
+    	
 		
 	}
 	
@@ -1194,10 +1185,12 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		keyboardShowing = isShowing;
 		if(isShowing) {
 			emojiArea.setVisibility(View.VISIBLE);
+			mButtonsBar.setVisibility(View.VISIBLE);
 			text.setLines(3);
 		} 	
 		else if(!inputtingEmoji) {
 			emojiArea.setVisibility(View.GONE);
+			mButtonsBar.setVisibility(View.GONE);
 			text.setLines(2);			
 		}
 		
