@@ -59,7 +59,11 @@
         </activity>                       
         <activity android:name="com.facebook.LoginActivity"/>      
         <meta-data android:value="@string/facebook_app_id" android:name="com.facebook.sdk.ApplicationId"/>  
- 		<activity android:name="com.Pull.pullapp.UserSettings"/>    
+ 		<activity android:name="com.Pull.pullapp.UserSettings">
+            <meta-data
+		        android:name="android.support.PARENT_ACTIVITY"
+		        android:value="com.Pull.pullapp.AllThreadsListActivity" />  		    
+ 		 </activity>      
   
 		<receiver
             android:name=".util.GeneralBroadcastReceiver"

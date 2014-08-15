@@ -216,6 +216,11 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		mixpanel = MixpanelAPI.getInstance(mContext, Constants.MIXEDPANEL_TOKEN);
 		mixpanel.identify(ParseInstallation.getCurrentInstallation().getObjectId());
 		
+		getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
+                | ActionBar.DISPLAY_SHOW_HOME);
+    	getSupportActionBar().setDisplayHomeAsUpEnabled(true);				
+		getSupportActionBar().setCustomView(R.layout.message_thread_action_bar);
+		
 		send = (Button) this.findViewById(R.id.send_button);
 		share = (Button) this.findViewById(R.id.share_button);
 		pickDelay = (Button) this.findViewById(R.id.time_delay_button);
@@ -223,6 +228,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		viewSwitcher = (ViewSwitcher) this.findViewById(R.id.viewSwitcher);
 		text = (EditText) this.findViewById(R.id.text);
 		mTextIndicatorButton = (ImageButton) findViewById(R.id.textIndicatorButton);
+		title_view = (TextView) findViewById(R.id.name);
 		
 		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -243,18 +249,15 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			shared_address = getIntent().getStringExtra(Constants.EXTRA_SHARED_ADDRESS);
 			shared_convo_type = getIntent().getIntExtra(Constants.EXTRA_SHARED_CONVO_TYPE,-1);
 				
-			if(number!=null && name!=null) {
-				getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
-		                | ActionBar.DISPLAY_SHOW_HOME);
-            	getSupportActionBar().setDisplayHomeAsUpEnabled(true);				
-				getSupportActionBar().setCustomView(R.layout.message_thread_action_bar);		
-				title_view = (TextView) findViewById(R.id.name);
+			if(number!=null && name!=null) {		
+				
 				title_view.setText(name);
 				setupComposeBox();
 				populateMessages();
 				
 				notificationManager.cancel(number.hashCode());				
 			} else if(person_shared!=null && shared_sender!=null){
+								
 				populateSharedMessages(shared_convoID);
 			}
 			else {
@@ -562,9 +565,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			
 	}
 	private void populateSharedMessages(final String shared_convoID) {
-		/*Log.i("shared convo type",""+shared_convo_type);
+		Log.i("shared convo type",""+shared_convo_type);
 		Log.i("shared_sender",shared_sender);
-		Log.i("shared_confidante",shared_confidante);*/
+		Log.i("shared_confidante",shared_confidante);
 		if(shared_convo_type==TextBasedSmsColumns.MESSAGE_TYPE_INBOX) {
 			shared_conversant = shared_sender;
 			isMine = false;
@@ -574,6 +577,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			isMine = true;
 		}
 		shared_conversant_name = store.getName(shared_conversant);
+		//Log.i("shared_conversant_name ",shared_conversant_name + (title_view==null));
 		title_view.setText(shared_conversant_name);	
 		dh = new DatabaseHandler(mContext);
 		messages_cursor = dh.getSharedMessagesCursor(shared_convoID);
