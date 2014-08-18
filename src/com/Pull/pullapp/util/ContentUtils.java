@@ -33,7 +33,15 @@ import android.util.Log;
 import android.widget.ImageView;
 
 public class ContentUtils {
-	
+	public static CharSequence getInitials(String name) {
+		String initials = "";
+		if(name==null || name.isEmpty()) return initials;
+		String[] i = name.split(" ");
+		for(String chunk : i) {
+			initials = initials + chunk.substring(0,1);
+		}
+		return initials;
+	}	
 
 	public static String getContactDisplayNameByNumber(Context context, String number) {
 		if(number == null || number.length()==0) return null;

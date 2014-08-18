@@ -14,5 +14,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/FacebookSDK"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/mixpanel-android"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/HorizontalVariableListView"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

@@ -305,6 +305,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		return cursor;
 	}
 
+	public Cursor getSharedWithCursor(String number) {
+        String[] variables = new String[]{KEY_SHARED_WITH, KEY_CONVERSATION_FROM, KEY_CONVERSATION_FROM_NAME,
+        		KEY_ID + " as " + BaseColumns._ID};		
+        Cursor cursor = db.query(TABLE_SHARED_CONVERSATIONS, variables, 
+        		KEY_CONVERSATION_FROM + "=? and " + KEY_CONVO_TYPE + "=?",
+                new String[] { number, Integer.toString(TextBasedSmsColumns.MESSAGE_TYPE_SENT)}, 
+                null, null, KEY_DATE , null);   
+		return cursor;
+	}
+
 
  
 

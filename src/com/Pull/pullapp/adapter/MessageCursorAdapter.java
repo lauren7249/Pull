@@ -17,6 +17,7 @@ import android.net.Uri;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.widget.CursorAdapter;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -144,7 +145,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 				holder.messageBox.setBackgroundResource(R.drawable.outgoing);
 				if(!isMine) {
 					holder.my_initials.setVisibility(View.VISIBLE);
-		    		holder.my_initials.setText(getInitials(conversant_name));
+		    		holder.my_initials.setText(ContentUtils.getInitials(conversant_name));
 		    		holder.my_initials.setOnClickListener(new OnClickListener(){
 						@Override
 						public void onClick(View v) {
@@ -189,7 +190,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		    	else if(conversant_name!=null && conversant_name.length()>0) {
 		    		holder.their_pic.setVisibility(View.GONE);	
 		    		holder.their_initials.setVisibility(View.VISIBLE);
-		    		holder.their_initials.setText(getInitials(conversant_name));
+		    		holder.their_initials.setText(ContentUtils.getInitials(conversant_name));
 		    		holder.their_initials.setOnClickListener(new OnClickListener(){
 						@Override
 						public void onClick(View v) {
@@ -209,7 +210,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 				holder.messageBox.setBackgroundResource(R.drawable.incoming);
 				holder.their_pic.setVisibility(View.GONE);
 	    		holder.their_initials.setVisibility(View.VISIBLE);
-	    		holder.their_initials.setText(getInitials(other_person_name));
+	    		holder.their_initials.setText(ContentUtils.getInitials(other_person_name));
 	    		holder.their_initials.setOnClickListener(new OnClickListener(){
 					@Override
 					public void onClick(View v) {
@@ -273,15 +274,6 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.messageBox.setLayoutParams(lp);		
 	}
 
-	private CharSequence getInitials(String name) {
-		String initials = "";
-		if(name==null || name.isEmpty()) return initials;
-		String[] i = name.split(" ");
-		for(String chunk : i) {
-			initials = initials + chunk.substring(0,1);
-		}
-		return initials;
-	}
 	private void populateTextConvo(final Context context, Cursor c, View v, boolean isnew) {
 		String body="";
 		final String address;
@@ -361,12 +353,14 @@ public class MessageCursorAdapter extends CursorAdapter {
 			@Override
 			public void onClick(View v) {
 				Intent broadcastIntent = new Intent();
-				broadcastIntent.setAction(Constants.ACTION_SHARE_STATE_CHANGED);
-				context.sendBroadcast(broadcastIntent);					
-				if(check_hash.contains(message)) 
+				broadcastIntent.setAction(Constants.ACTION_SHARE_STATE_CHANGED);								
+				if(check_hash.contains(message)) {
 					check_hash.remove(message);
-				else 
+				}else{ 
 					check_hash.add(message);
+				//	Log.i("cjssl","check hash added message");
+				}
+				context.sendBroadcast(broadcastIntent);	
 				notifyDataSetChanged();
 			};
         });				

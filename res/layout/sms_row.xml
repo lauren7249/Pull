@@ -46,24 +46,24 @@
              android:layout_height="wrap_content"
              android:gravity="right"
              emojicon:emojiconSize="22sp"
-             android:paddingRight="10dp"
-             android:paddingLeft="10dp"
+             android:paddingRight="8dp"
+             android:paddingLeft="8dp"
              android:fontFamily="sans-serif-light"
              android:text="Message Content"
              android:textColor="@color/textColor"
-             android:textSize="15sp" />
+             android:textSize="13sp" />
 
          <TextView
              android:id="@+id/message_time"
              android:layout_width="fill_parent"
              android:layout_height="wrap_content"
              android:gravity="right"
-             android:paddingRight="10dp"
-             android:paddingLeft="10dp"             
+             android:paddingRight="8dp"
+             android:paddingLeft="8dp"             
 			 android:layout_marginBottom="7dp"
 			 android:layout_marginTop="7dp"
              android:text="Message Time"
-             android:textSize="12sp"
+             android:textSize="11sp"
              android:textStyle="bold" 
              />    
                            
