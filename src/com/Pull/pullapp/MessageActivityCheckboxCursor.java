@@ -288,6 +288,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				setupComposeBox();
 				mRecipientEditor = (RecipientsEditor) getSupportActionBar().getCustomView().findViewById(R.id.recipients_editor);
 				mRecipientEditor.setAdapter(mRecipientsAdapter);
+				messages = new ArrayList<SMSMessage>();
+				queue_adapter = new QueuedMessageAdapter(this,messages);
+				merge_adapter = new MergeAdapter();						
 				
 			}
 			
