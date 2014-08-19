@@ -162,7 +162,7 @@ public class ViewPagerSignIn extends BaseActivity {
 				if(action.equals(Constants.ACTION_COMPLETE_SIGNUP)) {
 					if(ParseUser.getCurrentUser()!=null
 							&& ParseUser.getCurrentUser().isAuthenticated()) {
-						if(ParseUser.getCurrentUser().get("profilePhoto") ==null) openPhotoPicker();
+						if(ParseUser.getCurrentUser().get("profilePhoto") ==null && false) openPhotoPicker();
 						else openThreads();
 					} else {
 						if(ParseUser.getCurrentUser()!=null) {
@@ -267,7 +267,7 @@ public class ViewPagerSignIn extends BaseActivity {
 				try {
 					mPasswordString = MainApplication.generateStrongPasswordHash(mPhoneNumber,mPasswordSalt);
 					ParseUser.logIn(mPhoneNumber, mPasswordString);
-					if(mParseUser.get("profilePhoto")==null) openPhotoPicker();
+					if(mParseUser.get("profilePhoto")==null && false) openPhotoPicker();
 					else openThreads();				
 				} catch (NoSuchAlgorithmException e) {  
 					mixpanel.track(e.getLocalizedMessage(), jsonUser);

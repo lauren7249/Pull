@@ -36,8 +36,10 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateUtils;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -100,7 +102,7 @@ import com.rockerhieu.emojicon.emoji.Emojicon;
 public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	implements ApproverDialogListener, View.OnClickListener, EmojiconGridFragment.OnEmojiconClickedListener,
 	EmojiconsFragment.OnEmojiconBackspaceClickedListener, 
-	EmojiconsFragment.OnEmojiconTabClickedListener, LinearLayoutThatDetectsSoftKeyboard.Listener {
+	EmojiconsFragment.OnEmojiconTabClickedListener {
 	
 	protected static final int CONTEXTMENU_CONTACTITEM = 1;	
 	protected static final int CONTEXTMENU_SHARE_SECTION = 2;	
@@ -215,7 +217,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		
 		mButtonsBar = (LinearLayout) findViewById(R.id.buttons_box);
 		mLayout = (LinearLayoutThatDetectsSoftKeyboard) findViewById(R.id.main_layout);
-		mLayout.setListener(this);
 
 		delayPressed = false;
 		notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
@@ -284,11 +285,14 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				title_view.setText(name);
 				setupComposeBox();
 				populateMessages();
-				
+			    hideKeyboard();
+			    text.clearFocus();				
 				notificationManager.cancel(number.hashCode());				
 			} else if(person_shared!=null && shared_sender!=null){
 				//Log.i("shared convo",person_shared);
 				populateSharedMessages(shared_convoID);
+			    hideKeyboard();
+			    text.clearFocus();				
 			}
 			else {
 				//Log.i("blank convo","nada");
@@ -299,6 +303,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				setupComposeBox();
 				mRecipientEditor = (RecipientsEditor) getSupportActionBar().getCustomView().findViewById(R.id.recipients_editor);
 				mRecipientEditor.setAdapter(mRecipientsAdapter);
+				mRecipientEditor.setEnabled(true);
 				messages = new ArrayList<SMSMessage>();
 				queue_adapter = new QueuedMessageAdapter(this,messages);
 				merge_adapter = new MergeAdapter();						
@@ -306,9 +311,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			}
 			
 		}		
-
-	    hideKeyboard();
-	    text.clearFocus();
 
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		
@@ -495,10 +497,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				updateTime();
 			}
 		};
-		hideKeyboard();
-		text.clearFocus();	
-		
-		
+
 		share_with = getIntent().getStringExtra(Constants.EXTRA_SHARE_TO_NUMBER);
 		if(share_with != null) {
 			viewSwitcher.setDisplayedChild(1);	
@@ -531,7 +530,21 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			}
 
 		}		
+		text.setOnFocusChangeListener(new OnFocusChangeListener(){
 
+			@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+				if(!hasFocus) return;
+    			if(!keyboardShowing) {
+        			emojiArea.setVisibility(View.VISIBLE);
+        			mButtonsBar.setVisibility(View.VISIBLE);
+        			text.setLines(3);    			
+        			imm.toggleSoftInput(0, InputMethodManager.SHOW_FORCED);
+    			}
+    			keyboardShowing = true;
+			}
+			
+		});
 
 	}
 	
@@ -592,8 +605,10 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		calendar.get(Calendar.HOUR_OF_DAY);
 		calendar.get(Calendar.MINUTE);	
 		registerReceiver(tickReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
-		hideKeyboard();
-		text.clearFocus();
+		emojiArea.setVisibility(View.GONE);
+		mButtonsBar.setVisibility(View.GONE);
+		text.setLines(2);	
+
 	}	
 	
 	
@@ -911,7 +926,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
             intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
-            intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
+            if(number!=null) intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
+            else intent.putExtra(ContactsContract.Intents.Insert.PHONE, shared_conversant);
             startActivity(intent);            	
             return true;	               
 		case CONTEXTMENU_SHARE_PERSISTENT:
@@ -925,11 +941,23 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	@Override
 	public void onBackPressed() {
 		mixpanel.track("back button pressed", null);
-	    if(!keyboardShowing && !inputtingEmoji) super.onBackPressed();
-	    else {
+		
+		if(keyboardShowing) {
+			hideKeyboard();
+			keyboardShowing = false;
+			text.clearFocus();	
+			return;
+		}
+		if(emojiArea.getVisibility() == View.VISIBLE) {
+			emojiArea.setVisibility(View.GONE);
+			mButtonsBar.setVisibility(View.GONE);
 			inputtingEmoji = false;
-	    	hideKeyboard();
-	    }
+			keyboardShowing = false;
+			text.setLines(2);
+			text.clearFocus();	
+			return;
+		}		
+	    super.onBackPressed();
 	}
 	
 	private SMSMessage getNextOutboxMessage(Cursor c) {
@@ -952,10 +980,15 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	public void sendMessage(View v)
 	{
 
-		hideKeyboard();
 		newMessage = text.getText().toString().trim(); 
-		text.setText("");
-		text.clearFocus();		
+		text.setText("");	
+		inputtingEmoji = false;
+    	keyboardShowing = false;
+		text.setLines(2);	
+		text.clearFocus();
+		hideKeyboard();		
+		emojiArea.setVisibility(View.GONE);
+		mButtonsBar.setVisibility(View.GONE);		
 		mixpanel.track("send message click", null);
 		if(mListView.getCount()>0) mListView.setSelection(mListView.getCount()-1);
 		
@@ -997,7 +1030,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
         	setIntent(intent);
         }
  
-        new DelayedSend(mContext, number, newMessage, sendDate, System.currentTimeMillis(), approver).start();
+        new DelayedSend(mContext, number, newMessage, sendDate, new Date().getTime(), approver).start();
         
     	
 		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.pendinh_indicator));
@@ -1057,6 +1090,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 	public void shareMessages(View v) throws JSONException 
 	{
+		
 		mixpanel.track("share messages clicked in message activity", null);
 		if(mConfidantesEditor.constructContactsFromInput(false).getNumbers().length==0 
 				&& (confidantes==null || confidantes.length==0)) {
@@ -1087,6 +1121,14 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		mConfidantesEditor.setText("");						
 		viewSwitcher.setDisplayedChild(0);
 
+		inputtingEmoji = false;
+    	keyboardShowing = false;
+		text.setLines(2);	
+		text.clearFocus();
+		hideKeyboard();		
+		emojiArea.setVisibility(View.GONE);
+		mButtonsBar.setVisibility(View.GONE);	
+		
 		shared_sender = ParseUser.getCurrentUser().getUsername();
 		person_shared = name;
 		shared_address = number;
@@ -1115,8 +1157,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		getSharedWithTab(number,name);
 		sharedWithAdapter.current_tab = shared_confidante;
 		sharedWithAdapter.notifyDataSetChanged();
-		hideKeyboard();
-		text.clearFocus();
 
 		name = null;
 		number = null;
@@ -1137,7 +1177,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		mConfidantesEditor.setText("");
 		
 		share.setClickable(true);	
-
+		
 	}	    
 	
     
@@ -1229,10 +1269,10 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
   }		
 	private void hideKeyboard(){
-		//imm.hideSoftInputFromWindow(text.getWindowToken(), 0);	
-		if(keyboardShowing) imm.toggleSoftInput(0, 0);
+		imm.hideSoftInputFromWindow(text.getWindowToken(), 0);	
 		mButtonsBar.setVisibility(View.GONE);
 		inputtingEmoji = false;
+		keyboardShowing = false;
 	}	
 		
 	@Override
@@ -1294,33 +1334,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	@Override
 	public void onClick(View v) {
 		showcaseView.hide();
-	/**	mixpanel.track("showcase view next button clicked", null);
-        switch (counter) {
-        case 0:
-        	mButtonsBar.setVisibility(View.VISIBLE);
-            showcaseView.setShowcase(new ViewTarget(findViewById(R.id.buttons_box)), true);
-            showcaseView.setContentTitle("Schedule texts");
-            showcaseView.setContentText(
-            		"Schedule your texts to send in the future, with the option to change them." +
-            " If you receive a text from the person before yours goes out, yours will be canceled.");  
-                 
-            break;
-        case 1:
-        	mButtonsBar.setVisibility(View.GONE);
-            showcaseView.setShowcase(new ViewTarget(findViewById(R.id.send_button)), true);
-            showcaseView.setContentTitle("Cancel texts");
-            showcaseView.setContentText(
-            		"After you send a text, you automatically have 5 seconds to cancel or edit it");  
-            showcaseView.hideButton();
-            showcaseView.setHideOnTouchOutside(true);
-            break;          
-        case 2:
-        	showcaseView.hide();
-            break;
-
-    }
-    counter++;
-		**/
 	}
 
 	@Override
@@ -1337,28 +1350,10 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		
 
 	@Override
-	public void onSoftKeyboardShown(boolean isShowing) {
-		keyboardShowing = isShowing;
-		if(isShowing) {
-			emojiArea.setVisibility(View.VISIBLE);
-			mButtonsBar.setVisibility(View.VISIBLE);
-			text.setLines(3);
-			mixpanel.track("keyboard shown", null);
-		} 	
-		else if(!inputtingEmoji) {
-			
-			emojiArea.setVisibility(View.GONE);
-			mButtonsBar.setVisibility(View.GONE);
-			text.setLines(2);	
-			mixpanel.track("keyboard hidden ", null);
-		}
-		
-	}
-
-	@Override
 	public void onEmojiconTabClicked() {
 		mixpanel.track("emojicon tab clicked", null);
 		inputtingEmoji = true;
 		imm.hideSoftInputFromWindow(text.getWindowToken(), 0);	
+		keyboardShowing = false;
 	}
 }

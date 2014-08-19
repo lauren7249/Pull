@@ -32,7 +32,7 @@ public class DelayedSend extends Thread {
         	this.sendOn = sendOn.getTime();
         	dimensions.put("delayed", true);
         }else{
-        	this.sendOn = System.currentTimeMillis()  + (5)*1000;
+        	this.sendOn = new Date().getTime() + (5)*1000;
         	dimensions.put("delayed", false);
         }
         
