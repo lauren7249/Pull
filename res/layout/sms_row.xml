@@ -6,6 +6,7 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center"
+    android:descendantFocusability="blocksDescendants"
     android:padding="5dp"
     android:layout_margin="5dp"
    	android:clipChildren="false" >
@@ -52,6 +53,8 @@
              android:paddingLeft="8dp"
              android:fontFamily="sans-serif-light"
              android:text="Message Content"
+             android:autoLink="web|email"
+             android:linksClickable="true"
              android:textColor="@color/textColor"
              android:textSize="13sp" />
 

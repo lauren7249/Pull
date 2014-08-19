@@ -41,12 +41,13 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
-import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -91,6 +92,7 @@ import com.parse.ParseInstallation;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.rockerhieu.emojicon.EmojiconGridFragment;
+import com.rockerhieu.emojicon.EmojiconTextView;
 import com.rockerhieu.emojicon.EmojiconsFragment;
 import com.rockerhieu.emojicon.ViewPager;
 import com.rockerhieu.emojicon.emoji.Emojicon;
@@ -190,7 +192,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.message_thread);
 		
-		mContext = getApplicationContext();
+		mContext = this;
 		mPrefs = mContext.getSharedPreferences(Constants.PREFERENCE_TIME_DELAY_PROMPT, Context.MODE_PRIVATE);
 		activity = this;
 		
@@ -202,6 +204,15 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		mListView.setFocusable(true);
 		mListView.setFocusableInTouchMode(true);	
 		mListView.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
+		mListView.setOnItemLongClickListener(new OnItemLongClickListener() {
+		     public boolean onItemLongClick(AdapterView<?> arg0, View v, int position, long id) {
+		    	 EmojiconTextView t = (EmojiconTextView) v.findViewById(R.id.message_text);
+		    	 String m = t.getText().toString();
+	             if(m!=null) text.setText(m);
+	             return true; 
+		    } 
+		}); 
+		
 		mButtonsBar = (LinearLayout) findViewById(R.id.buttons_box);
 		mLayout = (LinearLayoutThatDetectsSoftKeyboard) findViewById(R.id.main_layout);
 		mLayout.setListener(this);
@@ -572,7 +583,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		registerReceiver(mBroadcastReceiver, intentFilter);	
 
 		if(number!=null && name!=null) {
-			position = store.getPosition(number);
+			//position = store.getPosition(number);
 			rePopulateMessages();
 			notificationManager.cancel(number.hashCode());				
 		} else if(person_shared!=null && shared_sender!=null){
@@ -587,7 +598,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	
 	
 	private void rePopulateMessages() {
-		//Log.i("log","repopulate messages");
+		Log.i("log","repopulate messages");
 		removeMessage();
 		messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
 		messages_adapter.swapCursor(messages_cursor);
@@ -600,8 +611,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 
 	private void populateMessages(){
-		//Log.i("log","populate messages");
-		
+		Log.i("log","populate messages");
 		messages = new ArrayList<SMSMessage>();
 		queue_adapter = new QueuedMessageAdapter(this,messages);
 		merge_adapter = new MergeAdapter();				
@@ -614,11 +624,11 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		merge_adapter.addAdapter(messages_adapter);
 		merge_adapter.addAdapter(queue_adapter);
 		mListView.setAdapter(merge_adapter);	
-		mListView.setSelection(mListView.getCount()-1);	
 		getSharedWithTab(number, name);
 		initials_view.setBackgroundResource(R.drawable.circle_pressed);
 		sharedWithAdapter.current_tab = "";
-		sharedWithAdapter.notifyDataSetChanged();		
+		sharedWithAdapter.notifyDataSetChanged();	
+		mListView.setSelection(mListView.getCount()-1);	
 	}
 	private void getSharedWithTab(final String original_number, final String original_name) {
 		dh = new DatabaseHandler(mContext);
@@ -758,7 +768,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			popup.setMessage("There's no message here!");					
 			return;
 		}			
-    	if(!store.isFriend(shared_conversant)) {
+    	if(!store.isFriend(shared_conversant) && !store.wasInvited(shared_conversant)) {
     		
 			View addFriendView = View.inflate(mContext, R.layout.add_friend, null);
 			AlertDialog.Builder builder = new AlertDialog.Builder(activity);
@@ -825,12 +835,12 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	
 	@Override
 	protected void onPause() {
-		position = mListView.getSelectedItemPosition();
+		//position = mListView.getSelectedItemPosition();
 		super.onPause();
 		unregisterReceiver(mBroadcastReceiver);	
 		unregisterReceiver(tickReceiver);
 		
-		if(number!=null)store.putPosition(number,position);
+		//if(number!=null)store.putPosition(number,position);
 	}
 	
 	@Override
@@ -845,7 +855,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	  savedInstanceState.putString("shared_address", shared_address); 	 	  
 	  savedInstanceState.putInt("shared_convo_type", shared_convo_type); 	
 	  if(sendDate!=null) savedInstanceState.putLong("scheduled_for", sendDate.getTime()); 
-	  savedInstanceState.putInt("position", mListView.getSelectedItemPosition()); 	 
+	//  savedInstanceState.putInt("position", mListView.getSelectedItemPosition()); 	 
 	  // etc.  
 	  super.onSaveInstanceState(savedInstanceState);  
 	}  
@@ -864,7 +874,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	  shared_convo_type = savedInstanceState.getInt("shared_convo_type"); 	
 	  if(savedInstanceState.getLong("scheduled_for")>0) 
 		  sendDate = new Date(savedInstanceState.getLong("scheduled_for"));
-	  position = savedInstanceState.getInt("position"); 	
+	//  position = savedInstanceState.getInt("position"); 	
 	}	
 	private void updateDelayButton(){
 		if(sendDate!=null){
@@ -941,12 +951,12 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 	public void sendMessage(View v)
 	{
-		mixpanel.track("send message click", null);
+
+		hideKeyboard();
 		newMessage = text.getText().toString().trim(); 
 		text.setText("");
-		text.clearFocus();
-		hideKeyboard();
-	
+		text.clearFocus();		
+		mixpanel.track("send message click", null);
 		if(mListView.getCount()>0) mListView.setSelection(mListView.getCount()-1);
 		
 		if(newMessage.length() == 0) {
