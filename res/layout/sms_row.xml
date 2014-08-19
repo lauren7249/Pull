@@ -69,7 +69,6 @@
 			 android:layout_marginTop="7dp"
              android:text="Message Time"
              android:textSize="11sp"
-             android:textStyle="bold" 
              />    
                            
           <Button

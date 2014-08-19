@@ -1229,7 +1229,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
   }		
 	private void hideKeyboard(){
-		imm.hideSoftInputFromWindow(text.getWindowToken(), 0);	
+		//imm.hideSoftInputFromWindow(text.getWindowToken(), 0);	
+		if(keyboardShowing) imm.toggleSoftInput(0, 0);
 		mButtonsBar.setVisibility(View.GONE);
 		inputtingEmoji = false;
 	}	
@@ -1342,17 +1343,21 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			emojiArea.setVisibility(View.VISIBLE);
 			mButtonsBar.setVisibility(View.VISIBLE);
 			text.setLines(3);
+			mixpanel.track("keyboard shown", null);
 		} 	
 		else if(!inputtingEmoji) {
+			
 			emojiArea.setVisibility(View.GONE);
 			mButtonsBar.setVisibility(View.GONE);
-			text.setLines(2);			
+			text.setLines(2);	
+			mixpanel.track("keyboard hidden ", null);
 		}
 		
 	}
 
 	@Override
 	public void onEmojiconTabClicked() {
+		mixpanel.track("emojicon tab clicked", null);
 		inputtingEmoji = true;
 		imm.hideSoftInputFromWindow(text.getWindowToken(), 0);	
 	}
