@@ -112,7 +112,9 @@ public class QueuedMessageAdapter extends BaseAdapter{
 	    CharSequence relativeTime;
 	    if(System.currentTimeMillis()-message.getFutureSendTime()<DateUtils.MINUTE_IN_MILLIS){
 			relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.getFutureSendTime(), DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
-		}else{
+		} else if (System.currentTimeMillis()>message.getFutureSendTime()) {
+			relativeTime = "[Never sent]";
+		} else {
 			relativeTime = "Now";
 		}
 	    String approverString = "";

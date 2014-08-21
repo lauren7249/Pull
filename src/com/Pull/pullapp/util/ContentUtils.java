@@ -260,7 +260,7 @@ public class ContentUtils {
 	        String[] variables = new String[]{"'sent' as category",
 	        		TextBasedSmsColumns.TYPE,TextBasedSmsColumns.BODY,
 	        		BaseColumns._ID, TextBasedSmsColumns.ADDRESS, TextBasedSmsColumns.READ,
-	        		TextBasedSmsColumns.DATE};
+	        		TextBasedSmsColumns.DATE, TextBasedSmsColumns.THREAD_ID};
 	        
 			Cursor messages_cursor = mContext.getContentResolver().query(Uri.parse("content://sms"),
 					variables,querystring ,null,TextBasedSmsColumns.DATE);	      

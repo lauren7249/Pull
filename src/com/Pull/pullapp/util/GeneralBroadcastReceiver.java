@@ -114,6 +114,10 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
             	SendUtils.sendsms(context, recipient, message, launchedOn, scheduledFor, true);
 
             }
+            else {
+            	intent.setAction(Constants.ACTION_SMS_UNOUTBOXED);
+                mContext.sendBroadcast(intent);	            	
+            }
             	
             return;
         }        
@@ -374,10 +378,10 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         	if(Constants.DEBUG){
 	        	long date = cursor.getLong(cursor.getColumnIndex(TextBasedSmsColumns.DATE));
 	        	String sender = cursor.getString(cursor.getColumnIndex(TextBasedSmsColumns.ADDRESS));
-	        	/*Log.i("messagedAfterLaunch", "LAST text was received on " + 
-	        			date + " from "+ SendUtils.addCountryCode(sender));
+	        	Log.i("messagedAfterLaunch", "LAST text was received on " + 
+	        			date + " from "+ ContentUtils.addCountryCode(sender));
 	        	Log.i("messagedAfterLaunch", "delayed send was launched: " + 
-	        			launchTime + " to "+ SendUtils.addCountryCode(address));*/
+	        			launchTime + " to "+ ContentUtils.addCountryCode(address));
         	}
         	return true;
         }

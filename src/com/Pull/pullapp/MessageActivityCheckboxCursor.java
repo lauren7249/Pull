@@ -782,7 +782,11 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			popup.showLikeQuickAction();
 			popup.setMessage("There's no message here!");					
 			return;
-		}			
+		}		
+		
+		hideInputs();
+		text.setText("");
+		
     	if(!store.isFriend(shared_conversant) && !store.wasInvited(shared_conversant)) {
     		
 			View addFriendView = View.inflate(mContext, R.layout.add_friend, null);
@@ -822,8 +826,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		messages_cursor = dh.getSharedMessagesCursor(shared_convoID);
 		messages_adapter.swapCursor(messages_cursor);
 		messages_adapter.notifyDataSetChanged();
-		text.setText("");
-		hideKeyboard();
 		mListView.setSelection(mListView.getCount()-1);
 		comment.saveToParse();
 		  HashMap<String, Object> params = new HashMap<String, Object>();
@@ -837,6 +839,20 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			         }
 			}
 		  });			
+	}
+
+
+
+
+	private void hideInputs() {
+		inputtingEmoji = false;
+    	keyboardShowing = false;
+		text.setLines(2);	
+		text.clearFocus();
+		hideKeyboard();		
+		emojiArea.setVisibility(View.GONE);
+		mButtonsBar.setVisibility(View.GONE);	
+		
 	}
 
 
@@ -942,21 +958,11 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	public void onBackPressed() {
 		mixpanel.track("back button pressed", null);
 		
-		if(keyboardShowing) {
-			hideKeyboard();
-			keyboardShowing = false;
-			text.clearFocus();	
+		if(keyboardShowing || emojiArea.getVisibility()==View.VISIBLE) {
+			hideInputs();
 			return;
 		}
-		if(emojiArea.getVisibility() == View.VISIBLE) {
-			emojiArea.setVisibility(View.GONE);
-			mButtonsBar.setVisibility(View.GONE);
-			inputtingEmoji = false;
-			keyboardShowing = false;
-			text.setLines(2);
-			text.clearFocus();	
-			return;
-		}		
+	
 	    super.onBackPressed();
 	}
 	
@@ -982,13 +988,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 		newMessage = text.getText().toString().trim(); 
 		text.setText("");	
-		inputtingEmoji = false;
-    	keyboardShowing = false;
-		text.setLines(2);	
-		text.clearFocus();
-		hideKeyboard();		
-		emojiArea.setVisibility(View.GONE);
-		mButtonsBar.setVisibility(View.GONE);		
+		hideInputs();
 		mixpanel.track("send message click", null);
 		if(mListView.getCount()>0) mListView.setSelection(mListView.getCount()-1);
 		
@@ -1121,13 +1121,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		mConfidantesEditor.setText("");						
 		viewSwitcher.setDisplayedChild(0);
 
-		inputtingEmoji = false;
-    	keyboardShowing = false;
-		text.setLines(2);	
-		text.clearFocus();
-		hideKeyboard();		
-		emojiArea.setVisibility(View.GONE);
-		mButtonsBar.setVisibility(View.GONE);	
+		hideInputs();
 		
 		shared_sender = ParseUser.getCurrentUser().getUsername();
 		person_shared = name;

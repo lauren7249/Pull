@@ -1,7 +1,9 @@
 package com.Pull.pullapp;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony.ThreadsColumns;
@@ -285,6 +287,8 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		switch(currentTab) {
 		case R.id.my_conversation_tab: 
 	        intent = new Intent(mContext, MessageActivityCheckboxCursor.class);
+	        String threadID = threads.getString(threads
+				      .getColumnIndex(ThreadsColumns._ID));	
 	  		boolean read = (!threads.getString(threads
 		  		      .getColumnIndex(ThreadsColumns.READ)).equals("0"));    	
 			String recipientId = threads.getString(threads
