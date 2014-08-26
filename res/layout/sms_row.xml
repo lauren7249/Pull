@@ -54,7 +54,6 @@
              android:fontFamily="sans-serif-light"
              android:text="Message Content"
              android:autoLink="web|email"
-             android:linksClickable="true"
              android:textColor="@color/textColor"
              android:textSize="13sp" />
 

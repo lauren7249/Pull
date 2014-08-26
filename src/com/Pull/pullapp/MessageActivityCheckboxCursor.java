@@ -256,7 +256,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	    
 		approver = "";
 		if(getIntent() != null && !isPopulated) {
-			
+
 			number =  ContentUtils.addCountryCode(getIntent().getStringExtra(Constants.EXTRA_NUMBER)); 
 			name =  getIntent().getStringExtra(Constants.EXTRA_NAME); 
 			thread_id = getIntent().getStringExtra(Constants.EXTRA_THREAD_ID); 
@@ -395,7 +395,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 								
 							if(queue_adapter.delayedMessages.containsKey(scheduledOn) && scheduledOn>0) {
 								removeMessage();
-								SMSMessage m = new SMSMessage(new Date().getTime(), 
+								SMSMessage m = new SMSMessage(scheduledOn, 
 										intent_message, intent_number, 
 										name, TextBasedSmsColumns.MESSAGE_TYPE_SENT, store, 
 										ParseUser.getCurrentUser().getUsername());		
@@ -425,7 +425,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 					
 					queue_adapter.delayedMessages.put(scheduledOn, messages.size());
 					//Log.i("tag","queue_adapter.delayedMessages.put " + messages.size());
-					SMSMessage m = new SMSMessage(scheduledFor, intent_message, intent_number, name,
+					SMSMessage m = new SMSMessage(scheduledOn, intent_message, intent_number, name,
 							TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX, store, ParseUser.getCurrentUser().getUsername());
 					m.schedule(scheduledFor);
 					m.launchedOn = scheduledOn;
@@ -613,20 +613,21 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	
 	
 	private void rePopulateMessages() {
-		Log.i("log","repopulate messages");
+		//Log.i("log","repopulate messages");
 		removeMessage();
 		messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
 		messages_adapter.swapCursor(messages_cursor);
 		messages_adapter.notifyDataSetChanged();
 		merge_adapter.notifyDataSetChanged();
-		mListView.setSelection(mListView.getCount()-1);			
+		//Log.i("merge_adapter.getCount()","merge_adapter.getCount()" + merge_adapter.getCount());
+		mListView.setSelection(merge_adapter.getCount()-1);			
 	}
 
 
 
 
 	private void populateMessages(){
-		Log.i("log","populate messages");
+		//Log.i("log","populate messages");
 		messages = new ArrayList<SMSMessage>();
 		queue_adapter = new QueuedMessageAdapter(this,messages);
 		merge_adapter = new MergeAdapter();				
@@ -643,7 +644,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		initials_view.setBackgroundResource(R.drawable.circle_pressed);
 		sharedWithAdapter.current_tab = "";
 		sharedWithAdapter.notifyDataSetChanged();	
-		mListView.setSelection(mListView.getCount()-1);	
+		//Log.i("merge_adapter.getCount()","merge_adapter.getCount()" + merge_adapter.getCount());
+		mListView.setSelection(merge_adapter.getCount()-1);	
 	}
 	private void getSharedWithTab(final String original_number, final String original_name) {
 		dh = new DatabaseHandler(mContext);

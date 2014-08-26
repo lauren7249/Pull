@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.support.v4.widget.CursorAdapter;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -18,6 +17,7 @@ import com.Pull.pullapp.R;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.UserInfoStore;
+import com.mikhaellopez.circularimageview.CircularImageView;
 public class SharedWithCursorAdapter extends CursorAdapter {
 	
 	private Context mContext;
@@ -58,7 +58,7 @@ public class SharedWithCursorAdapter extends CursorAdapter {
 		if(!isBindView) holder = new ViewHolder();
 		else holder = (ViewHolder) v.getTag();		
 
-		holder.image_view = (ImageView) v.findViewById(R.id.person_image);
+		holder.image_view = (CircularImageView) v.findViewById(R.id.person_image);
 		holder.initials_view = (TextView) v.findViewById(R.id.person_initials);
 		holder.cell = (LinearLayout) v.findViewById(R.id.shared_with_cell);
 
@@ -81,7 +81,7 @@ public class SharedWithCursorAdapter extends CursorAdapter {
     	} else {
     		holder.initials_view.setBackgroundResource(R.drawable.circle);
     	}
-    	if(!store.isFriend(number)) {
+    	if(!store.isFriend(number) || store.getPhotoPath(number)==null) {
     		holder.image_view.setVisibility(View.GONE);
     		holder.initials_view.setVisibility(View.VISIBLE);
     		holder.initials_view.setText(ContentUtils.getInitials(name));
@@ -89,6 +89,7 @@ public class SharedWithCursorAdapter extends CursorAdapter {
     		holder.image_view.setVisibility(View.VISIBLE);
     		holder.initials_view.setVisibility(View.GONE);
     		cu.loadBitmap(mContext, store.getPhotoPath(number),holder.image_view, 0);
+    		
     	}
     	  	
     
@@ -116,7 +117,7 @@ public class SharedWithCursorAdapter extends CursorAdapter {
 	private static class ViewHolder
 	{
 		public TextView initials_view;
-		public ImageView image_view;
+		public CircularImageView image_view;
 	    public LinearLayout cell;
 	}
 	

@@ -24,6 +24,7 @@ import android.util.Log;
 
 import com.Pull.pullapp.AllThreadsListActivity;
 import com.Pull.pullapp.FriendsActivity;
+import com.Pull.pullapp.MainApplication;
 import com.Pull.pullapp.MessageActivityCheckboxCursor;
 import com.Pull.pullapp.R;
 import com.Pull.pullapp.model.SMSMessage;
@@ -185,6 +186,8 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 
         
         if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
+            Intent serviceIntent = new Intent(context, MainApplication.class);
+            context.startService(serviceIntent);        	
             // avoid starting the alarm scheduler if the app hasn't even been run yet
             SharedPreferences prefs = context.getSharedPreferences(
                     Constants.PREFS, Context.MODE_MULTI_PROCESS);

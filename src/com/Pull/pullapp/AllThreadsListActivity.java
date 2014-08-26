@@ -1,14 +1,12 @@
 package com.Pull.pullapp;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.Telephony;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
-import android.telephony.TelephonyManager;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View;
@@ -29,17 +27,11 @@ import com.Pull.pullapp.util.UserInfoStore;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
-import com.facebook.model.GraphUser;
-import com.github.amlcurran.showcaseview.OnShowcaseEventListener;
 import com.github.amlcurran.showcaseview.ShowcaseView;
-import com.github.amlcurran.showcaseview.ShowcaseView.Builder;
-
-import com.github.amlcurran.showcaseview.targets.Target;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.ParseAnalytics;
 import com.parse.ParseInstallation;
-import com.parse.ParseUser;
 
 public class AllThreadsListActivity extends SherlockListActivity implements View.OnClickListener {
 	
@@ -163,6 +155,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	@Override
 	protected void onResume() {
 		super.onResume();
+
 		populateList();
 		listview.refreshDrawableState();
 		
