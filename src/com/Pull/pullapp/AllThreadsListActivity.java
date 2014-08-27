@@ -1,12 +1,15 @@
 package com.Pull.pullapp;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View;
@@ -23,6 +26,7 @@ import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
 import com.Pull.pullapp.util.RecipientsAdapter;
 import com.Pull.pullapp.util.RecipientsEditor;
+import com.Pull.pullapp.util.SMSReceiver;
 import com.Pull.pullapp.util.UserInfoStore;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
@@ -52,7 +56,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	private String[] conversants;
 	private String conversant;
 	private String recipient;
-	private Button hint;
+	private Button hint, setDefault;
 	private UserInfoStore store;
 	private final String columns = DatabaseHandler.KEY_SHARED_WITH + 
 			", " + DatabaseHandler.KEY_CONVERSATION_FROM_NAME +
@@ -62,7 +66,9 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 			", " + DatabaseHandler.KEY_CONVERSATION_FROM;
 	private int counter;
 	private ShowcaseView showcaseView;
-	private MixpanelAPI mixpanel;	
+	private MixpanelAPI mixpanel;
+	private String myPackageName;
+	private int currentapiVersion;	
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -87,6 +93,9 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	    dbHandler = new DatabaseHandler(mContext);
 	    hint = (Button) findViewById(R.id.hint);   
 	    hint.setVisibility(View.VISIBLE);
+	    setDefault = (Button) findViewById(R.id.set_message_default);   
+	    setDefault.setVisibility(View.GONE);
+	    
 	    listview = getListView();
 	    registerForContextMenu(listview);
 	    
@@ -115,6 +124,9 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		mixpanel.identify(ParseInstallation.getCurrentInstallation().getObjectId());
 		
 		mixpanel.track("AllThreadsListActivity created ", null);		
+		myPackageName = getPackageName();
+		currentapiVersion = android.os.Build.VERSION.SDK_INT;
+
 		
 	}
 	
@@ -159,6 +171,24 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		populateList();
 		listview.refreshDrawableState();
 		
+		if (currentapiVersion >= android.os.Build.VERSION_CODES.KITKAT){
+	        if (!Telephony.Sms.getDefaultSmsPackage(this).equals(myPackageName)) {
+	            Intent intent =
+	                    new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
+	            intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, 
+	                    myPackageName);
+	            startActivity(intent);
+	        } else {
+				PackageManager pm = getPackageManager();
+				ComponentName compName = 
+				      new ComponentName(mContext, 
+				            SMSReceiver.class);
+				pm.setComponentEnabledSetting(
+				      compName,
+				      PackageManager.COMPONENT_ENABLED_STATE_DISABLED, 
+				      PackageManager.DONT_KILL_APP);			
+			} 		
+		}			
 		
 	}
 	
@@ -213,7 +243,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		    setListAdapter(adapter);  	
 		    mBox.setVisibility(View.GONE);
 		    hint.setVisibility(View.VISIBLE);
-		    
+		    setDefault.setVisibility(View.GONE);
 		    return;
 		case R.id.my_conversation_tab: 
 			mixpanel.track("My texts tab clicked ", null);
@@ -222,7 +252,6 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		    setListAdapter(adapter); 
 		    mBox.setVisibility(View.GONE);
 		    hint.setVisibility(View.GONE);
-
 
 		    return;
 		default: 
@@ -264,7 +293,16 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		hint.setVisibility(View.GONE);
 		
 	}
-	
+
+	public void launchSettings(View v) {
+		Log.i("launchSettings",myPackageName);
+        Intent intent =
+                new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
+        intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, 
+                myPackageName);
+        startActivity(intent);
+		
+	}	
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         // Note: don't read the thread id data from the ConversationListItem view passed in.

@@ -61,7 +61,7 @@
 		        android:layout_above="@+id/viewSwitcher"	
 		        android:visibility="gone"
 	            >
-		    <ImageView
+		    <com.mikhaellopez.circularimageview.CircularImageView
 		            android:id="@+id/original_person_image"
 			        android:layout_width="50dp"
 			        android:layout_height="50dp"

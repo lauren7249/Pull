@@ -36,7 +36,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateUtils;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
@@ -51,7 +50,6 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -85,6 +83,7 @@ import com.actionbarsherlock.view.MenuItem;
 import com.commonsware.cwac.merge.MergeAdapter;
 import com.github.amlcurran.showcaseview.ShowcaseView;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
+import com.mikhaellopez.circularimageview.CircularImageView;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
@@ -185,7 +184,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private LinearLayout shared_with;
 	private Cursor shared_with_cursor;
 	private SharedWithCursorAdapter sharedWithAdapter;
-	private ImageView image_view;
+	private CircularImageView image_view;
 	private TextView initials_view;
 	private ContentUtils cu;
 
@@ -242,7 +241,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		mTextIndicatorButton = (ImageButton) findViewById(R.id.textIndicatorButton);
 		title_view = (TextView) findViewById(R.id.name);
 		
-		image_view = (ImageView) findViewById(R.id.original_person_image);
+		image_view = (CircularImageView) findViewById(R.id.original_person_image);
 		initials_view = (TextView) findViewById(R.id.original_person_initials);			
 		shared_with = (LinearLayout) findViewById(R.id.shared_with);
 		sharedWithListView = (HListView) findViewById(R.id.shared_with_list);
@@ -613,13 +612,13 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	
 	
 	private void rePopulateMessages() {
-		//Log.i("log","repopulate messages");
+		Log.i("log","repopulate messages");
 		removeMessage();
 		messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
 		messages_adapter.swapCursor(messages_cursor);
 		messages_adapter.notifyDataSetChanged();
 		merge_adapter.notifyDataSetChanged();
-		//Log.i("merge_adapter.getCount()","merge_adapter.getCount()" + merge_adapter.getCount());
+		Log.i("merge_adapter.getCount()","merge_adapter.getCount()" + merge_adapter.getCount());
 		mListView.setSelection(merge_adapter.getCount()-1);			
 	}
 
@@ -627,7 +626,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 
 	private void populateMessages(){
-		//Log.i("log","populate messages");
+		Log.i("log","populate messages");
 		messages = new ArrayList<SMSMessage>();
 		queue_adapter = new QueuedMessageAdapter(this,messages);
 		merge_adapter = new MergeAdapter();				
@@ -644,7 +643,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		initials_view.setBackgroundResource(R.drawable.circle_pressed);
 		sharedWithAdapter.current_tab = "";
 		sharedWithAdapter.notifyDataSetChanged();	
-		//Log.i("merge_adapter.getCount()","merge_adapter.getCount()" + merge_adapter.getCount());
+		Log.i("merge_adapter.getCount()","merge_adapter.getCount()" + merge_adapter.getCount());
 		mListView.setSelection(merge_adapter.getCount()-1);	
 	}
 	private void getSharedWithTab(final String original_number, final String original_name) {
@@ -652,7 +651,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		shared_with_cursor = dh.getSharedWithCursor(original_number);
 		if(shared_with_cursor.getCount()>0)		{
 			shared_with.setVisibility(View.VISIBLE);		
-	    	if(!store.isFriend(original_number)) {
+				
+	    	if(!store.isFriend(original_number) || store.getPhotoPath(original_number)==null) {
 	    		image_view.setVisibility(View.GONE);
 	    		initials_view.setVisibility(View.VISIBLE);
 	    		initials_view.setText(ContentUtils.getInitials(original_name));

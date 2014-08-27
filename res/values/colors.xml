@@ -20,4 +20,9 @@
 	<color name="pullLight">#ff4941</color>
 	<color name="pullMedium">#a51e1b</color>
 	<color name="pullDark">#73211d</color>
+	
+    <color name="banner_item_transparent">#00000000</color>
+    <color name="banner_item_activated">#670099cc</color>
+    <color name="banner_item_selected">#cc0099cc</color>
+    <color name="banner_item_pressed">#6733b5e5</color>	
 </resources>

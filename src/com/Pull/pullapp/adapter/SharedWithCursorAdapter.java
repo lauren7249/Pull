@@ -76,19 +76,25 @@ public class SharedWithCursorAdapter extends CursorAdapter {
     	}	
     //	Log.i("current tab",current_tab);
     	//Log.i("number tab",number);
-    	if(current_tab.equals(number)) {
-    		holder.initials_view.setBackgroundResource(R.drawable.circle_pressed);
-    	} else {
-    		holder.initials_view.setBackgroundResource(R.drawable.circle);
-    	}
+
     	if(!store.isFriend(number) || store.getPhotoPath(number)==null) {
     		holder.image_view.setVisibility(View.GONE);
     		holder.initials_view.setVisibility(View.VISIBLE);
     		holder.initials_view.setText(ContentUtils.getInitials(name));
+        	if(current_tab.equals(number)) {
+        		holder.initials_view.setBackgroundResource(R.drawable.circle_pressed);
+        	} else {
+        		holder.initials_view.setBackgroundResource(R.drawable.circle);
+        	}    		
     	} else {
     		holder.image_view.setVisibility(View.VISIBLE);
     		holder.initials_view.setVisibility(View.GONE);
     		cu.loadBitmap(mContext, store.getPhotoPath(number),holder.image_view, 0);
+        	if(current_tab.equals(number)) {
+        		holder.image_view.setBackgroundResource(R.drawable.circle_pressed);
+        	} else {
+        		holder.image_view.setBackgroundResource(R.drawable.circle);
+        	}    		
     		
     	}
     	  	

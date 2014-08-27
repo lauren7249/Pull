@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.Pull.pullapp"
-    android:versionCode="73"
-    android:versionName="1.73" >
+    android:versionCode="75"
+    android:versionName="1.75" >
 
     <uses-sdk
         android:minSdkVersion="14"
@@ -24,6 +24,8 @@
 	<uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+	<uses-permission android:name="android.permission.SEND_RESPOND_VIA_MESSAGE" />
+	<uses-permission android:name="android.permission.BROADCAST_WAP_PUSH" />
 	<uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
 	<uses-permission android:name="android.permission.USE_CREDENTIALS" />
 	<uses-permission android:name="android.permission.GET_ACCOUNTS" />
@@ -93,19 +95,33 @@
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" >
                 </action> 
             </intent-filter>
-        <intent-filter android:priority="2147483647">
-            <action android:name="android.provider.Telephony.GSM_SMS_RECEIVED" />
-            <category android:name="android.intent.category.DEFAULT" />
-        </intent-filter>
-        <intent-filter>
-            <action android:name="android.provider.Telephony.WAP_PUSH_RECEIVED" />
-            <data android:mimeType="application/vnd.wap.mms-message" />
-        </intent-filter>            
+	        <intent-filter android:priority="2147483647">
+	            <action android:name="android.provider.Telephony.GSM_SMS_RECEIVED" />
+	            <category android:name="android.intent.category.DEFAULT" />
+	        </intent-filter>         
+        </receiver>           
+        <receiver
+            android:name=".util.SMSReceiverDefault"
+            android:enabled="true"
+            android:exported="true" 
+            android:permission="android.permission.BROADCAST_SMS">
+       
              <intent-filter android:priority="2147483647">
                  <action android:name="android.provider.Telephony.SMS_DELIVER"/>
              </intent-filter>            
-        </receiver>                      
-
+        </receiver>                       
+        <!-- BroadcastReceiver that listens for incoming MMS messages -->
+        <receiver android:name=".util.MMSReceiver"
+            android:permission="android.permission.BROADCAST_WAP_PUSH">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.WAP_PUSH_DELIVER" />
+                <data android:mimeType="application/vnd.wap.mms-message" />
+            </intent-filter>
+	        <intent-filter>
+	            <action android:name="android.provider.Telephony.WAP_PUSH_RECEIVED" />
+	            <data android:mimeType="application/vnd.wap.mms-message" />
+	        </intent-filter>               
+        </receiver>
         <activity
             android:name="com.Pull.pullapp.AllThreadsListActivity"
             android:label="@string/app_name"

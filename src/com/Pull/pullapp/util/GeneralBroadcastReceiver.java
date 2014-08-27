@@ -59,7 +59,16 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
                 String userid = json.getString("userid");
                 String number = json.getString("number");
                 String name = store.getName(number);
-                notifyInvited(userid, name, number);
+                //TODO: TEST
+                if(!store.isFriend(number) && !store.wasInvited(number)) notifyInvited(userid, name, number);
+                else {
+                	if(!store.isFriend(number)) {
+ 	            	   store.saveFriend(number, userid);
+ 	            	   if(store.getFriendBitmap(number) == null)
+ 	            		   new DownloadFriendPhoto(userid, mContext, number, store).start();                		
+                	}
+	            	SendUtils.confirmFriend(number, userid);             	
+                }
             } catch (JSONException e) {
           	  Log.i("exception",e.getMessage());
             }
@@ -300,7 +309,8 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 		ni.putExtra(Constants.EXTRA_SHARED_CONFIDANTE, confidante);
 		ni.putExtra(Constants.EXTRA_SHARED_CONVO_TYPE, convoType);
 		PendingIntent pi;
-		pi = PendingIntent.getActivity(mContext, 0, ni, PendingIntent.FLAG_CANCEL_CURRENT);				
+		pi = PendingIntent.getActivity(mContext, 0, ni, PendingIntent.FLAG_CANCEL_CURRENT);		
+		//ignore this message type -- not yet implemented
 		 if(messageType==4) { 
 			 sendNotification(from + " needs approval!", "on a message to " + person_shared, pi);
 		 }				 

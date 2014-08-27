@@ -12,10 +12,13 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
 import android.app.Application;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.provider.Telephony;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
@@ -29,6 +32,7 @@ import com.Pull.pullapp.threads.AlarmScheduler;
 import com.Pull.pullapp.threads.UploadMyPhoto;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
+import com.Pull.pullapp.util.SMSReceiver;
 import com.Pull.pullapp.util.UserInfoStore;
 import com.facebook.model.GraphUser;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
@@ -55,6 +59,8 @@ public class MainApplication extends Application {
 	private MixpanelAPI mixpanel;
 	private Context mContext;
 	private UserInfoStore store;
+	private int currentapiVersion;
+	private String myPackageName;
 
 	@Override
 	public void onCreate() {
@@ -88,7 +94,19 @@ public class MainApplication extends Application {
 	    new AlarmScheduler(mContext, false).start();
 	    
 	    store = new UserInfoStore(mContext);
-	    
+	    currentapiVersion = android.os.Build.VERSION.SDK_INT;
+		if (currentapiVersion >= android.os.Build.VERSION_CODES.KITKAT){
+	        if (Telephony.Sms.getDefaultSmsPackage(this).equals(myPackageName)) {
+				PackageManager pm = getPackageManager();
+				ComponentName compName = 
+				      new ComponentName(mContext, 
+				            SMSReceiver.class);
+				pm.setComponentEnabledSetting(
+				      compName,
+				      PackageManager.COMPONENT_ENABLED_STATE_DISABLED, 
+				      PackageManager.DONT_KILL_APP);
+	        } 	
+		}			    
 	    
 	    if (ParseUser.getCurrentUser()!=null) uploadPhoto(ParseUser.getCurrentUser());
 		HashMap<String, Object> params = new HashMap<String, Object>();
