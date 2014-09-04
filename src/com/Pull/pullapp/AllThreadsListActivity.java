@@ -126,7 +126,24 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		mixpanel.track("AllThreadsListActivity created ", null);		
 		myPackageName = getPackageName();
 		currentapiVersion = android.os.Build.VERSION.SDK_INT;
-
+		if (currentapiVersion >= android.os.Build.VERSION_CODES.KITKAT){
+	        if (!Telephony.Sms.getDefaultSmsPackage(this).equals(myPackageName)) {
+	            Intent intent =
+	                    new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
+	            intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, 
+	                    myPackageName);
+	            startActivity(intent);
+	        } else {
+				PackageManager pm = getPackageManager();
+				ComponentName compName = 
+				      new ComponentName(mContext, 
+				            SMSReceiver.class);
+				pm.setComponentEnabledSetting(
+				      compName,
+				      PackageManager.COMPONENT_ENABLED_STATE_DISABLED, 
+				      PackageManager.DONT_KILL_APP);			
+			} 		
+		}		
 		
 	}
 	
@@ -170,25 +187,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 
 		populateList();
 		listview.refreshDrawableState();
-		
-		if (currentapiVersion >= android.os.Build.VERSION_CODES.KITKAT){
-	        if (!Telephony.Sms.getDefaultSmsPackage(this).equals(myPackageName)) {
-	            Intent intent =
-	                    new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
-	            intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, 
-	                    myPackageName);
-	            startActivity(intent);
-	        } else {
-				PackageManager pm = getPackageManager();
-				ComponentName compName = 
-				      new ComponentName(mContext, 
-				            SMSReceiver.class);
-				pm.setComponentEnabledSetting(
-				      compName,
-				      PackageManager.COMPONENT_ENABLED_STATE_DISABLED, 
-				      PackageManager.DONT_KILL_APP);			
-			} 		
-		}			
+			
 		
 	}
 	

@@ -90,11 +90,11 @@ public class SharedWithCursorAdapter extends CursorAdapter {
     		holder.image_view.setVisibility(View.VISIBLE);
     		holder.initials_view.setVisibility(View.GONE);
     		cu.loadBitmap(mContext, store.getPhotoPath(number),holder.image_view, 0);
-        	if(current_tab.equals(number)) {
+       /* 	if(current_tab.equals(number)) {
         		holder.image_view.setBackgroundResource(R.drawable.circle_pressed);
         	} else {
         		holder.image_view.setBackgroundResource(R.drawable.circle);
-        	}    		
+        	}    	*/	
     		
     	}
     	  	
