@@ -225,7 +225,7 @@ public class ViewPagerSignIn extends BaseActivity {
 	    
 		mixpanel = MixpanelAPI.getInstance(mContext, Constants.MIXEDPANEL_TOKEN);
 		mixpanel.identify(ParseInstallation.getCurrentInstallation().getObjectId());
-		mixpanel.track("ViewPagerSignIn created", jsonUser);
+	//	mixpanel.track("ViewPagerSignIn created", jsonUser);
 		mixpanel.track("Phone number " + mPhoneNumber , jsonUser);
 	   // mUserID.setText(mPhoneNumber);
 		
