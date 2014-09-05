@@ -110,7 +110,10 @@ public class QueuedMessageAdapter extends BaseAdapter{
 	    Date date = new Date(message.getFutureSendTime());
 	    
 	    CharSequence relativeTime;
-	    if(System.currentTimeMillis()-message.getFutureSendTime()<DateUtils.MINUTE_IN_MILLIS){
+	    if(System.currentTimeMillis()-message.getFutureSendTime()<=60000){
+			relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.getFutureSendTime(), DateUtils.SECOND_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+		}	    
+	    else if(System.currentTimeMillis()-message.getFutureSendTime()<DateUtils.MINUTE_IN_MILLIS){
 			relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.getFutureSendTime(), DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
 		} else if (System.currentTimeMillis()>message.getFutureSendTime()) {
 			relativeTime = "[Never sent]";

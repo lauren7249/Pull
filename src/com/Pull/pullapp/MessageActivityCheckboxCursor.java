@@ -25,6 +25,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.provider.ContactsContract;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.app.ActionBarDrawerToggle;
@@ -422,8 +423,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 					}
 				} else if(action.equals(Constants.ACTION_SMS_OUTBOXED)) {
 					
-					queue_adapter.delayedMessages.put(scheduledOn, messages.size());
-					//Log.i("tag","queue_adapter.delayedMessages.put " + messages.size());
+					addDelayedMessage(scheduledOn);
 					SMSMessage m = new SMSMessage(scheduledOn, intent_message, intent_number, name,
 							TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX, store, ParseUser.getCurrentUser().getUsername());
 					m.schedule(scheduledFor);
@@ -435,6 +435,22 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 					} catch (JSONException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
+					}
+					if(!m.isDelayed) {
+						new CountDownTimer(scheduledFor-scheduledOn,1000) {
+
+						     public void onTick(long millisUntilFinished) {
+						    	 if(millisUntilFinished<=60000) {
+							         queue_adapter.notifyDataSetChanged();
+							         merge_adapter.notifyDataSetChanged();
+						    	 }
+						     }
+
+						     public void onFinish() {
+						         queue_adapter.notifyDataSetChanged();
+						         merge_adapter.notifyDataSetChanged();						        
+						     }
+						  }.start();						
 					}
 
 				} else if(action.equals(Constants.ACTION_SMS_UNOUTBOXED)) {
@@ -547,6 +563,14 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 	}
 	
+
+
+
+	protected void addDelayedMessage(Long scheduledOn) {
+		queue_adapter.delayedMessages.put(scheduledOn, messages.size());
+		
+	}
+
 
 
 
@@ -974,7 +998,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		long scheduledFor = Long.parseLong(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.DATE)).toString());
 		long scheduledOn = Long.parseLong(c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.DATE_SENT)).toString());
 		String approver = c.getString(c.getColumnIndexOrThrow(DatabaseHandler.KEY_APPROVER));
-		queue_adapter.delayedMessages.put(scheduledOn, messages.size());
+		addDelayedMessage(scheduledOn);
 		SMSMessage m = new SMSMessage(scheduledOn, body, number, name,
 				TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX, store, ParseUser.getCurrentUser().getUsername());
 		m.isDelayed = true;
