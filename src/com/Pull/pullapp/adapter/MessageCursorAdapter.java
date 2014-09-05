@@ -104,9 +104,9 @@ public class MessageCursorAdapter extends CursorAdapter {
 		final SMSMessage message;
 		final int position = c.getPosition();
 		
-		for(int i=0; i<c.getColumnCount(); i++) {
+		//for(int i=0; i<c.getColumnCount(); i++) {
 			//Log.i("column ", c.getColumnName(i) + ": " + c.getString(i));
-		}
+		//}
 		int type = Integer.parseInt(c.getString(c.getColumnIndex(TextBasedSmsColumns.TYPE)).toString());
 
 		body = c.getString(2).toString();
@@ -130,7 +130,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);
 
 		holder.addPPl.setVisibility(View.GONE);
-    	
+
     	holder.message.setTypeface(Typeface.SANS_SERIF, Typeface.NORMAL);
     	holder.my_initials.setVisibility(View.GONE);
     	LayoutParams layoutParams=(LayoutParams) holder.addPPl.getLayoutParams();
@@ -312,7 +312,8 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);
 
         if (check_hash.contains(message)) {
-        	holder.addPPl.setVisibility(View.GONE);
+        	//holder.addPPl.setVisibility(View.GONE);
+        	holder.addPPl.setBackgroundResource(R.drawable.good_indicator);
 			if(message.isSentByMe()) {
 				holder.messageBox.setBackgroundResource(R.drawable.outgoing_pressed);
 				holder.message.setGravity(Gravity.RIGHT);
@@ -344,7 +345,8 @@ public class MessageCursorAdapter extends CursorAdapter {
 				holder.time.setGravity(Gravity.LEFT);					
 			}
 		//	holder.addPPl.setLayoutParams(layoutParams);
-			holder.addPPl.setVisibility(View.VISIBLE);
+		//	holder.addPPl.setVisibility(View.VISIBLE);
+			holder.addPPl.setBackgroundResource(R.drawable.add);
         }
 		
 		v.setTag(holder);		
