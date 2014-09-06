@@ -157,14 +157,14 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	public void onClick(View v) {
 		mixpanel.track("Allthreadslistactivity Showcaseview next button", null);
         switch (counter) {
-        case 0:
+        case 1:
         	mixpanel.track("Showcasing shared texts tab", null);
             showcaseView.setShowcase(new ViewTarget(findViewById(R.id.shared_tab)), true);
             showcaseView.setContentTitle("Shared texts");
             showcaseView.setContentText(
-            		"Conversations you've shared or that have been shared with you are in this tab");  
+            		"Share texts by opening a conversation and tapping messages to select. After clicking share, the parts you shared are in this tab.");  
             break;
-        case 1:
+        case 0:
         	mixpanel.track("Showcasing conversations threads tab", null);
             showcaseView.setShowcase(new ViewTarget(findViewById(R.id.row)), true);
             showcaseView.setContentTitle("Conversation threads");

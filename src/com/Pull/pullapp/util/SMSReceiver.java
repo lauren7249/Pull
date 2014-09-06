@@ -109,7 +109,7 @@ public class SMSReceiver extends BroadcastReceiver {
 			        //Log.i("sender",ContentUtils.addCountryCode(sender));
 			        ni.putExtra(Constants.EXTRA_NUMBER,sender);
 					ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-					ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+					//ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 					PendingIntent pi = PendingIntent.getActivity(context, 0,
 							ni, PendingIntent.FLAG_CANCEL_CURRENT);
 					mBuilder.setContentIntent(pi);

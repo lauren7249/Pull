@@ -1122,7 +1122,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				&& (confidantes==null || confidantes.length==0)) {
 			popup = new SimplePopupWindow(v);
 			popup.showLikeQuickAction();
-			popup.setMessage("Try entering a contact from your address book");	
+			popup.setMessage("First enter a contact in the 'Share with' box below");	
 			return;
 		}
 		if(mConfidantesEditor.constructContactsFromInput(false).getNumbers().length>0) 
@@ -1132,7 +1132,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		if(confidantes==null || confidantes.length == 0) {
 			popup = new SimplePopupWindow(v);
 			popup.showLikeQuickAction();
-			popup.setMessage("Try entering a contact from your address book");	
+			popup.setMessage("First enter a contact in the 'Share with' box below");	
 			return;
 		}
 		
