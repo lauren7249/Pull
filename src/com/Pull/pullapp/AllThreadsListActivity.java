@@ -2,9 +2,12 @@ package com.Pull.pullapp;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.provider.Telephony.ThreadsColumns;
@@ -68,7 +71,10 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	private ShowcaseView showcaseView;
 	private MixpanelAPI mixpanel;
 	private String myPackageName;
-	private int currentapiVersion;	
+	private int currentapiVersion;
+	private SharedPreferences sharedPrefs;
+	private Editor editor;
+	private MenuItem mSettings;	
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -98,7 +104,9 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	    
 	    listview = getListView();
 	    registerForContextMenu(listview);
-	    
+        sharedPrefs = PreferenceManager
+                .getDefaultSharedPreferences(mContext);	
+        editor = sharedPrefs.edit();
 	    currentTab = getIntent().getIntExtra(Constants.EXTRA_TAB_ID,R.id.my_conversation_tab);
 
 	    radioGroup  = (RadioGroup) findViewById(R.id.switch_buttons);   
@@ -112,7 +120,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 				populateList();
 			}
 		});
-
+	    
 	    mBox = (LinearLayout)findViewById(R.id.confidantes_box);
 		mRecipientsAdapter = new RecipientsAdapter(this);
 		mConfidantesEditor = (RecipientsEditor)findViewById(R.id.confidantes_editor);
@@ -188,7 +196,14 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		populateList();
 		listview.refreshDrawableState();
 			
-		
+        if (currentapiVersion >= android.os.Build.VERSION_CODES.KITKAT) {
+        	if (!Telephony.Sms.getDefaultSmsPackage(mContext).equals(getPackageName())) {
+        		editor.putBoolean("prefReceiveTexts", false);
+        	} else {
+        		editor.putBoolean("prefReceiveTexts", true);
+        	}
+        			
+        }
 	}
 	
     @Override  
@@ -419,6 +434,11 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		super.onCreateOptionsMenu(menu);
 		//actionbar menu
 		getSupportMenuInflater().inflate(R.menu.threads_list_menu, menu);
+		
+		if (currentapiVersion >= android.os.Build.VERSION_CODES.KITKAT){
+			mSettings = menu.findItem(R.id.settings);
+			mSettings.setVisible(false);
+		}
 		return true;
 	}		
 	
