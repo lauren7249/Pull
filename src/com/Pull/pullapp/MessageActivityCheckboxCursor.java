@@ -37,13 +37,16 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateUtils;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -51,6 +54,7 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -76,6 +80,7 @@ import com.Pull.pullapp.util.RecipientList.Recipient;
 import com.Pull.pullapp.util.RecipientsAdapter;
 import com.Pull.pullapp.util.RecipientsEditor;
 import com.Pull.pullapp.util.SendUtils;
+import com.Pull.pullapp.util.SwipeDetector;
 import com.Pull.pullapp.util.UserInfoStore;
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
@@ -188,6 +193,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private CircularImageView image_view;
 	private TextView initials_view;
 	private ContentUtils cu;
+	private SwipeDetector swipeDetector;
+	private ImageView addPerson;
+	private int tab_counter;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -200,21 +208,45 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		
 		store = new UserInfoStore(mContext);
 		cu = new ContentUtils();
-		//Log.i("log","oncreate ");
-		
+
+		swipeDetector = new SwipeDetector();
 		mListView = (ListView) findViewById(R.id.list);
 		mListView.setFocusable(true);
 		mListView.setFocusableInTouchMode(true);	
 		mListView.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
+		mListView.setOnTouchListener(swipeDetector);	
 		mListView.setOnItemLongClickListener(new OnItemLongClickListener() {
 		     public boolean onItemLongClick(AdapterView<?> arg0, View v, int position, long id) {
+	             if (swipeDetector.swipeDetected()) {
+	                 if (swipeDetector.getAction() == SwipeDetector.Action.LR) {
+	                	 swipeRight();
+	                 }
+	                 if (swipeDetector.getAction() == SwipeDetector.Action.RL) {
+	                	 swipeLeft();
+	                 }
+	             }	      
 		    	 EmojiconTextView t = (EmojiconTextView) v.findViewById(R.id.message_text);
 		    	 String m = t.getText().toString();
 	             if(m!=null) text.setText(m);
+	             	             
 	             return true; 
 		    } 
 		}); 
-		
+		mListView.setOnItemClickListener(new OnItemClickListener() {
+		     public void onItemClick(AdapterView<?> arg0, View v, int position, long id) {
+
+	             if (swipeDetector.swipeDetected()) {
+	                 if (swipeDetector.getAction() == SwipeDetector.Action.LR) {
+	                	 swipeRight();
+	                 }
+	                 if (swipeDetector.getAction() == SwipeDetector.Action.RL) {
+	                	 swipeLeft();
+	                 }
+	             }	      
+		    } 
+		}); 		
+	    
+
 		mButtonsBar = (LinearLayout) findViewById(R.id.buttons_box);
 		mLayout = (LinearLayoutThatDetectsSoftKeyboard) findViewById(R.id.main_layout);
 
@@ -245,6 +277,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		image_view = (CircularImageView) findViewById(R.id.original_person_image);
 		initials_view = (TextView) findViewById(R.id.original_person_initials);			
 		shared_with = (LinearLayout) findViewById(R.id.shared_with);
+		addPerson = (ImageView) findViewById(R.id.add_person);
 		sharedWithListView = (HListView) findViewById(R.id.shared_with_list);
 		sharedWithAdapter = new SharedWithCursorAdapter(mContext,shared_with_cursor,activity);
 		sharedWithListView.setAdapter(sharedWithAdapter);
@@ -275,8 +308,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			if(number!=null && name!=null) {	
 				//Log.i("regular convo",number);
 				showcaseView = new ShowcaseView.Builder(this)
-		        .setTarget(new ViewTarget(findViewById(R.id.list)))
-		        .setContentTitle("Tap to share")     
+		        .setTarget(new ViewTarget(findViewById(R.id.add_person)))
+		        .setContentTitle("Select this tab to share texts with a friend")     
 		        .setOnClickListener(this)
 		        .singleShot(222)
 		        .hideOnTouchOutside()
@@ -343,41 +376,17 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 					return;
 				}
 				if(action.equals(Constants.ACTION_SHARE_STATE_CHANGED)) {
-					hideKeyboard();
 					if(messages_adapter.check_hash.size()==0) {
-						confidantes = null;
-						mConfidantesEditor.setText("");						
-						viewSwitcher.setDisplayedChild(0);
-						hideKeyboard();
+						mConfidantesEditor.setHint("Tap messages to select for sharing");
 					}
 					else {
-						viewSwitcher.setDisplayedChild(1);
+						mConfidantesEditor.setHint("Type a friend's name");
 					}		
 					return;
-				}		
+				}	
 				if(action.equals(Constants.ACTION_SHARE_TAB_CLICKED )) {
-					shared_confidante = intent.getStringExtra(Constants.EXTRA_SHARED_CONFIDANTE); 
-					shared_sender = ParseUser.getCurrentUser().getUsername();
-					person_shared = intent.getStringExtra(Constants.EXTRA_SHARED_NAME); 
-					shared_address = intent.getStringExtra(Constants.EXTRA_SHARED_ADDRESS); 
-					shared_convo_type = TextBasedSmsColumns.MESSAGE_TYPE_SENT;						
-					shared_convoID = shared_sender+shared_address+shared_confidante;
-					name = null;
-					number = null;
-					messages.clear();
-					messages_adapter.check_hash.clear();
-					messages_adapter.showCheckboxes = false;	
-					messages_adapter.notifyDataSetChanged();					
-					queue_adapter.notifyDataSetChanged();
-					populateSharedMessages(shared_convoID);
-					Intent i = new Intent();
-					i.putExtra(Constants.EXTRA_SHARED_CONFIDANTE, shared_confidante);
-					i.putExtra(Constants.EXTRA_SHARED_SENDER, shared_sender);
-					i.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, shared_convoID);
-					i.putExtra(Constants.EXTRA_SHARED_NAME, person_shared);
-					i.putExtra(Constants.EXTRA_SHARED_ADDRESS, shared_address);
-					i.putExtra(Constants.EXTRA_SHARED_CONVO_TYPE, shared_convo_type);
-					setIntent(i);
+					tab_counter = intent.getIntExtra(Constants.EXTRA_TAB_POSITION,0) + 2; 				
+					shareTabClicked();
 					return;
 				}						
 				String intent_number = intent.getStringExtra(Constants.EXTRA_RECIPIENT);
@@ -456,8 +465,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				} else if(action.equals(Constants.ACTION_SMS_UNOUTBOXED)) {
 					mixpanel.track("sms canceled", null);
 					//Log.i("sms canceled", "sms canceled");
-					if(scheduledFor-scheduledOn <= 5000) 
-						sendDate = new Date(Math.max(scheduledFor,scheduledOn) + 5000);
+					if(scheduledFor-scheduledOn <= 6000) 
+						sendDate = new Date(Math.max(scheduledFor,scheduledOn) + 6000);
 					else 
 						sendDate = new Date(scheduledFor);
 					
@@ -565,14 +574,74 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	
 
 
-
-	protected void addDelayedMessage(Long scheduledOn) {
-		queue_adapter.delayedMessages.put(scheduledOn, messages.size());
+	protected void shareTabClicked() {			
+		shared_with_cursor.moveToPosition(tab_counter-2);
+		shared_confidante = shared_with_cursor.getString(0);
+		shared_address = shared_with_cursor.getString(1); 
+		person_shared = shared_with_cursor.getString(2); 			
+		addPerson.setBackgroundResource(R.drawable.add);
+		shared_sender = ParseUser.getCurrentUser().getUsername();
+		shared_convo_type = TextBasedSmsColumns.MESSAGE_TYPE_SENT;					
+		shared_convoID = shared_sender+shared_address+shared_confidante;
+		name = null;
+		number = null;
+		messages.clear();
+		messages_adapter.check_hash.clear();
+		messages_adapter.showCheckboxes = false;	
+		messages_adapter.notifyDataSetChanged();					
+		queue_adapter.notifyDataSetChanged();
+		populateSharedMessages(shared_convoID);
+		Intent i = new Intent();
+		i.putExtra(Constants.EXTRA_SHARED_CONFIDANTE, shared_confidante);
+		i.putExtra(Constants.EXTRA_SHARED_SENDER, shared_sender);
+		i.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, shared_convoID);
+		i.putExtra(Constants.EXTRA_SHARED_NAME, person_shared);
+		i.putExtra(Constants.EXTRA_SHARED_ADDRESS, shared_address);
+		i.putExtra(Constants.EXTRA_SHARED_CONVO_TYPE, shared_convo_type);
+		setIntent(i);
 		
 	}
 
 
 
+	//move to the right
+	protected void swipeLeft() {
+		if(tab_counter>=shared_with_cursor.getCount()+2) return;
+		tab_counter++;
+		updateTab();
+		
+	}
+
+	private void updateTab() {
+		if(shared_with_cursor.moveToPosition(tab_counter-2)) {			
+			shareTabClicked();			
+		} else if(tab_counter==1) {
+			if(number==null) originalPersonClicked(shared_address,person_shared);
+			else originalPersonClicked(number,name);				
+		} else if(tab_counter==0) {
+			if(number==null) addPersonSelected(shared_address,person_shared);
+			else addPersonSelected(number,name);		
+		}
+
+	}
+
+
+
+	protected void swipeRight() {
+		String swipe_to_name = "";
+		if(tab_counter==0) {
+			NavUtils.navigateUpFromSameTask(this);
+			return;
+		}
+		tab_counter--;	
+		updateTab();
+	}
+
+
+	protected void addDelayedMessage(Long scheduledOn) {
+		queue_adapter.delayedMessages.put(scheduledOn, messages.size());
+		
+	}
 
 	private void setupComposeBox() {
 		indicatorText = "Write something";
@@ -665,7 +734,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		mListView.setAdapter(merge_adapter);	
 		getSharedWithTab(number, name);
 		initials_view.setBackgroundResource(R.drawable.circle_pressed);
-		sharedWithAdapter.current_tab = "";
+		sharedWithAdapter.setCurrentTab("");
 		sharedWithAdapter.notifyDataSetChanged();	
 		Log.i("merge_adapter.getCount()","merge_adapter.getCount()" + merge_adapter.getCount());
 		mListView.setSelection(merge_adapter.getCount()-1);	
@@ -673,43 +742,73 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private void getSharedWithTab(final String original_number, final String original_name) {
 		dh = new DatabaseHandler(mContext);
 		shared_with_cursor = dh.getSharedWithCursor(original_number);
-		if(shared_with_cursor.getCount()>0)		{
-			shared_with.setVisibility(View.VISIBLE);		
-				
-	    	if(!store.isFriend(original_number) || store.getPhotoPath(original_number)==null) {
-	    		image_view.setVisibility(View.GONE);
-	    		initials_view.setVisibility(View.VISIBLE);
-	    		initials_view.setText(ContentUtils.getInitials(original_name));
-	    		initials_view.setOnClickListener(new OnClickListener(){
-
-					@Override
-					public void onClick(View v) {
-						originalConversation(original_number,original_name);
-						initials_view.setBackgroundResource(R.drawable.circle_pressed);
-						
-					}
-	    			
-	    		});
-	    	} else {
-	    		image_view.setVisibility(View.VISIBLE);
-	    		image_view.setOnClickListener(new OnClickListener(){
-
-					@Override
-					public void onClick(View v) {
-						originalConversation(original_number,original_name);
-						
-					}
-	    			
-	    		});	    		
-	    		initials_view.setVisibility(View.GONE);
-	    		cu.loadBitmap(mContext, store.getPhotoPath(original_number),image_view, 0);
-	    	}			
-	    	sharedWithAdapter.swapCursor(shared_with_cursor);
-			sharedWithAdapter.notifyDataSetChanged();
-		}
 		
+    	if(!store.isFriend(original_number) || store.getPhotoPath(original_number)==null) {
+    		image_view.setVisibility(View.GONE);
+    		initials_view.setVisibility(View.VISIBLE);
+    		initials_view.setText(ContentUtils.getInitials(original_name));
+    		initials_view.setOnClickListener(new OnClickListener(){
+
+				@Override
+				public void onClick(View v) {
+					
+					initials_view.setBackgroundResource(R.drawable.circle_pressed);
+					originalPersonClicked(original_number,original_name);
+				}
+    			
+    		});
+    	} else {
+    		image_view.setVisibility(View.VISIBLE);
+    		image_view.setOnClickListener(new OnClickListener(){
+
+				@Override
+				public void onClick(View v) {
+					originalPersonClicked(original_number,original_name);
+				}
+    			
+    		});	    		
+    		initials_view.setVisibility(View.GONE);
+    		cu.loadBitmap(mContext, store.getPhotoPath(original_number),image_view, 0);
+    	}			
+    	sharedWithAdapter.swapCursor(shared_with_cursor);
+		sharedWithAdapter.notifyDataSetChanged();
+		addPerson.setOnClickListener(new OnClickListener (){
+
+			@Override
+			public void onClick(View v) {
+				hideKeyboard();
+				addPersonSelected(original_number,original_name);
+				return;			
+				
+			}
+			
+		}) ;
 	}
 
+
+	protected void originalPersonClicked(String original_number,
+			String original_name) {
+		originalConversation(original_number,original_name);
+		messages_adapter.showCheckboxes=false;
+		messages_adapter.notifyDataSetChanged();
+		merge_adapter.notifyDataSetChanged();	
+		viewSwitcher.setDisplayedChild(0);
+		addPerson.setBackgroundResource(R.drawable.add);
+	}
+
+
+
+	protected void addPersonSelected(String original_number, String original_name) {
+		originalConversation(original_number,original_name);
+		viewSwitcher.setDisplayedChild(1);
+		messages_adapter.showCheckboxes=true;
+		initials_view.setBackgroundResource(R.drawable.circle);
+		messages_adapter.notifyDataSetChanged();
+		merge_adapter.notifyDataSetChanged();	
+		title_view.setText(original_name);
+		mConfidantesEditor.setHint("Tap messages to select");
+		addPerson.setBackgroundResource(R.drawable.add_pressed);
+	}
 
 
 
@@ -731,7 +830,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		i.putExtra(Constants.EXTRA_NAME, name);
 		setIntent(i);	
 		initials_view.setBackgroundResource(R.drawable.circle_pressed);
-		sharedWithAdapter.current_tab = "";
+		sharedWithAdapter.setCurrentTab("");
 		sharedWithAdapter.notifyDataSetChanged();
 	}
 
@@ -755,12 +854,13 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			isMine = true;
 		}
 		shared_conversant_name = store.getName(shared_conversant);
+
 		//Log.i("shared_conversant_name ",shared_conversant_name + (title_view==null));
 		title_view.setText(shared_conversant_name);	
 		dh = new DatabaseHandler(mContext);
 		messages_cursor = dh.getSharedMessagesCursor(shared_convoID);
 		messages_adapter = new MessageCursorAdapter(mContext, messages_cursor, this, 
-				shared_conversant, shared_address, person_shared, isMine);
+				shared_conversant, shared_address, store.getName(shared_address), isMine);
 		mListView.setAdapter(messages_adapter);	
 		mListView.setSelection(mListView.getCount()-1);		
 		viewSwitcher.setDisplayedChild(0);
@@ -792,8 +892,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			}
 			
 		});
-		getSharedWithTab(shared_address, person_shared);
-		sharedWithAdapter.current_tab = shared_confidante;
+		getSharedWithTab(shared_address, store.getName(shared_address));
+		sharedWithAdapter.setCurrentTab(shared_confidante);
 		initials_view.setBackgroundResource(R.drawable.circle);
 		sharedWithAdapter.notifyDataSetChanged();
 	}
@@ -1153,7 +1253,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		person_shared = name;
 		shared_address = number;
 		shared_convo_type = TextBasedSmsColumns.MESSAGE_TYPE_SENT;	
-	
+		addPerson.setBackgroundResource(R.drawable.add);
 		mListView.setSelection(mListView.getCount()-1);		        
         TreeSet<SMSMessage> messagesHash = (TreeSet<SMSMessage>) messages_adapter.check_hash.clone();
 		for(SMSMessage m : messagesHash) {
@@ -1175,7 +1275,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			populateSharedMessages(shared_convoID);
 		}	
 		getSharedWithTab(number,name);
-		sharedWithAdapter.current_tab = shared_confidante;
+		sharedWithAdapter.setCurrentTab(shared_confidante);
 		sharedWithAdapter.notifyDataSetChanged();
 
 		name = null;

@@ -14,14 +14,16 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.provider.BaseColumns;
+import android.provider.Telephony;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.widget.CursorAdapter;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -289,16 +291,27 @@ public class MessageCursorAdapter extends CursorAdapter {
     	String read = c.getString(5).toString();
     	String SmsMessageId = c.getString(3).toString();
     	
-    	if(!SmsMessageId.equals("") && read.equals("0")) {
-        	ContentValues values = new ContentValues();
-    		values.put("read",true);
-    		context.getContentResolver().update(Uri.parse("content://sms/"),
-    				values, "_id="+SmsMessageId, null);	
-    	}	    	
-    	
     	message = new SMSMessage(date, body, address, store.getName(address), 
     			type, store, ParseUser.getCurrentUser().getUsername());
-
+    	
+    	boolean initiating=false;
+    	if(c.moveToPrevious()) {
+    		long previous_date = c.getLong(6);
+    		int previous_type = Integer.parseInt(c.getString(1).toString());
+    		String previous_body = c.getString(2).toString();
+     		
+    		initiating = ContentUtils.isInitiating(date, type, body, previous_date, previous_type, previous_body);
+    		c.moveToNext();
+    	}
+    	
+    	
+    	/**try {
+			message.saveToParse();
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	**/
 		final ViewHolder holder; 
 		if(isnew) holder = new ViewHolder();
 		else holder = (ViewHolder) v.getTag();
@@ -308,31 +321,40 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.time = (TextView) v.findViewById(R.id.message_time);
 		holder.edit = (Button) v.findViewById(R.id.edit_message_button);	
 		holder.their_pic = (CircularImageView) v.findViewById(R.id.contact_image);
-
+		holder.separator = (View) v.findViewById(R.id.separator);
+		
 		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);
-
+		
+		if(initiating) holder.separator.setVisibility(View.VISIBLE);
+		else  holder.separator.setVisibility(View.GONE);
+		
+		if(showCheckboxes) holder.addPPl.setVisibility(View.VISIBLE);
+		else  holder.addPPl.setVisibility(View.GONE);
+		
+		LayoutParams layoutParams=(LayoutParams) holder.addPPl.getLayoutParams();		
         if (check_hash.contains(message)) {
-        	//holder.addPPl.setVisibility(View.GONE);
         	holder.addPPl.setBackgroundResource(R.drawable.good_indicator);
 			if(message.isSentByMe()) {
-				holder.messageBox.setBackgroundResource(R.drawable.outgoing_pressed);
+				if(showCheckboxes) holder.messageBox.setBackgroundResource(R.drawable.outgoing_pressed);
+				else holder.messageBox.setBackgroundResource(R.drawable.outgoing);
 				holder.message.setGravity(Gravity.RIGHT);
 				holder.time.setGravity(Gravity.RIGHT);
+				layoutParams.gravity = Gravity.LEFT;
 			}else {
-				holder.messageBox.setBackgroundResource(R.drawable.incoming_pressed); 
+				if(showCheckboxes) holder.messageBox.setBackgroundResource(R.drawable.incoming_pressed);
+				else holder.messageBox.setBackgroundResource(R.drawable.incoming);  
 				holder.message.setGravity(Gravity.LEFT);
-				holder.time.setGravity(Gravity.LEFT);				
+				holder.time.setGravity(Gravity.LEFT);
+				layoutParams.gravity = Gravity.RIGHT;
 			}
         }
         else {
-
-        	LayoutParams layoutParams=(LayoutParams) holder.addPPl.getLayoutParams();
+        	holder.addPPl.setBackgroundResource(R.drawable.add);
 			if(message.isSentByMe()) {
 				holder.messageBox.setBackgroundResource(R.drawable.outgoing);
 				holder.message.setPadding(50, 0, 10, 0);
 				holder.time.setPadding(50, 0, 10, 0);
 				layoutParams.gravity = Gravity.LEFT;
-				//layoutParams.leftMargin = -40;
 				holder.message.setGravity(Gravity.RIGHT);
 				holder.time.setGravity(Gravity.RIGHT);				
 			}else {
@@ -340,18 +362,14 @@ public class MessageCursorAdapter extends CursorAdapter {
 				holder.message.setPadding(10, 0, 50, 0);
 				holder.time.setPadding(10, 0, 50, 0);
 				layoutParams.gravity = Gravity.RIGHT;
-				//layoutParams.rightMargin = -40;
 				holder.message.setGravity(Gravity.LEFT);
 				holder.time.setGravity(Gravity.LEFT);					
 			}
-		//	holder.addPPl.setLayoutParams(layoutParams);
-		//	holder.addPPl.setVisibility(View.VISIBLE);
-			holder.addPPl.setBackgroundResource(R.drawable.add);
         }
 		
 		v.setTag(holder);		
 		holder.message.setText(message.getMessage());
-		holder.messageBox.setOnClickListener(new OnClickListener() {
+		if(showCheckboxes) holder.messageBox.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				Intent broadcastIntent = new Intent();
@@ -384,32 +402,27 @@ public class MessageCursorAdapter extends CursorAdapter {
 			lp.gravity = Gravity.LEFT;
 		}
 		
-		if(message.isDelayed) {
-			holder.edit.setVisibility(View.VISIBLE);
-
-		    CharSequence relativeTime;
-		    if(System.currentTimeMillis()-message.getFutureSendTime()<DateUtils.MINUTE_IN_MILLIS){
-				relativeTime = DateUtils.getRelativeDateTimeString(context, message.getFutureSendTime(), DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
-			}else{
-				relativeTime = "Now";
-			}
-		    holder.time.setText(relativeTime);
-		} else {
-			CharSequence relativeTime;
-			if(System.currentTimeMillis()-message.getDate()>DateUtils.MINUTE_IN_MILLIS){
-				relativeTime = DateUtils.getRelativeDateTimeString(context, message.getDate(), 
-						DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
-			}else{
-				relativeTime = "Just Now";
-			}
-			holder.time.setText(relativeTime);
-			holder.edit.setVisibility(View.GONE);
+		CharSequence relativeTime;
+		if(System.currentTimeMillis()-message.getDate()>DateUtils.MINUTE_IN_MILLIS){
+			relativeTime = DateUtils.getRelativeDateTimeString(context, message.getDate(), 
+					DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+		}else{
+			relativeTime = "Just Now";
 		}
+		holder.time.setText(relativeTime);
+		holder.edit.setVisibility(View.GONE);
 		holder.messageBox.setLayoutParams(lp);
-
+		
+    	if(!SmsMessageId.equals("") && read.equals("0")) {
+        	ContentValues values = new ContentValues();
+    		values.put("read",true);
+    		context.getContentResolver().update(Telephony.Sms.CONTENT_URI,
+    				values, BaseColumns._ID+"="+SmsMessageId, null);	
+    	}	    	
 	}
 	private static class ViewHolder
 	{
+		public View separator;
 		public TextView my_initials;
 		public TextView their_initials;
 		public ImageView my_pic;

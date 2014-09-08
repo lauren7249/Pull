@@ -311,7 +311,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Cursor cursor = db.query(TABLE_SHARED_CONVERSATIONS, variables, 
         		KEY_CONVERSATION_FROM + "=? and " + KEY_CONVO_TYPE + "=?",
                 new String[] { number, Integer.toString(TextBasedSmsColumns.MESSAGE_TYPE_SENT)}, 
-                null, null, KEY_DATE , null);   
+                null, null, KEY_DATE + " desc", null);   
 		return cursor;
 	}
 

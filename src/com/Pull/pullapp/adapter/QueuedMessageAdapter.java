@@ -105,12 +105,15 @@ public class QueuedMessageAdapter extends BaseAdapter{
 			lp.gravity = Gravity.LEFT;
 		}
 		
-
 		holder.edit.setVisibility(View.VISIBLE);
-	    Date date = new Date(message.getFutureSendTime());
-	    
+
+		long difference = message.getFutureSendTime()-System.currentTimeMillis();
 	    CharSequence relativeTime;
-	    if(System.currentTimeMillis()-message.getFutureSendTime()<=60000){
+	    if(difference<1500 && difference>=-3000) {
+	    	relativeTime = "Sending...";
+	    	holder.edit.setVisibility(View.GONE);
+	    }
+	    else if(difference<DateUtils.MINUTE_IN_MILLIS){
 			relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.getFutureSendTime(), DateUtils.SECOND_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
 		}	    
 	    else if(System.currentTimeMillis()-message.getFutureSendTime()<DateUtils.MINUTE_IN_MILLIS){

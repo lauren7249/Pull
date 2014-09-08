@@ -24,7 +24,8 @@ public class SharedWithCursorAdapter extends CursorAdapter {
 	protected Activity activity;
 	private UserInfoStore store;
 	private ContentUtils cu;
-	public String current_tab = "";
+	private String current_tab = "";
+	private Cursor cursor;
     @SuppressWarnings("deprecation")
 	public SharedWithCursorAdapter(Context context, Cursor cursor, Activity a) {
     	super(context, cursor);
@@ -32,6 +33,7 @@ public class SharedWithCursorAdapter extends CursorAdapter {
     	store = new UserInfoStore(context);
     	activity = a;
     	cu = new ContentUtils();
+    	this.cursor = cursor;
     }
 
 	@Override
@@ -57,7 +59,7 @@ public class SharedWithCursorAdapter extends CursorAdapter {
 		final ViewHolder holder; 
 		if(!isBindView) holder = new ViewHolder();
 		else holder = (ViewHolder) v.getTag();		
-
+		final int position = threads.getPosition();
 		holder.image_view = (CircularImageView) v.findViewById(R.id.person_image);
 		holder.initials_view = (TextView) v.findViewById(R.id.person_initials);
 		holder.cell = (LinearLayout) v.findViewById(R.id.shared_with_cell);
@@ -83,18 +85,19 @@ public class SharedWithCursorAdapter extends CursorAdapter {
     		holder.initials_view.setText(ContentUtils.getInitials(name));
         	if(current_tab.equals(number)) {
         		holder.initials_view.setBackgroundResource(R.drawable.circle_pressed);
+        		if(!isBindView) {
+					Intent broadcastIntent = new Intent();
+					broadcastIntent.setAction(Constants.ACTION_SHARE_TAB_CLICKED);
+					broadcastIntent.putExtra(Constants.EXTRA_TAB_POSITION, position);
+					mContext.sendBroadcast(broadcastIntent);		      
+        		}
         	} else {
         		holder.initials_view.setBackgroundResource(R.drawable.circle);
         	}    		
     	} else {
     		holder.image_view.setVisibility(View.VISIBLE);
     		holder.initials_view.setVisibility(View.GONE);
-    		cu.loadBitmap(mContext, store.getPhotoPath(number),holder.image_view, 0);
-       /* 	if(current_tab.equals(number)) {
-        		holder.image_view.setBackgroundResource(R.drawable.circle_pressed);
-        	} else {
-        		holder.image_view.setBackgroundResource(R.drawable.circle);
-        	}    	*/	
+    		cu.loadBitmap(mContext, store.getPhotoPath(number),holder.image_view, 0);	
     		
     	}
     	  	
@@ -106,9 +109,7 @@ public class SharedWithCursorAdapter extends CursorAdapter {
 				current_tab = number;
 				Intent broadcastIntent = new Intent();
 				broadcastIntent.setAction(Constants.ACTION_SHARE_TAB_CLICKED);
-				broadcastIntent.putExtra(Constants.EXTRA_SHARED_CONFIDANTE, number);
-				broadcastIntent.putExtra(Constants.EXTRA_SHARED_NAME, person_shared_name);
-				broadcastIntent.putExtra(Constants.EXTRA_SHARED_ADDRESS, person_shared);
+				broadcastIntent.putExtra(Constants.EXTRA_TAB_POSITION, position);
 				mContext.sendBroadcast(broadcastIntent);			
 
 			}
@@ -125,6 +126,13 @@ public class SharedWithCursorAdapter extends CursorAdapter {
 		public TextView initials_view;
 		public CircularImageView image_view;
 	    public LinearLayout cell;
+	}
+
+
+
+	public void setCurrentTab(String shared_confidante) {
+		current_tab = shared_confidante;
+		
 	}
 	
 

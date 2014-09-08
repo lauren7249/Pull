@@ -170,7 +170,8 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
             showcaseView.setShowcase(new ViewTarget(findViewById(R.id.shared_tab)), true);
             showcaseView.setContentTitle("Shared texts");
             showcaseView.setContentText(
-            		"Share texts by opening a conversation and tapping messages to select. After clicking share, the parts you shared are in this tab.");  
+            		"Conversation snippets you've shared can be accessed here.");  
+            showcaseView.setButtonText("Finish");
             break;
         case 0:
         	mixpanel.track("Showcasing conversations threads tab", null);
@@ -178,7 +179,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
             showcaseView.setContentTitle("Conversation threads");
             showcaseView.setContentText(
             		"Click a row to open an existing conversation");  
-            showcaseView.setButtonText("Finish");
+            
             break;
 
         case 2:

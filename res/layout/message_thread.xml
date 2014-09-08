@@ -48,19 +48,25 @@
 		        android:color="@android:color/white" >
 		
 		    </ListView>
-
-	        <LinearLayout 
-	            android:id="@id/shared_with"
-		        android:layout_width="match_parent"
-		        android:layout_height="wrap_content"		
-		        android:orientation="horizontal"	  
-		        android:gravity="center|right"      
-		        android:paddingTop="10dp"
-		        android:background="@drawable/comment_box_background"
-		        android:layout_gravity="left"
-		        android:layout_above="@+id/viewSwitcher"	
-		        android:visibility="gone"
-	            >
+	
+       	<LinearLayout 
+            android:id="@id/shared_with"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"		
+	        android:orientation="horizontal"	  
+	        android:gravity="center|right"      
+	        android:paddingTop="10dp"
+	        android:background="@drawable/comment_box_background"
+	        android:layout_gravity="left"
+	        android:layout_above="@+id/viewSwitcher"	
+            >
+			<ImageView 
+				android:id="@+id/add_person"
+				android:gravity="center"
+				android:layout_width="50dp"
+				android:layout_height="50dp"
+				android:background="@drawable/add"
+				android:visibility="visible"/>		            
 		    <com.mikhaellopez.circularimageview.CircularImageView
 		            android:id="@+id/original_person_image"
 			        android:layout_width="50dp"
@@ -76,6 +82,7 @@
 				android:text="TT"
 				android:textColor="@color/textColor"
 				android:visibility="visible"/>		
+				
 				<it.sephiroth.android.library.widget.HListView
 				    android:id="@+id/shared_with_list"
 				    android:layout_width="match_parent"

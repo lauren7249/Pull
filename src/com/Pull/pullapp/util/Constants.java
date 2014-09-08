@@ -101,6 +101,7 @@ public class Constants {
 			"make this person go away","#dyinginside"};
 	public static List<String> ALL_HASHTAGS_LIST = Arrays.asList(ALL_HASHTAGS);
 	public static String EXTRA_SHARED_CONVO_TYPE = PACKAGE_NAME + "EXTRA_SHARED_CONVO_TYPE";
+	public static String EXTRA_TAB_POSITION = PACKAGE_NAME + "EXTRA_TAB_POSITION";
 	
 	private static final String GOOGLE_PLAY_LINK = "https://play.google.com/store/apps/details?id=com.Pull.pullapp";
 	public static final String WEB_LINK = "thepullapp.com";

@@ -25,6 +25,7 @@ import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.Data;
+import android.provider.Telephony;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
@@ -261,8 +262,8 @@ public class ContentUtils {
 	        		TextBasedSmsColumns.TYPE,TextBasedSmsColumns.BODY,
 	        		BaseColumns._ID, TextBasedSmsColumns.ADDRESS, TextBasedSmsColumns.READ,
 	        		TextBasedSmsColumns.DATE, TextBasedSmsColumns.THREAD_ID};
-	        
-			Cursor messages_cursor = mContext.getContentResolver().query(Uri.parse("content://sms"),
+
+			Cursor messages_cursor = mContext.getContentResolver().query(Telephony.Sms.CONTENT_URI,
 					variables,querystring ,null,TextBasedSmsColumns.DATE);	      
 			Log.i("pending_messages_cursor size", " " + messages_cursor.getCount());
 	        return messages_cursor;
@@ -456,5 +457,18 @@ public class ContentUtils {
 		    options.inJustDecodeBounds = false;
 
 		    return BitmapFactory.decodeResource(res, resId, options);
+		}
+
+		public static boolean isInitiating(long date, int type, String body,
+				long previous_date, int previous_type, String previous_body) {
+			boolean initiating = false, retexting=false;
+     		if(previous_type==type) retexting = true;
+     		long hours_elapsed = (date-previous_date)/(long)(1000*60*60);
+     		if(retexting && hours_elapsed > 0.167) initiating=true;
+     		else if(!retexting) {
+     			if (hours_elapsed > 24) initiating=true;
+     			else if(hours_elapsed > 8 && !previous_body.contains("?")) initiating = true;
+     		}
+     		return initiating;
 		}			
 }
