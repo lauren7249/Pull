@@ -4,16 +4,17 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Typeface;
 import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.Pull.pullapp.R;
+import com.Pull.pullapp.fragment.SimplePopupWindow;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.UserInfoStore;
@@ -82,9 +83,11 @@ public class SharedWithCursorAdapter extends CursorAdapter {
     	if(!store.isFriend(number) || store.getPhotoPath(number)==null) {
     		holder.image_view.setVisibility(View.GONE);
     		holder.initials_view.setVisibility(View.VISIBLE);
-    		holder.initials_view.setText(ContentUtils.getInitials(name));
+    		holder.initials_view.setText(ContentUtils.getInitials(name, number));
         	if(current_tab.equals(number)) {
         		holder.initials_view.setBackgroundResource(R.drawable.circle_pressed);
+        		holder.initials_view.setTypeface(null, Typeface.BOLD);
+        		holder.initials_view.setSelected(true);
         		if(!isBindView) {
 					Intent broadcastIntent = new Intent();
 					broadcastIntent.setAction(Constants.ACTION_SHARE_TAB_CLICKED);
@@ -92,7 +95,9 @@ public class SharedWithCursorAdapter extends CursorAdapter {
 					mContext.sendBroadcast(broadcastIntent);		      
         		}
         	} else {
-        		holder.initials_view.setBackgroundResource(R.drawable.circle);
+        		holder.initials_view.setBackgroundResource(R.drawable.circle_green);
+        		holder.initials_view.setTypeface(null, Typeface.NORMAL);
+        		holder.initials_view.setSelected(false);
         	}    		
     	} else {
     		holder.image_view.setVisibility(View.VISIBLE);
@@ -101,17 +106,25 @@ public class SharedWithCursorAdapter extends CursorAdapter {
     		
     	}
     	  	
-    
+    	final String final_name = name;
     	holder.cell.setOnClickListener(new OnClickListener(){
+
+			private SimplePopupWindow popup;
 
 			@Override
 			public void onClick(View v) {
-				current_tab = number;
-				Intent broadcastIntent = new Intent();
-				broadcastIntent.setAction(Constants.ACTION_SHARE_TAB_CLICKED);
-				broadcastIntent.putExtra(Constants.EXTRA_TAB_POSITION, position);
-				mContext.sendBroadcast(broadcastIntent);			
-
+				if(holder.initials_view.isSelected()) {
+					popup = new SimplePopupWindow(v);
+					popup.showLikePopDownMenu();
+					popup.setMessage("Privately message " + final_name );	
+				} else {
+					current_tab = number;
+					Intent broadcastIntent = new Intent();
+					broadcastIntent.setAction(Constants.ACTION_SHARE_TAB_CLICKED);
+					broadcastIntent.putExtra(Constants.EXTRA_TAB_POSITION, position);
+					mContext.sendBroadcast(broadcastIntent);	
+					holder.initials_view.setSelected(true);
+				}
 			}
     		
     	});   

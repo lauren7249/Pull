@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+   	<LinearLayout 
+   	    xmlns:android="http://schemas.android.com/apk/res/android"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"		
+       android:orientation="vertical"	  
+       android:gravity="center|right"      
+       android:paddingTop="10dp"
+       android:layout_gravity="left|center"
+          >
+		<TextView
+		    android:id="@+id/name"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:text="Hilary"
+		    android:visibility="gone"
+		    android:background="#FFFFFF"
+		    android:gravity="center"
+		    android:textSize="13dp"/>			
+	   	<LinearLayout 
+	       android:layout_width="match_parent"
+	       android:layout_height="wrap_content"		
+	       android:orientation="horizontal"	  
+	       android:gravity="center|right"      
+	       android:layout_gravity="left"
+	          >		
+		    <com.mikhaellopez.circularimageview.CircularImageView
+		            android:id="@+id/original_person_image"
+			        android:layout_width="50dp"
+			        android:layout_height="50dp"
+			        android:visibility="gone" /> 
+			<TextView 
+				android:id="@+id/original_person_initials"
+				android:gravity="center"
+				android:layout_width="50dp"
+				android:layout_height="50dp"
+				android:background="@drawable/circle"
+				android:textSize="16dp"
+				android:text="TT"
+				android:textColor="@color/textColor"
+				android:visibility="visible"/>					
+			<ImageView 
+				android:id="@+id/graph_button"
+				android:gravity="center"
+				android:layout_width="50dp"
+				android:layout_height="50dp"
+				android:background="@drawable/graph"
+				android:visibility="visible"/>						 	          
+			<ImageView 
+				android:id="@+id/add_person"
+				android:gravity="center"
+				android:layout_width="50dp"
+				android:layout_height="50dp"
+				android:background="@drawable/add"
+				android:visibility="visible"/>		            
+	 
+			
+			<it.sephiroth.android.library.widget.HListView
+			    android:id="@+id/shared_with_list"
+			    android:layout_width="match_parent"
+			    android:layout_height="match_parent"
+			    android:divider="#00000000" />						            
+	
+		</LinearLayout>    	
+		   
+	</LinearLayout>  	

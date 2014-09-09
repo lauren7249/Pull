@@ -54,7 +54,10 @@
 	            android:text="info"
 	            android:textColor="#666666"
 	            android:textSize="12sp" />
-	
+			<LinearLayout
+		        android:id="@+id/graphArea"
+		        android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"/>	
 	    </LinearLayout>
 	    <ImageView
 	         android:id="@+id/share_button"

@@ -134,7 +134,8 @@
         <activity 
             android:name="com.Pull.pullapp.MessageActivityCheckboxCursor"
             android:configChanges="orientation|keyboardHidden"
-            android:label="@string/app_name" >      
+            android:label="@string/app_name" 
+            android:theme="@style/splashScreenTheme">      
             <meta-data
 		        android:name="android.support.PARENT_ACTIVITY"
 		        android:value="com.Pull.pullapp.AllThreadsListActivity" /> 

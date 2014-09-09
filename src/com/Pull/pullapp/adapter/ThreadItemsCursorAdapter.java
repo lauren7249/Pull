@@ -26,6 +26,10 @@ import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.SendUtils;
 import com.Pull.pullapp.util.UserInfoStore;
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.GraphViewSeries;
+import com.jjoe64.graphview.LineGraphView;
+import com.jjoe64.graphview.GraphView.GraphViewData;
 public class ThreadItemsCursorAdapter extends CursorAdapter {
 	
 	public HashMap<Integer,String> recipientID_hash;
@@ -83,7 +87,8 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 		holder.share = (ImageView) v.findViewById(R.id.share_button);
 	    holder.other_pic_mine = (ImageView) v.findViewById(R.id.other_pic_mine);
 	    holder.other_pic = (ImageView) v.findViewById(R.id.other_pic);
-
+	    holder.graphArea = (LinearLayout) v.findViewById(R.id.graphArea);
+	    
 		String name="", snippet="", recipientId="";
 		final String number;
 		boolean read = true;        
@@ -173,7 +178,9 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	if(isBindView) {
 			String path = store.getPhotoPath(number);
     		cu.loadBitmap(mContext, path, holder.other_pic, R.drawable.add_ppl);
-    	}    	
+    	} 
+		
+
     	v.setTag(holder);
 	}
 
@@ -275,6 +282,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 	
 	private static class ViewHolder
 	{
+		public LinearLayout graphArea;
 		LinearLayout row;
 		TextView name_view;
 		TextView snippet_view;

@@ -1,6 +1,5 @@
 
-<!-- A DrawerLayout is intended to be used as the top-level content view using match_parent for both width and height to consume the full space available. -->
-<android.support.v4.widget.DrawerLayout
+<RelativeLayout 
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:emojicon="http://schemas.android.com/apk/res-auto"
     xmlns:widget="http://schemas.android.com/apk/res-auto"
@@ -8,240 +7,248 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- As the main content view, the view below consumes the entire
-         space available using match_parent in both dimensions. -->
-    <FrameLayout
-        android:id="@+id/content_frame"
+    <ViewSwitcher
+        android:id="@+id/big_viewSwitcher"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-	<com.Pull.pullapp.util.LinearLayoutThatDetectsSoftKeyboard 
-	    android:id="@+id/main_layout"
-	    android:layout_width="match_parent"
-	    android:layout_height="match_parent"
-	    android:background="@color/messageDefaultBackground"
-	    android:gravity="bottom"
-	    android:orientation="vertical" >
-		<RelativeLayout
+        android:layout_height="wrap_content"
+        android:measureAllChildren="false" >	
+		<com.Pull.pullapp.util.LinearLayoutThatDetectsSoftKeyboard 
+		    android:id="@+id/main_layout"
 		    android:layout_width="match_parent"
-		    android:layout_height="match_parent">	    
-
-		    <View
-		        android:id="@+id/separator"
-		        android:layout_width="200dp"
-		        android:layout_height="200dp"
-		        android:layout_above="@+id/list"
-		        android:visibility="gone"/>	
-        
-		    <ListView
-		        android:id="@id/list"
-		        android:layout_width="fill_parent"
-		        android:layout_height="match_parent"
-		        android:layout_above="@+id/shared_with"
-
-		        android:clipToPadding="false"
-		        android:divider="#00000000"
-		        android:gravity="clip_vertical"
-		        android:listSelector="#00000000"
-		        android:paddingBottom="20dp"
-		        android:paddingTop="10dp"
-		        android:color="@android:color/white" >
-		
-		    </ListView>
+		    android:layout_height="wrap_content"
+		    android:layout_marginTop="65dp"
+		    android:background="@drawable/comment_box_background"
+		    android:gravity="bottom"
+		    android:orientation="vertical" >
+	    
+			<RelativeLayout
+			    android:layout_width="match_parent"
+			    android:layout_height="match_parent">	    
 	
-       	<LinearLayout 
-            android:id="@id/shared_with"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"		
-	        android:orientation="horizontal"	  
-	        android:gravity="center|right"      
-	        android:paddingTop="10dp"
-	        android:background="@drawable/comment_box_background"
-	        android:layout_gravity="left"
-	        android:layout_above="@+id/viewSwitcher"	
-            >
-			<ImageView 
-				android:id="@+id/add_person"
-				android:gravity="center"
-				android:layout_width="50dp"
-				android:layout_height="50dp"
-				android:background="@drawable/add"
-				android:visibility="visible"/>		            
-		    <com.mikhaellopez.circularimageview.CircularImageView
-		            android:id="@+id/original_person_image"
-			        android:layout_width="50dp"
-			        android:layout_height="50dp"
-			        android:visibility="gone" /> 
-			<TextView 
-				android:id="@+id/original_person_initials"
-				android:gravity="center"
-				android:layout_width="50dp"
-				android:layout_height="50dp"
-				android:background="@drawable/circle"
-				android:textSize="16dp"
-				android:text="TT"
-				android:textColor="@color/textColor"
-				android:visibility="visible"/>		
-				
-				<it.sephiroth.android.library.widget.HListView
-				    android:id="@+id/shared_with_list"
-				    android:layout_width="match_parent"
-				    android:layout_height="match_parent"
-				    android:divider="#00000000" />						            
-
-			</LinearLayout>    		        
-
-		    <ViewSwitcher
-		        android:id="@+id/viewSwitcher"
-		        android:layout_width="match_parent"
-		        android:layout_height="wrap_content"
-		        android:layout_alignParentBottom="true"
-		        android:layout_alignParentEnd="true"
-		        android:layout_alignParentLeft="true"
-		        android:measureAllChildren="false" >
-		        <LinearLayout
-		            android:id="@+id/bottom_compose_box"
-		            android:layout_width="fill_parent"
-		            android:layout_height="wrap_content"
-		            android:orientation="vertical" >	
-			        <LinearLayout
-			            android:layout_width="fill_parent"
-			            android:layout_height="wrap_content"
-			            android:background="@drawable/compose_box_background"
-			            android:orientation="horizontal" >
-			
-			            <LinearLayout
-			                android:id="@+id/bottom_bar"
-			                android:layout_width="0dp"
-			                android:layout_height="wrap_content"
-			                android:layout_weight="0.96"
-			                android:orientation="vertical"
-			                android:color="@android:color/white" >
-			
-			                <ImageButton
-			                    android:id="@+id/textIndicatorButton"
-			                    android:layout_width="wrap_content"
-			                    android:layout_height="wrap_content"
-			                    android:layout_marginLeft="14dp"
-			                    android:layout_marginTop="3dp"
-			                    android:color="@android:color/white"
-			                    android:background="@drawable/pendinh_indicator" />
-						    <com.rockerhieu.emojicon.EmojiconEditText
-					            android:id="@+id/text"
-					            android:hint="Write here"
-					            emojicon:emojiconSize="28sp"
-			                    android:layout_width="fill_parent"
-			                    android:layout_height="wrap_content"
-			                    android:layout_marginLeft="5dp"
-			                    android:autoText="true"
-			                    android:capitalize="sentences"
-			                    android:gravity="center_vertical|left"
-			                    android:inputType="textShortMessage|textAutoCorrect|textCapSentences|textMultiLine"
-			                    android:isScrollContainer="true"
-			                    android:maxLength="2000"
-			                    android:maxLines="3"
-			                    android:lines="2"
-			                    android:textColor="@color/textFieldColor"
-			                    android:textSize="15dp"
-			                    android:color="@android:color/white" />				            
-			            </LinearLayout>
-			            <Button
-			                android:id="@+id/send_button"
-			                android:layout_width="wrap_content"
-			                android:layout_height="match_parent"
-			                android:layout_marginTop="14dp"
-			                android:background="@drawable/send" />            
-			        </LinearLayout>
-	
-			       <LinearLayout
-			            android:id="@+id/buttons_box"
-			            android:layout_width="fill_parent"
-			            android:layout_height="fill_parent"
-			            android:orientation="vertical"
-			            android:visibility="visible">	     			            	              
-					    <Button
-					        android:id="@+id/time_delay_button"
-					        android:layout_width="fill_parent"
-					        android:layout_height="wrap_content"
-					        android:layout_margin="3dp"
-					        android:background="@drawable/select_time"
-					        android:freezesText="true"                      
-					        android:minHeight="40dp"
-					        android:onClick="pickTime"
-					        android:text="Schedule Text"
-					        android:textColor="@android:color/white"
-					        android:textSize="14sp"
-					        android:color="@android:color/white" />
-					    <Button
-					        android:id="@+id/approvers_button"
-					        android:layout_width="fill_parent"
-					        android:layout_height="wrap_content"
-					        android:layout_margin="3dp"
-					        android:background="@drawable/select_ppl"
-					        android:freezesText="true"
-					        android:minHeight="40dp"
-					        android:onClick="pickApprover"
-					        android:text="Approver"
-					        android:visibility="gone"
-					        android:textColor="@android:color/white"
-					        android:textSize="14sp"
-					        android:color="@android:color/white" />	
+			    <View
+			        android:id="@+id/separator"
+			        android:layout_width="200dp"
+			        android:layout_height="200dp"
+			        android:layout_above="@+id/list"
+			        android:visibility="gone"/>	   
 			        
-					</LinearLayout>		
-					<LinearLayout
-					    android:id="@+id/emojicons_area"
-			            android:layout_width="match_parent"
-			            android:layout_height="wrap_content">			    
-					    <fragment
-				            android:id="@+id/emojicons"
-				            android:layout_width="match_parent"
-				            android:layout_height="wrap_content"
-				            class="com.rockerhieu.emojicon.EmojiconsFragment"/>			
-				   </LinearLayout>		       				
-				</LinearLayout>		        
-		        <LinearLayout
-		            android:id="@+id/bottom_share_box"
-		            android:layout_width="fill_parent"
-		            android:layout_height="fill_parent"
-		            android:background="@drawable/share_box_background"
-		            android:orientation="horizontal" >
+				    <ListView
+				        android:id="@id/list"
+				        android:layout_width="fill_parent"
+				        android:layout_height="match_parent"
+				        android:layout_above="@+id/viewSwitcher"
 		
-		            <LinearLayout
-		                android:id="@+id/LinearLayout02"
-		                android:layout_width="0dp"
-		                android:layout_height="fill_parent"
-		                android:layout_marginTop="15dp"
-		                android:layout_weight="0.96"
-		                android:orientation="vertical"
-		                android:color="@android:color/white" >
-		
-		                <com.Pull.pullapp.util.RecipientsEditor
-		                    android:id="@+id/confidantes_editor"
-		                    android:layout_width="fill_parent"
-		                    android:layout_height="fill_parent"
-		                    android:layout_weight="1"
-		                    android:completionThreshold="1"
-		                    android:hint="Share with"
-		                    android:isScrollContainer="true"
-		                    android:lines="2"
-		                    android:textSize="15sp" />
-		
-		            </LinearLayout>
-		
-		            <Button
-		                android:id="@+id/share_button"
-		                android:layout_width="90dp"
-		                android:layout_height="90dp"
-		                android:layout_gravity="top"
-		                android:layout_marginLeft="10dp"
-		                android:layout_marginRight="10dp"
-		                android:layout_marginTop="7dp"
-		                android:background="@drawable/share"
-		                android:onClick="shareMessages" />
-		        </LinearLayout>
-		
-		    </ViewSwitcher>
-		</RelativeLayout>
-	</com.Pull.pullapp.util.LinearLayoutThatDetectsSoftKeyboard>
+				        android:clipToPadding="false"
+				        android:divider="#00000000"
+				        android:gravity="clip_vertical"
+				        android:listSelector="#00000000"
+				        android:paddingBottom="20dp"
+				        android:paddingTop="10dp"
+				        android:color="@android:color/white" >
+			
+				    </ListView>
 	
-</android.support.v4.widget.DrawerLayout>
+	     
+		
+				    <ViewSwitcher
+				        android:id="@+id/viewSwitcher"
+				        android:layout_width="match_parent"
+				        android:layout_height="wrap_content"
+				        android:layout_alignParentBottom="true"
+				        android:layout_alignParentEnd="true"
+				        android:layout_alignParentLeft="true"
+				        android:measureAllChildren="false" >
+				        <LinearLayout
+				            android:id="@+id/bottom_compose_box"
+				            android:layout_width="fill_parent"
+				            android:layout_height="wrap_content"
+				            android:orientation="vertical" >	
+					        <LinearLayout
+					            android:layout_width="fill_parent"
+					            android:layout_height="wrap_content"
+					            android:background="@drawable/compose_box_background"
+					            android:orientation="horizontal" >
+					
+					            <LinearLayout
+					                android:id="@+id/bottom_bar"
+					                android:layout_width="0dp"
+					                android:layout_height="wrap_content"
+					                android:layout_weight="0.96"
+					                android:orientation="vertical"
+					                android:color="@android:color/white" >
+					
+					                <ImageButton
+					                    android:id="@+id/textIndicatorButton"
+					                    android:layout_width="wrap_content"
+					                    android:layout_height="wrap_content"
+					                    android:layout_marginLeft="14dp"
+					                    android:layout_marginTop="3dp"
+					                    android:color="@android:color/white"
+					                    android:background="@drawable/pendinh_indicator" />
+								    <com.rockerhieu.emojicon.EmojiconEditText
+							            android:id="@+id/text"
+							            android:hint="Write here"
+							            emojicon:emojiconSize="28sp"
+					                    android:layout_width="fill_parent"
+					                    android:layout_height="wrap_content"
+					                    android:layout_marginLeft="5dp"
+					                    android:autoText="true"
+					                    android:capitalize="sentences"
+					                    android:gravity="center_vertical|left"
+					                    android:inputType="textShortMessage|textAutoCorrect|textCapSentences|textMultiLine"
+					                    android:isScrollContainer="true"
+					                    android:maxLength="2000"
+					                    android:maxLines="3"
+					                    android:lines="2"
+					                    android:textColor="@color/textFieldColor"
+					                    android:textSize="15dp"
+					                    android:color="@android:color/white" />				            
+					            </LinearLayout>
+					            <Button
+					                android:id="@+id/send_button"
+					                android:layout_width="wrap_content"
+					                android:layout_height="match_parent"
+					                android:layout_marginTop="14dp"
+					                android:background="@drawable/send" />            
+					        </LinearLayout>
+			
+					       <LinearLayout
+					            android:id="@+id/buttons_box"
+					            android:layout_width="fill_parent"
+					            android:layout_height="fill_parent"
+					            android:orientation="vertical"
+					            android:visibility="visible">	     			            	              
+							    <Button
+							        android:id="@+id/time_delay_button"
+							        android:layout_width="fill_parent"
+							        android:layout_height="wrap_content"
+							        android:layout_margin="3dp"
+							        android:background="@drawable/select_time"
+							        android:freezesText="true"                      
+							        android:minHeight="40dp"
+							        android:onClick="pickTime"
+							        android:text="Schedule Text"
+							        android:textColor="@android:color/white"
+							        android:textSize="14sp"
+							        android:color="@android:color/white" />
+							    <Button
+							        android:id="@+id/approvers_button"
+							        android:layout_width="fill_parent"
+							        android:layout_height="wrap_content"
+							        android:layout_margin="3dp"
+							        android:background="@drawable/select_ppl"
+							        android:freezesText="true"
+							        android:minHeight="40dp"
+							        android:onClick="pickApprover"
+							        android:text="Approver"
+							        android:visibility="gone"
+							        android:textColor="@android:color/white"
+							        android:textSize="14sp"
+							        android:color="@android:color/white" />	
+					        
+							</LinearLayout>		
+							<LinearLayout
+							    android:id="@+id/emojicons_area"
+					            android:layout_width="match_parent"
+					            android:layout_height="wrap_content">			    
+							    <fragment
+						            android:id="@+id/emojicons"
+						            android:layout_width="match_parent"
+						            android:layout_height="wrap_content"
+						            class="com.rockerhieu.emojicon.EmojiconsFragment"/>			
+						   </LinearLayout>		       				
+						</LinearLayout>		        
+				        <LinearLayout
+				            android:id="@+id/bottom_share_box"
+				            android:layout_width="fill_parent"
+				            android:layout_height="fill_parent"
+				            android:background="@drawable/share_box_background"
+				            android:orientation="horizontal" >
+				
+				            <LinearLayout
+				                android:id="@+id/LinearLayout02"
+				                android:layout_width="0dp"
+				                android:layout_height="fill_parent"
+				                android:layout_marginTop="15dp"
+				                android:layout_weight="0.96"
+				                android:orientation="vertical"
+				                android:color="@android:color/white" >
+				
+				                <com.Pull.pullapp.util.RecipientsEditor
+				                    android:id="@+id/confidantes_editor"
+				                    android:layout_width="fill_parent"
+				                    android:layout_height="fill_parent"
+				                    android:layout_weight="1"
+				                    android:completionThreshold="1"
+				                    android:hint="Share with"
+				                    android:isScrollContainer="true"
+				                    android:lines="2"
+				                    android:textSize="15sp" />
+				
+				            </LinearLayout>
+				
+				            <Button
+				                android:id="@+id/share_button"
+				                android:layout_width="90dp"
+				                android:layout_height="90dp"
+				                android:layout_gravity="top"
+				                android:layout_marginLeft="10dp"
+				                android:layout_marginRight="10dp"
+				                android:layout_marginTop="7dp"
+				                android:background="@drawable/share"
+				                android:onClick="shareMessages" />
+				        </LinearLayout>
+				
+				    </ViewSwitcher>
+				</RelativeLayout>
+		
+		</com.Pull.pullapp.util.LinearLayoutThatDetectsSoftKeyboard>
+	   	<LinearLayout 
+	   	    android:id="@+id/graph_area"
+	       	android:layout_width="match_parent"
+	       	android:layout_height="wrap_content"		
+	       	android:orientation="vertical"	  
+	       	android:gravity="center|left"      
+		    android:layout_marginTop="65dp"
+		    android:layout_marginBottom="10dp"
+		    android:layout_marginRight="10dp"
+		    android:layout_marginLeft="10dp"
+		    android:background="@drawable/comment_box_background"	       	
+	      	android:layout_gravity="center|left"	/>
+	</ViewSwitcher>
+   	<LinearLayout 
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"		
+       android:orientation="horizontal"	  
+       android:gravity="center|left"      
+     	 android:layout_gravity="center|left"
+          >		
+		<ImageView 
+			android:id="@+id/home_button"
+			android:layout_width="50dp"
+			android:layout_height="50dp"
+			android:gravity="center|left"   
+			android:layout_gravity="center|left"   
+			android:paddingTop="10dp"
+			android:src="@drawable/ic_launcher"
+			android:visibility="visible"/>			
+	    <ViewSwitcher
+	        android:id="@+id/top_viewSwitcher"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:measureAllChildren="false" >	
+		    <include android:id="@+id/shared_with" 
+		        android:gravity="center|left"     
+		        layout="@layout/shared_with_tab"
+		        android:visibility="visible"
+		       android:layout_gravity="center|left"
+		        />			    
+		    <include
+		        layout="@layout/recipients_editor"
+		        android:gravity="center|left"     
+		        android:layout_gravity="center|left"
+		        android:visibility="visible"
+		        />			       
+		</ViewSwitcher>
+	</LinearLayout>	 
+</RelativeLayout>

@@ -106,10 +106,8 @@ public class SMSReceiver extends BroadcastReceiver {
 					Intent ni = new Intent(context, MessageActivityCheckboxCursor.class);
 					ni.putExtra(Constants.EXTRA_THREAD_ID,threadID);
 					ni.putExtra(Constants.EXTRA_NAME,name);
-			        //Log.i("sender",ContentUtils.addCountryCode(sender));
 			        ni.putExtra(Constants.EXTRA_NUMBER,sender);
 					ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-					//ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 					PendingIntent pi = PendingIntent.getActivity(context, 0,
 							ni, PendingIntent.FLAG_CANCEL_CURRENT);
 					mBuilder.setContentIntent(pi);

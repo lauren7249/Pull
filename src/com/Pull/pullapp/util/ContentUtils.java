@@ -9,10 +9,8 @@ import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import com.Pull.pullapp.R;
-
+import android.app.Activity;
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.res.Resources;
@@ -32,11 +30,18 @@ import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.GraphView.GraphViewData;
+import com.jjoe64.graphview.GraphViewSeries;
+import com.jjoe64.graphview.LineGraphView;
 
 public class ContentUtils {
-	public static CharSequence getInitials(String name) {
+	public static CharSequence getInitials(String name, String number) {
 		String initials = "";
 		if(name==null || name.isEmpty()) return initials;
+		if(name.equals(number)) return "??";
 		String[] i = name.split(" ");
 		for(String chunk : i) {
 			initials = initials + chunk.substring(0,1);
@@ -470,5 +475,29 @@ public class ContentUtils {
      			else if(hours_elapsed > 8 && !previous_body.contains("?")) initiating = true;
      		}
      		return initiating;
+		}
+
+		public static void addGraph(Activity activity, LinearLayout mGraphView) {
+			int num = 150;
+			GraphViewData[] data = new GraphViewData[num];
+			double v1=0;
+			for (int i=0; i<num; i++) {
+			  v1 += 0.2;
+			  data[i] = new GraphViewData(i, Math.sin(v1));
+			}
+			GraphView graphView = new LineGraphView(
+			    activity
+			    , "GraphViewDemo"
+			);
+			// add data
+			graphView.addSeries(new GraphViewSeries(data));
+			// set view port, start=2, size=40
+			graphView.setViewPort(2, 40);
+			graphView.setScrollable(true);
+			// optional - activate scaling / zooming
+			graphView.setScalable(true);
+			
+			mGraphView.addView(graphView);	    
+			
 		}			
 }

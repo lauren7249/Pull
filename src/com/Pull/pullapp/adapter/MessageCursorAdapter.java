@@ -105,7 +105,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		long date;
 		final SMSMessage message;
 		final int position = c.getPosition();
-		
+		if(c.getColumnCount()<8) return;
 		//for(int i=0; i<c.getColumnCount(); i++) {
 			//Log.i("column ", c.getColumnName(i) + ": " + c.getString(i));
 		//}
@@ -147,7 +147,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 				holder.messageBox.setBackgroundResource(R.drawable.outgoing);
 				if(!isMine) {
 					holder.my_initials.setVisibility(View.VISIBLE);
-		    		holder.my_initials.setText(ContentUtils.getInitials(conversant_name));
+		    		holder.my_initials.setText(ContentUtils.getInitials(conversant_name, conversant));
 		    		holder.my_initials.setOnClickListener(new OnClickListener(){
 						@Override
 						public void onClick(View v) {
@@ -192,7 +192,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		    	else if(conversant_name!=null && conversant_name.length()>0) {
 		    		holder.their_pic.setVisibility(View.GONE);	
 		    		holder.their_initials.setVisibility(View.VISIBLE);
-		    		holder.their_initials.setText(ContentUtils.getInitials(conversant_name));
+		    		holder.their_initials.setText(ContentUtils.getInitials(conversant_name, conversant));
 		    		holder.their_initials.setOnClickListener(new OnClickListener(){
 						@Override
 						public void onClick(View v) {
@@ -212,7 +212,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 				holder.messageBox.setBackgroundResource(R.drawable.incoming);
 				holder.their_pic.setVisibility(View.GONE);
 	    		holder.their_initials.setVisibility(View.VISIBLE);
-	    		holder.their_initials.setText(ContentUtils.getInitials(other_person_name));
+	    		holder.their_initials.setText(ContentUtils.getInitials(other_person_name, other_person));
 	    		holder.their_initials.setOnClickListener(new OnClickListener(){
 					@Override
 					public void onClick(View v) {
@@ -282,8 +282,13 @@ public class MessageCursorAdapter extends CursorAdapter {
 		long date;
 		final SMSMessage message;
 		final int position = c.getPosition();
-
-		int type = Integer.parseInt(c.getString(1).toString());
+		int type = 0;
+		
+		try {
+			type = Integer.parseInt(c.getString(1).toString());
+		} catch(RuntimeException e) {
+			return;
+		} 
 		if(type==TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return;
 		body = c.getString(2).toString();
     	address = c.getString(4).toString();
