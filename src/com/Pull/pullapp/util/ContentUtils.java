@@ -8,6 +8,9 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -497,12 +500,16 @@ public class ContentUtils {
 				  @Override
 				  public String formatLabel(double value, boolean isValueX) {
 				    if (isValueX) {
-				    	return DateUtils.getRelativeDateTimeString(mContext, (long) value, 
-				    			DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0).toString();
+				    	Date d = new Date((long) value);
+				    	DateFormat dateFormatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.ENGLISH);
+				    	String dateOut = dateFormatter.format(d);
+				    	return dateOut;
 				    }
 				    return "";
 				  }
 				});			
+			graphView.getGraphViewStyle().setNumHorizontalLabels(2);
+			graphView.getGraphViewStyle().setNumVerticalLabels(1);
 			mGraphView.addView(graphView);	    
 			
 		}
