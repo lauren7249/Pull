@@ -850,7 +850,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		addPerson.setSelected(false);
 		graphButton.setBackgroundResource(R.drawable.graph_pressed);
 		graphButton.setSelected(true);			
-		ContentUtils.addGraph(activity, mGraphView);
+		ContentUtils.addGraph(activity, mGraphView, original_name + "'s interest", 
+				ContentUtils.getContactInitiationRatioSeries(messages_cursor), mContext);
 		graphViewSwitcher.setDisplayedChild(1);		
 		hideInputs();	
 	}

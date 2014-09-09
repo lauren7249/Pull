@@ -28,10 +28,12 @@ import android.provider.Telephony.TextBasedSmsColumns;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import com.jjoe64.graphview.CustomLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GraphView.GraphViewData;
 import com.jjoe64.graphview.GraphViewSeries;
@@ -477,27 +479,65 @@ public class ContentUtils {
      		return initiating;
 		}
 
-		public static void addGraph(Activity activity, LinearLayout mGraphView) {
-			int num = 150;
-			GraphViewData[] data = new GraphViewData[num];
-			double v1=0;
-			for (int i=0; i<num; i++) {
-			  v1 += 0.2;
-			  data[i] = new GraphViewData(i, Math.sin(v1));
-			}
+		public static void addGraph(Activity activity, LinearLayout mGraphView, 
+				String title, GraphViewData[] data, final Context mContext) {
 			GraphView graphView = new LineGraphView(
 			    activity
-			    , "GraphViewDemo"
+			    , title
 			);
 			// add data
 			graphView.addSeries(new GraphViewSeries(data));
 			// set view port, start=2, size=40
-			graphView.setViewPort(2, 40);
-			graphView.setScrollable(true);
+
+			//graphView.setViewPort(0, 10);
+		//	graphView.setScrollable(true);
 			// optional - activate scaling / zooming
-			graphView.setScalable(true);
-			
+		//	graphView.setScalable(true);
+			graphView.setCustomLabelFormatter(new CustomLabelFormatter() {
+				  @Override
+				  public String formatLabel(double value, boolean isValueX) {
+				    if (isValueX) {
+				    	return DateUtils.getRelativeDateTimeString(mContext, (long) value, 
+				    			DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0).toString();
+				    }
+				    return "";
+				  }
+				});			
 			mGraphView.addView(graphView);	    
 			
+		}
+
+
+		public static GraphViewData[] getContactInitiationRatioSeries(
+				Cursor messages_cursor) {
+			int num = messages_cursor.getCount();
+			GraphViewData[] data = new GraphViewData[num];
+			boolean initiating = false;
+			int previous_type = 0;
+			long previous_date = 0;
+			String previous_body = null;
+			int me=1, them=1;
+			float ratio = them/me;
+			for (int i=0; i<num; i++) {
+			  messages_cursor.moveToPosition(i);
+			  long date = messages_cursor.getLong(6);
+			  String body = messages_cursor.getString(2).toString();
+			  int type = Integer.parseInt(messages_cursor.getString(1).toString());
+			  if(previous_body!=null && previous_date>0) {
+			  		initiating = ContentUtils
+					  .isInitiating(date, type, body, previous_date, previous_type, previous_body);
+			  }
+			  if(initiating) {
+				  if(type==TextBasedSmsColumns.MESSAGE_TYPE_SENT) me++;
+				  else them++;
+				  ratio=(float)them/(float)me;
+			  }
+
+			  data[i] = new GraphViewData(date, ratio);
+			  previous_date = date;
+			  previous_body = body;
+			  previous_type = type;
+			}
+			return data;
 		}			
 }
