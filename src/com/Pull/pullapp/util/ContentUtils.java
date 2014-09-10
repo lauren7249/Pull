@@ -676,11 +676,13 @@ public class ContentUtils {
 					});		
 				graphView.getGraphViewStyle().setNumHorizontalLabels(2);
 				graphView.getGraphViewStyle().setNumVerticalLabels(1);	
+				graphView.getGraphViewStyle().setTextSize(22);
+				graphView.getGraphViewStyle().setLegendWidth(300);
 				graphView.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,1f));
 				mGraphView.addView(graphView);	 
 				graphView = new LineGraphView(
 					    activity
-					    , original_name+"/You"
+					    , "Ratio ("+original_name+":You)"
 					);
 					// add data
 				try {
@@ -705,6 +707,10 @@ public class ContentUtils {
 					  }
 					});		
 				graphView.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,1f));
+				graphView.getGraphViewStyle().setNumHorizontalLabels(2);
+				graphView.getGraphViewStyle().setNumVerticalLabels(1);	
+				graphView.getGraphViewStyle().setTextSize(22);
+				
 				mGraphView.addView(graphView);	 
 
 		}				

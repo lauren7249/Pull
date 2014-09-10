@@ -335,7 +335,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		        .singleShot(222)
 		        .hideOnTouchOutside()
 		        .build();	    
-				showcaseView.setButtonText("OK");				
+				showcaseView.setButtonText("Next");				
 				title_view.setText(name);
 				setupComposeBox();
 				populateMessages();
@@ -1541,8 +1541,21 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 	@Override
 	public void onClick(View v) {
-		showcaseView.hide();
-	}
+		mixpanel.track("MessageActivity Showcaseview next button", null);
+        switch (counter) {
+        case 1:
+        	showcaseView.hide();
+            break;
+        case 0:
+            showcaseView.setShowcase(new ViewTarget(findViewById(R.id.graph_button)), true);
+            showcaseView.setContentTitle("Interest graphs");
+            showcaseView.setContentText(
+            		"Graphs that show the other person's interest relative to yours");  
+            showcaseView.setButtonText("Finish");
+            break;
+	    }
+	    counter++;
+	}	
 
 	@Override
 	public void onEmojiconBackspaceClicked(View v) {
