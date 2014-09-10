@@ -11,12 +11,14 @@
         android:id="@+id/big_viewSwitcher"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/top_bar"
         android:measureAllChildren="false" >	
 		<com.Pull.pullapp.util.LinearLayoutThatDetectsSoftKeyboard 
 		    android:id="@+id/main_layout"
 		    android:layout_width="match_parent"
 		    android:layout_height="wrap_content"
-		    android:layout_marginTop="65dp"
+		              
+		    
 		    android:background="@drawable/comment_box_background"
 		    android:gravity="bottom"
 		    android:orientation="vertical" >
@@ -203,23 +205,24 @@
 				</RelativeLayout>
 		
 		</com.Pull.pullapp.util.LinearLayoutThatDetectsSoftKeyboard>
-	   	<LinearLayout 
-	   	    android:id="@+id/graph_area"
-	       	android:layout_width="match_parent"
-	       	android:layout_height="wrap_content"		
-	       	android:orientation="vertical"	  
-	       	android:gravity="center|left"      
-		    android:layout_marginTop="55dp"
-		    android:layout_marginBottom="30dp"
-		    android:layout_marginRight="30dp"
-		    android:layout_marginLeft="20dp"
-		    android:background="@drawable/comment_box_background"	       	
-	      	android:layout_gravity="center|left"	/>
+
+		   	<LinearLayout 
+		   	    android:id="@+id/graph_area"
+		       	android:layout_width="match_parent"
+		       	android:layout_height="match_parent"	
+			    android:layout_marginRight="30dp"
+			    android:layout_marginLeft="20dp" 		       		
+		       	android:orientation="vertical"	  
+		       	android:gravity="center|left"      
+			    android:background="@drawable/comment_box_background"	       	
+		      	android:layout_gravity="center|left"	/>
+
 	</ViewSwitcher>
    	<LinearLayout 
        android:layout_width="match_parent"
        android:layout_height="wrap_content"		
        android:orientation="horizontal"	  
+       android:id="@id/top_bar"
        android:gravity="center|left"      
      	 android:layout_gravity="center|left"
           >		

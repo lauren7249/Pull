@@ -850,8 +850,11 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		addPerson.setSelected(false);
 		graphButton.setBackgroundResource(R.drawable.graph_pressed);
 		graphButton.setSelected(true);			
-		ContentUtils.addGraph(activity, mGraphView, original_name + "'s interest", 
-				ContentUtils.getContactInitiationRatioSeries(messages_cursor), mContext);
+		if(messages_cursor.getCount()>1 && mGraphView.getChildCount()==0) {
+			ContentUtils.addGraph(activity, mGraphView,  original_name, messages_cursor, mContext);	
+			Log.i("counnt",mGraphView.getChildCount() + " ");
+
+		}
 		graphViewSwitcher.setDisplayedChild(1);		
 		hideInputs();	
 	}
@@ -1362,8 +1365,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		}	
 		getSharedWithTab(number,name);
 		sharedWithAdapter.setCurrentTab(shared_confidante);
-		sharedWithAdapter.notifyDataSetChanged();
-
+		
 		name = null;
 		number = null;
 		confidantes = null;			
@@ -1383,7 +1385,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		mConfidantesEditor.setText("");
 		
 		share.setClickable(true);	
-		
+		sharedWithAdapter.notifyDataSetChanged();
 	}	    
 	
     

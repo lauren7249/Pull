@@ -6,6 +6,7 @@
     <PreferenceCategory android:title="Receive texts through Pull" >
         <CheckBoxPreference
             android:key="prefReceiveTexts"
+            android:defaultValue="true"
             android:summary="Have your text message notifications come through Pull"
             android:title="Receive texts through Pull" >
         </CheckBoxPreference>

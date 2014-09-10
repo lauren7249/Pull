@@ -9,6 +9,7 @@ import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -20,6 +21,7 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.BaseColumns;
@@ -31,15 +33,18 @@ import android.provider.Telephony.TextBasedSmsColumns;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
-import android.text.format.DateUtils;
 import android.util.Log;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TableLayout;
+import android.widget.TextView;
 
 import com.jjoe64.graphview.CustomLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GraphView.GraphViewData;
 import com.jjoe64.graphview.GraphViewSeries;
+import com.jjoe64.graphview.GraphViewSeries.GraphViewSeriesStyle;
 import com.jjoe64.graphview.LineGraphView;
 
 public class ContentUtils {
@@ -482,69 +487,225 @@ public class ContentUtils {
      		return initiating;
 		}
 
-		public static void addGraph(Activity activity, LinearLayout mGraphView, 
-				String title, GraphViewData[] data, final Context mContext) {
-			GraphView graphView = new LineGraphView(
-			    activity
-			    , title
-			);
-			// add data
-			graphView.addSeries(new GraphViewSeries(data));
-			// set view port, start=2, size=40
-
-			//graphView.setViewPort(0, 10);
-		//	graphView.setScrollable(true);
-			// optional - activate scaling / zooming
-		//	graphView.setScalable(true);
-			graphView.setCustomLabelFormatter(new CustomLabelFormatter() {
-				  @Override
-				  public String formatLabel(double value, boolean isValueX) {
-				    if (isValueX) {
-				    	Date d = new Date((long) value);
-				    	DateFormat dateFormatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.ENGLISH);
-				    	String dateOut = dateFormatter.format(d);
-				    	return dateOut;
-				    }
-				    return "";
-				  }
-				});			
-			graphView.getGraphViewStyle().setNumHorizontalLabels(2);
-			graphView.getGraphViewStyle().setNumVerticalLabels(1);
-			mGraphView.addView(graphView);	    
-			
-		}
-
-
-		public static GraphViewData[] getContactInitiationRatioSeries(
+		public static ArrayList<GraphViewData[]> getContactInitiationSeries(
 				Cursor messages_cursor) {
 			int num = messages_cursor.getCount();
-			GraphViewData[] data = new GraphViewData[num];
+			ArrayList<GraphViewData[]> data = new ArrayList<GraphViewData[]>();
+			GraphViewData[] data1 = new GraphViewData[num];
+			GraphViewData[] data2 = new GraphViewData[num];
+			GraphViewData[] data3 = new GraphViewData[num];
 			boolean initiating = false;
 			int previous_type = 0;
 			long previous_date = 0;
+			long my_previous_initiation_date =0, their_previous_initiation_date=0;
 			String previous_body = null;
 			int me=1, them=1;
-			float ratio = them/me;
+			float me_freq =0 , them_freq = 0, start_date = 0;
+			int initiation_count=0;
 			for (int i=0; i<num; i++) {
 			  messages_cursor.moveToPosition(i);
 			  long date = messages_cursor.getLong(6);
+			  if(i==0) start_date = date;
 			  String body = messages_cursor.getString(2).toString();
 			  int type = Integer.parseInt(messages_cursor.getString(1).toString());
 			  if(previous_body!=null && previous_date>0) {
-			  		initiating = ContentUtils
-					  .isInitiating(date, type, body, previous_date, previous_type, previous_body);
-			  }
+			  		initiating = isInitiating(date, type, body, previous_date, previous_type, previous_body);
+			  } 
+			  long previous_initiation_date = 0;
+			  int previous_me = 0;
+			  int previous_them = 0;
 			  if(initiating) {
-				  if(type==TextBasedSmsColumns.MESSAGE_TYPE_SENT) me++;
-				  else them++;
-				  ratio=(float)them/(float)me;
+				  if(type==TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
+					  me++;
+				  }
+				  else {
+					  them++;
+				  }
+				  initiation_count++;
 			  }
+			  float balance;
+			  if(initiation_count>2) {
 
-			  data[i] = new GraphViewData(date, ratio);
+				  if(them>me) balance=((float)them/(float)me)-1;
+				  else balance=-(((float)me/(float)them)-1);
+				  
+				  float their_period;
+				  float my_period;
+				  if(their_previous_initiation_date>0) {
+					  their_period = date-their_previous_initiation_date;
+				  } else their_period = date-start_date;
+				  //if(them>0) them_freq =  1/(float)their_period;
+				  //else them_freq = 0;
+				  
+				  them_freq = (float)(them-1)/(date-start_date);
+				
+				  if(my_previous_initiation_date>0) {
+					  my_period = date-my_previous_initiation_date;
+				  } else my_period = date-start_date;
+				
+				me_freq = (float)(me-1)/(date-start_date);
+				
+				//if(me>0) me_freq =  1/(float)my_period;
+				  //else me_freq = 0;
+				  data1[i] = new GraphViewData(date, them_freq);
+				  data2[i] = new GraphViewData(date, me_freq);
+				  data3[i] = new GraphViewData(date, balance);
+
+				if(data1[i-1]==null && data1[i]!=null) {
+					  //Log.i("data is null","data is null"+i);
+					  for(int j=i-1; j>=0; j--) {
+						  data1[j] = data1[i];
+						  data2[j] = data2[i];
+						  data3[j] = data3[i];					  
+					  }
+				  }
+			  }		
+			  if(initiating) {
+				 /** Log.i("me",body);
+				  Log.i("me","me"+me);
+				  Log.i("me","me_Freq"+me_freq);
+				  Log.i("date","date"+date);
+				  Log.i("start_date","start_date"+start_date);			**/  
+				  if(type==TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
+					  my_previous_initiation_date = date;
+					  previous_me = me;
+				  }
+				  else {
+					  their_previous_initiation_date = date;
+					  previous_them = them;
+				  }
+				  initiation_count++;
+			  }
 			  previous_date = date;
 			  previous_body = body;
 			  previous_type = type;
 			}
+			data.add(data1);
+			data.add(data2);
+			data.add(data3);
 			return data;
-		}			
+		}
+
+		public static void addGraphs(Activity activity,
+				LinearLayout mGraphView, String original_name,
+				Cursor messages_cursor, Context mContext) {
+			ArrayList<GraphViewData[]> data = getContactInitiationSeries(messages_cursor);
+			GraphView[] graphViews = new GraphView[3];
+			String title = "";
+			for(int i=0; i<3; i++) {
+				if(i==0) title = original_name + "'s interest";
+				else if(i==1) title = "Your interest";
+				else if(i==2) title = original_name + "'s interest relative to yours";
+				GraphView graphView = new LineGraphView(
+					    activity
+					    , title
+					);
+					// add data
+				Log.i("data","length"+data.get(i).length);
+				try {
+					graphView.addSeries(new GraphViewSeries(data.get(i)));
+				} catch(RuntimeException e) {
+					continue;
+				}
+				graphView.setCustomLabelFormatter(new CustomLabelFormatter() {
+					  @Override
+					  public String formatLabel(double value, boolean isValueX) {
+					    if (isValueX) {
+					    	
+					    	Date d = new Date((long) value);
+					    	DateFormat dateFormatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.ENGLISH);
+					    	String dateOut = dateFormatter.format(d);
+					    	//return dateOut;
+					    	return "";
+					    }
+					    return "";
+					  }
+					});		
+				graphView.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,1f));
+				graphViews[i] = graphView;
+			}
+			if(graphViews[0]!=null) {
+				//tv1.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,0.2f));
+			//	mGraphView.addView(tv1);
+				mGraphView.addView(graphViews[0]);	 
+			}
+			if(graphViews[1]!=null) {
+			//	tv2.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,0.2f));
+			//	mGraphView.addView(tv2);
+				mGraphView.addView(graphViews[1]);
+			}
+			if(graphViews[2]!=null) {
+			//	tv3.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,0.2f));
+			//	mGraphView.addView(tv3);
+				mGraphView.addView(graphViews[2]);	
+			}
+
+		}	
+		
+		public static void addGraph(Activity activity,
+				LinearLayout mGraphView, String original_name,
+				Cursor messages_cursor, Context mContext) {
+			ArrayList<GraphViewData[]> data = getContactInitiationSeries(messages_cursor);
+
+				GraphView graphView = new LineGraphView(
+					    activity
+					    , "Interest level"
+					);
+					// add data
+				try {
+					graphView.addSeries(new GraphViewSeries(original_name,new GraphViewSeriesStyle(Color.rgb(251, 76, 60), 3), data.get(0)));
+					graphView.addSeries(new GraphViewSeries("You",new GraphViewSeriesStyle(Color.rgb(52, 185, 204), 3),data.get(1)));
+				} catch(RuntimeException e) {
+					Log.i("tag",e.toString());
+					return;
+				}
+				graphView.setShowLegend(true);
+				graphView.setCustomLabelFormatter(new CustomLabelFormatter() {
+					  @Override
+					  public String formatLabel(double value, boolean isValueX) {
+					    if (isValueX) {
+					    	
+					    	Date d = new Date((long) value);
+					    	DateFormat dateFormatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.ENGLISH);
+					    	String dateOut = dateFormatter.format(d);
+					    	//return dateOut;
+					    	return "";
+					    }
+					    return "";
+					  }
+					});		
+				graphView.getGraphViewStyle().setNumHorizontalLabels(2);
+				graphView.getGraphViewStyle().setNumVerticalLabels(1);	
+				graphView.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,1f));
+				mGraphView.addView(graphView);	 
+				graphView = new LineGraphView(
+					    activity
+					    , original_name+"/You"
+					);
+					// add data
+				try {
+					graphView.addSeries(new GraphViewSeries(data.get(2)));
+				} catch(RuntimeException e) {
+					Log.i("tag",e.toString());
+					return;
+				}
+				graphView.setCustomLabelFormatter(new CustomLabelFormatter() {
+					  @Override
+					  public String formatLabel(double value, boolean isValueX) {
+					    if (isValueX) {
+					    	
+					    	Date d = new Date((long) value);
+					    	DateFormat dateFormatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.ENGLISH);
+					    	String dateOut = dateFormatter.format(d);
+					    	//return dateOut;
+					    	return "";
+					    }
+					    if(value==1) return "";
+					    return "";
+					  }
+					});		
+				graphView.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,1f));
+				mGraphView.addView(graphView);	 
+
+		}				
 }
