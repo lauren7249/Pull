@@ -418,20 +418,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 								
 							if(queue_adapter.delayedMessages.containsKey(scheduledOn) && scheduledOn>0) {
 								removeMessage();
-								SMSMessage m = new SMSMessage(scheduledOn, 
-										intent_message, intent_number, 
-										name, TextBasedSmsColumns.MESSAGE_TYPE_SENT, store, 
-										ParseUser.getCurrentUser().getUsername());		
-								m.schedule(scheduledFor);
-								m.setType(TextBasedSmsColumns.MESSAGE_TYPE_SENT);
-								try {
-									m.saveToParse();
-								} catch (JSONException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
 							}
-							removeMessage();
 							messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
 							messages_adapter.swapCursor(messages_cursor);							
 							messages_adapter.notifyDataSetChanged();

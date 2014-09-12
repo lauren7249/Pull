@@ -713,5 +713,12 @@ public class ContentUtils {
 				
 				mGraphView.addView(graphView);	 
 
+		}
+
+		public static void deleteConversation(Context mContext, String threadID) {
+			mContext.getContentResolver().delete(Uri.parse("content://sms/conversations/" + threadID),null,null);
+			String where = TextBasedSmsColumns.THREAD_ID+"=?";
+			String[] args = new String[] { threadID };
+			mContext.getContentResolver().delete( Telephony.Sms.CONTENT_URI, where, args );
 		}				
 }

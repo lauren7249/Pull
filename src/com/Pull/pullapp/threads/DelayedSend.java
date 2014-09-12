@@ -21,6 +21,7 @@ public class DelayedSend extends Thread {
     private String message, recipient, threadID;
     private long sendOn, launchedOn;
 	private String approver;
+	private boolean isDelayed;
     
     public DelayedSend(Context parent, String recipient, String message, 
     		Date sendOn, long launchedOn, String approver) {
@@ -30,9 +31,11 @@ public class DelayedSend extends Thread {
     	Map dimensions = new HashMap();
         if(sendOn!=null){
         	this.sendOn = sendOn.getTime();
+        	this.isDelayed = true;
         	dimensions.put("delayed", true);
         }else{
         	this.sendOn = new Date().getTime() + (6)*1000;
+        	this.isDelayed = false;
         	dimensions.put("delayed", false);
         }
         
@@ -53,6 +56,7 @@ public class DelayedSend extends Thread {
         intent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
         intent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);
         intent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, sendOn);
+        intent.putExtra(Constants.EXTRA_IS_DELAYED, isDelayed);
         intent.putExtra(Constants.EXTRA_APPROVER, approver);
         PendingIntent sendMessage;
         sendMessage = PendingIntent.getBroadcast(parent, (int)launchedOn, 

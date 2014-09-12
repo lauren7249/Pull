@@ -145,6 +145,7 @@ public class Constants {
 	public static final String USER_PASSWORD_SALT = "PULL_PASSWORD_SALT";
 	public static final String SMS_RECEIVED_ACTION = PACKAGE_NAME + ".util.SMS_RECEIVED_ACTION";
 	public static final String ACTION_SHARE_TAB_CLICKED = PACKAGE_NAME + ".util.ACTION_SHARE_TAB_CLICKED";
+	public static final String EXTRA_IS_DELAYED = PACKAGE_NAME + "EXTRA_IS_DELAYED";
 	
 	
 	

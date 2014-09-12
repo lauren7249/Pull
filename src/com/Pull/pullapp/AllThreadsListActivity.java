@@ -211,8 +211,8 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
     public void onCreateContextMenu(ContextMenu menu, View v,ContextMenuInfo menuInfo) {  
     super.onCreateContextMenu(menu, v, menuInfo);  
     	mixpanel.track("threadslist long press list item", null);
-        if(currentTab==R.id.shared_tab) menu.add(0, v.getId(), 0, "Delete Thread");  
-        else menu.add(0, v.getId(), 0, "Add to Contacts");  
+        menu.add(0, v.getId(), 0, "Delete Thread");  
+        menu.add(0, v.getId(), 1, "Add to Contacts");  
     }  
     
     @Override
@@ -223,24 +223,43 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
         Cursor threads  = (Cursor) getListView().getItemAtPosition(info.position);
   		switch(currentTab) {
   		case R.id.shared_tab:
-  			mixpanel.track("Sharedconvo deleted", null);
-  			String convoID = threads.getString(threads.getColumnIndex("_id"));
-  			int rows = dbHandler.deleteShared(convoID);
-  			threads_cursor = dbHandler.getSharedConversationCursor(columns);
-  			adapter.swapCursor(threads_cursor);
-  			adapter.notifyDataSetChanged();
+  			if(item.getTitle().equals("Delete Thread")) {
+	  			mixpanel.track("Sharedconvo deleted", null);
+	  			String convoID = threads.getString(threads.getColumnIndex("_id"));
+	  			int rows = dbHandler.deleteShared(convoID);
+	  			threads_cursor = dbHandler.getSharedConversationCursor(columns);
+	  			adapter.swapCursor(threads_cursor);
+	  			adapter.notifyDataSetChanged();
+  			} else {
+  				String number = threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_SHARED_WITH));
+  	            Intent intent = new Intent(Intent.ACTION_INSERT);
+  	            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+  	            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+  	            intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
+  	            intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
+  	            startActivity(intent);    				
+  			}
   		    return true;
   		case R.id.my_conversation_tab: 
-  			mixpanel.track("add to contacts from threadslistactivity", null);
+			String threadID = threads.getString(threads
+				      .getColumnIndex(ThreadsColumns._ID));	
 			String recipientId = threads.getString(threads
-				      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS));		
-			String number = store.getPhoneNumber(recipientId);
-            Intent intent = new Intent(Intent.ACTION_INSERT);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
-            intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
-            startActivity(intent);       			
+				      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS));	
+			String number = store.getPhoneNumber(recipientId);  			
+  			if(item.getTitle().equals("Delete Thread")) {
+  				ContentUtils.deleteConversation(mContext,threadID);
+  				threads_cursor = ContentUtils.getThreadsCursor(mContext);
+	  			adapter.swapCursor(threads_cursor);
+	  			adapter.notifyDataSetChanged();
+  			} else {  			
+	  			mixpanel.track("add to contacts from threadslistactivity", null);
+	            Intent intent = new Intent(Intent.ACTION_INSERT);
+	            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+	            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+	            intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
+	            intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
+	            startActivity(intent);     
+  			}
   		    return true;
   		default: 
   			return true;

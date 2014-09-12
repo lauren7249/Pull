@@ -111,10 +111,17 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
             String recipient = intent.getStringExtra(Constants.EXTRA_RECIPIENT);
             String message = intent.getStringExtra(Constants.EXTRA_MESSAGE_BODY);
             String approver = intent.getStringExtra(Constants.EXTRA_APPROVER);
+            boolean isDelayed = intent.getBooleanExtra(Constants.EXTRA_IS_DELAYED, false);
             Log.i("new message",message);
             long launchedOn = intent.getLongExtra(Constants.EXTRA_TIME_LAUNCHED,0);
             long scheduledFor = intent.getLongExtra(Constants.EXTRA_TIME_SCHEDULED_FOR,0);
-            
+			SMSMessage m = new SMSMessage(launchedOn, 
+					message, recipient, 
+					store.getName(recipient), TextBasedSmsColumns.MESSAGE_TYPE_SENT, store, 
+					ParseUser.getCurrentUser().getUsername());		
+			m.schedule(scheduledFor);
+			m.isDelayed = isDelayed;
+			m.launchedOn = launchedOn;
 			//dont send if the user canceled (removed from outbox) or received a message since launching
             if(!messagedAfterLaunch(context,recipient,launchedOn) &&  
             		SendUtils.removeFromOutbox(context, message, recipient, launchedOn, 
@@ -122,13 +129,19 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
             		&& !disapproved(recipient,message,scheduledFor,approver, mContext)) 
             {
             	SendUtils.sendsms(context, recipient, message, launchedOn, scheduledFor, true);
-
+				m.setType(TextBasedSmsColumns.MESSAGE_TYPE_SENT);      	
             }
             else {
             	intent.setAction(Constants.ACTION_SMS_UNOUTBOXED);
-                mContext.sendBroadcast(intent);	            	
+                mContext.sendBroadcast(intent);	     
+                m.setType(TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);                      
             }
-            	
+			try {
+				m.saveToParse();
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}               	
             return;
         }        
         if (action.equals(Constants.ACTION_SHARE_TAG)) {
