@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
+import org.json.JSONException;
+
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -40,6 +42,7 @@ import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TextView;
 
+import com.Pull.pullapp.model.SMSMessage;
 import com.jjoe64.graphview.CustomLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GraphView.GraphViewData;
@@ -488,7 +491,8 @@ public class ContentUtils {
 		}
 
 		public static ArrayList<GraphViewData[]> getContactInitiationSeries(
-				Cursor messages_cursor) {
+				Cursor messages_cursor, Context context) {
+			UserInfoStore store = new UserInfoStore(context);
 			int num = messages_cursor.getCount();
 			ArrayList<GraphViewData[]> data = new ArrayList<GraphViewData[]>();
 			GraphViewData[] data1 = new GraphViewData[num];
@@ -508,7 +512,16 @@ public class ContentUtils {
 			  if(i==0) start_date = date;
 			  String body = messages_cursor.getString(2).toString();
 			  int type = Integer.parseInt(messages_cursor.getString(1).toString());
-			  if(previous_body!=null && previous_date>0) {
+			  String address = messages_cursor.getString(4).toString();
+			  String owner = messages_cursor.getString(7);
+		      SMSMessage message = new SMSMessage(date, body, address, store.getName(address), type, store, owner);			  
+			  try {
+				message.saveToParse();
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		      if(previous_body!=null && previous_date>0) {
 			  		initiating = isInitiating(date, type, body, previous_date, previous_type, previous_body);
 			  } 
 			  long previous_initiation_date = 0;
@@ -589,7 +602,7 @@ public class ContentUtils {
 		public static void addGraphs(Activity activity,
 				LinearLayout mGraphView, String original_name,
 				Cursor messages_cursor, Context mContext) {
-			ArrayList<GraphViewData[]> data = getContactInitiationSeries(messages_cursor);
+			ArrayList<GraphViewData[]> data = getContactInitiationSeries(messages_cursor, mContext);
 			GraphView[] graphViews = new GraphView[3];
 			String title = "";
 			for(int i=0; i<3; i++) {
@@ -645,7 +658,7 @@ public class ContentUtils {
 		public static void addGraph(Activity activity,
 				LinearLayout mGraphView, String original_name,
 				Cursor messages_cursor, Context mContext) {
-			ArrayList<GraphViewData[]> data = getContactInitiationSeries(messages_cursor);
+			ArrayList<GraphViewData[]> data = getContactInitiationSeries(messages_cursor, mContext);
 
 				GraphView graphView = new LineGraphView(
 					    activity

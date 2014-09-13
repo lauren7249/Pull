@@ -1,10 +1,8 @@
 package com.Pull.pullapp;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -29,7 +27,6 @@ import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
 import com.Pull.pullapp.util.RecipientsAdapter;
 import com.Pull.pullapp.util.RecipientsEditor;
-import com.Pull.pullapp.util.SMSReceiver;
 import com.Pull.pullapp.util.UserInfoStore;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
@@ -141,16 +138,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	            intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, 
 	                    myPackageName);
 	            startActivity(intent);
-	        } else {
-				PackageManager pm = getPackageManager();
-				ComponentName compName = 
-				      new ComponentName(mContext, 
-				            SMSReceiver.class);
-				pm.setComponentEnabledSetting(
-				      compName,
-				      PackageManager.COMPONENT_ENABLED_STATE_DISABLED, 
-				      PackageManager.DONT_KILL_APP);			
-			} 		
+	        } 	
 		}		
 		
 	}

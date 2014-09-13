@@ -17,6 +17,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.Telephony;
 import android.provider.Telephony.Sms.Intents;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.app.NotificationCompat;
@@ -34,10 +35,10 @@ public class SMSReceiverDefault extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		if (intent.getAction()
-				.equals(Intents.SMS_DELIVER_ACTION)) {
-	        SharedPreferences sharedPrefs = PreferenceManager
-	                .getDefaultSharedPreferences(context);			
+		int currentapiVersion = android.os.Build.VERSION.SDK_INT;
+		if (intent.getAction().equals(Intents.SMS_DELIVER_ACTION) || 
+			(intent.getAction().equals(Intents.SMS_RECEIVED_ACTION) && currentapiVersion < android.os.Build.VERSION_CODES.KITKAT )) {
+	        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);			
 	        UserInfoStore store = new UserInfoStore(context);
 			Bundle bundle = intent.getExtras();
 			if (bundle != null) {
@@ -68,11 +69,16 @@ public class SMSReceiverDefault extends BroadcastReceiver {
 		        	}
 		        	return;
 		        }
-		        boolean receive = sharedPrefs.getBoolean("prefReceiveTexts", false);
-				if (receive) {
-					abortBroadcast();					
-						// Prevent other broadcast receivers from receiving broadcast.
-					
+		        Log.i("received broadcast",sender);
+		       
+				
+				boolean receive = sharedPrefs.getBoolean("prefReceiveTexts", false);
+				 Log.i("receive","is " + receive);
+				if ((currentapiVersion >= android.os.Build.VERSION_CODES.KITKAT &&
+						Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName())) ||
+					(currentapiVersion < android.os.Build.VERSION_CODES.KITKAT && receive)){
+					if(currentapiVersion < android.os.Build.VERSION_CODES.KITKAT ) 
+						abortBroadcast();
 					SimpleDateFormat dateFormat = new SimpleDateFormat(
 							"yyyy-MM-dd'T'HH:mm'Z'"); // ISO 8601, Local time zone.
 					dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
