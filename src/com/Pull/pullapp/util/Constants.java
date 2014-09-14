@@ -102,6 +102,8 @@ public class Constants {
 	public static List<String> ALL_HASHTAGS_LIST = Arrays.asList(ALL_HASHTAGS);
 	public static String EXTRA_SHARED_CONVO_TYPE = PACKAGE_NAME + "EXTRA_SHARED_CONVO_TYPE";
 	public static String EXTRA_TAB_POSITION = PACKAGE_NAME + "EXTRA_TAB_POSITION";
+	public static String ACTION_GRAPH_TAB_CLICKED = PACKAGE_NAME + ".util.ACTION_GRAPH_TAB_CLICKED";
+	public static String ACTION_ADDPPL_TAB_CLICKED = PACKAGE_NAME + ".util.ACTION_ADDPPL_TAB_CLICKED";
 	
 	private static final String GOOGLE_PLAY_LINK = "https://play.google.com/store/apps/details?id=com.Pull.pullapp";
 	public static final String WEB_LINK = "thepullapp.com";
@@ -126,11 +128,11 @@ public class Constants {
 	public static final String EXTRA_MESSAGE_POSITION = PACKAGE_NAME + "EXTRA_MESSAGE_POSITION";
 	public static final String ACTION_RECEIVE_SHARED_MESSAGES = PACKAGE_NAME + ".util.ACTION_RECEIVE_SHARED_MESSAGES";
 	public static final String EXTRA_SHARED_SENDER = PACKAGE_NAME + "EXTRA_SHARED_SENDER";
-	public static final String EXTRA_SHARED_ADDRESS = PACKAGE_NAME + "EXTRA_SHARED_ADDRESS";
+	public static final String EXTRA_CLUELESS_PERSONS_NUMBER = PACKAGE_NAME + "EXTRA_CLUELESS_PERSONS_NUMBER";
 	public static final String ACTION_INVITE_FRIEND = PACKAGE_NAME + ".util.ACTION_INVITE_FRIEND";
 	public static final String ACTION_CONFIRM_FRIEND = PACKAGE_NAME + ".util.ACTION_CONFIRM_FRIEND";
 	public static final String EXTRA_USER_ID = PACKAGE_NAME + "EXTRA_USER_ID";
-	public static final String EXTRA_SHARED_NAME = PACKAGE_NAME + "EXTRA_SHARED_NAME";
+	public static final String EXTRA_CLUELESS_PERSONS_NAME = PACKAGE_NAME + "EXTRA_CLUELESS_PERSONS_NAME";
 	public static final String EXTRA_SHARED_CONFIDANTE = PACKAGE_NAME + "EXTRA_SHARED_CONFIDANTE";
 	public static final int MESSAGE_TYPE_SENT_COMMENT = "sentcomment".hashCode();
 	public static final int MESSAGE_TYPE_RECEIVED_COMMENT = "receivedcomment".hashCode();
@@ -146,6 +148,7 @@ public class Constants {
 	public static final String SMS_RECEIVED_ACTION = PACKAGE_NAME + ".util.SMS_RECEIVED_ACTION";
 	public static final String ACTION_SHARE_TAB_CLICKED = PACKAGE_NAME + ".util.ACTION_SHARE_TAB_CLICKED";
 	public static final String EXTRA_IS_DELAYED = PACKAGE_NAME + "EXTRA_IS_DELAYED";
+	public static final String EXTRA_STATUS = PACKAGE_NAME + "EXTRA_STATUS";
 	
 	
 	

@@ -55,8 +55,7 @@ public class SMSReceiverDefault extends BroadcastReceiver {
 					sb.append(messages[i].getMessageBody());
 				}
 				String sender = ContentUtils.addCountryCode(messages[0].getOriginatingAddress());
-
-				// Contact not in address book: log message and don't let it through.
+				long date = messages[0].getTimestampMillis();
 				String message = sb.toString();	        
 		        String twilioNumber = ContentUtils.addCountryCode(store.getTwilioNumber());
 		        if(twilioNumber!=null && sender!=null && 
@@ -90,7 +89,7 @@ public class SMSReceiverDefault extends BroadcastReceiver {
 						Log.i("thread id",threadID);
 					}
 					pushMessage(context,message,sender,threadID);		
-					SMSMessage m = new SMSMessage(new Date().getTime(), message, sender, 
+					SMSMessage m = new SMSMessage(date, message, sender, 
 							name, TextBasedSmsColumns.MESSAGE_TYPE_INBOX, store, 
 							ParseUser.getCurrentUser().getUsername());
 					try {

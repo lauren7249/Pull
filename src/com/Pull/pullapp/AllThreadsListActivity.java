@@ -1,6 +1,8 @@
 package com.Pull.pullapp;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
@@ -8,6 +10,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
+import android.provider.Telephony.TextBasedSmsColumns;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
@@ -36,6 +39,7 @@ import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.ParseAnalytics;
 import com.parse.ParseInstallation;
+import com.parse.ParseUser;
 
 public class AllThreadsListActivity extends SherlockListActivity implements View.OnClickListener {
 	
@@ -71,7 +75,8 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	private int currentapiVersion;
 	private SharedPreferences sharedPrefs;
 	private Editor editor;
-	private MenuItem mSettings;	
+	private MenuItem mSettings;
+	private BroadcastReceiver mBroadcastReceiver;	
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -141,8 +146,23 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	        } 	
 		}		
 		
+		mBroadcastReceiver = 
+		new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				String action = intent.getAction();		
+				String number = intent.getStringExtra(Constants.EXTRA_NUMBER); 
+				String name = intent.getStringExtra(Constants.EXTRA_NAME); 
+				openConvo(context,number,name,action);
+				
+			}
+		}	;	
 	}
 	
+	protected void shareTabClicked(int tab_num) {
+
+	}
+
 	@Override
 	protected void onDestroy() {
 		mixpanel.flush();
@@ -153,21 +173,19 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	public void onClick(View v) {
 		mixpanel.track("Allthreadslistactivity Showcaseview next button", null);
         switch (counter) {
-        case 1:
-        	mixpanel.track("Showcasing shared texts tab", null);
-            showcaseView.setShowcase(new ViewTarget(findViewById(R.id.shared_tab)), true);
-            showcaseView.setContentTitle("Shared texts");
-            showcaseView.setContentText(
-            		"Conversation snippets you've shared can be accessed here.");  
-            showcaseView.setButtonText("Finish");
-            break;
         case 0:
-        	mixpanel.track("Showcasing conversations threads tab", null);
-            showcaseView.setShowcase(new ViewTarget(findViewById(R.id.row)), true);
-            showcaseView.setContentTitle("Conversation threads");
+            showcaseView.setShowcase(new ViewTarget(findViewById(R.id.graph_button)), true);
+            showcaseView.setContentTitle("Interest graphs");
             showcaseView.setContentText(
-            		"Click a row to open an existing conversation");  
-            
+            		"Graphs that show the other person's interest relative to yours");  
+            showcaseView.setButtonText("Next");
+            break;
+        case 1:
+            showcaseView.setShowcase(new ViewTarget(findViewById(R.id.add_person)), true);
+            showcaseView.setContentTitle("Share with a friend");
+            showcaseView.setContentText(
+            		"Include your friend by sharing pieces of the conversation");  
+            showcaseView.setButtonText("Finish");
             break;
 
         case 2:
@@ -193,6 +211,10 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
         	}
         			
         }
+		IntentFilter intentFilter = new IntentFilter();
+		intentFilter.addAction(Constants.ACTION_ADDPPL_TAB_CLICKED);
+		intentFilter.addAction(Constants.ACTION_GRAPH_TAB_CLICKED);
+		registerReceiver(mBroadcastReceiver, intentFilter);		        
 	}
 	
     @Override  
@@ -339,7 +361,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
     	Intent intent;
 		switch(currentTab) {
 		case R.id.my_conversation_tab: 
-	        intent = new Intent(mContext, MessageActivityCheckboxCursor.class);
+
 	        String threadID = threads.getString(threads
 				      .getColumnIndex(ThreadsColumns._ID));	
 	  		boolean read = (!threads.getString(threads
@@ -357,35 +379,52 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	    		name = ContentUtils.getContactDisplayNameByNumber(mContext, number);
 	    		store.setName(number, name);
 	    	}				
-
-	        intent.putExtra(Constants.EXTRA_NAME,name);
-	        intent.putExtra(Constants.EXTRA_READ,read);
-	        intent.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(number));
-	        startActivity(intent);   
+	    	openConvo(mContext,number,name,"");
 	        return;
 		default:
 		//	Log.i("long id ", "long id " + id);
 			String convoID = threads.getString(threads.getColumnIndex("_id"));
-			//Log.i("convoID", convoID);
-			intent = new Intent(mContext, MessageActivityCheckboxCursor.class);
-			intent.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
-			intent.putExtra(Constants.EXTRA_SHARED_NAME, 
-					threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_CONVERSATION_FROM_NAME)));
-			intent.putExtra(Constants.EXTRA_SHARED_SENDER, 
-					threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_SHARER)));
-			intent.putExtra(Constants.EXTRA_SHARED_ADDRESS, 
-					threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_CONVERSATION_FROM)));
-			intent.putExtra(Constants.EXTRA_SHARED_CONFIDANTE, 
-					threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_SHARED_WITH)));		
-			intent.putExtra(Constants.EXTRA_SHARED_CONVO_TYPE, Integer.parseInt(
-					threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_CONVO_TYPE))));			
-			//Log.i(Constants.EXTRA_SHARED_ADDRESS, threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_CONVERSATION_FROM)));
-	        startActivity(intent);	
+			String sender = threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_SHARER));
+
+			String clueless_persons_number = threads.getString(threads
+					.getColumnIndex(DatabaseHandler.KEY_CONVERSATION_FROM));
+			String clueless_persons_name = threads.getString(threads
+					.getColumnIndex(DatabaseHandler.KEY_CONVERSATION_FROM_NAME));
+			String confidante = 
+					threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_SHARED_WITH));
+			int convo_type = Integer.parseInt(
+					threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_CONVO_TYPE)));
+			openSharedConvo(mContext, convoID, sender, clueless_persons_number, 
+					clueless_persons_name, confidante, convo_type);
 	        return;
 		}    	
 
     }   
     
+	public static void openConvo(Context context, String number, String name, String action) {
+    	Intent intent = new Intent(context, MessageActivityCheckboxCursor.class);
+    	intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(Constants.EXTRA_NAME,name);
+        intent.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(number));
+        intent.putExtra(Constants.EXTRA_STATUS,action);
+        context.startActivity(intent);   
+	}
+
+	public static void openSharedConvo(Context context, String convoID, String sender, String clueless_persons_number,
+			String clueless_persons_name, String confidante, int convo_type) {
+		Intent intent = new Intent(context, MessageActivityCheckboxCursor.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		intent.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
+		intent.putExtra(Constants.EXTRA_SHARED_SENDER, sender);
+		intent.putExtra(Constants.EXTRA_CLUELESS_PERSONS_NUMBER, clueless_persons_number);
+		intent.putExtra(Constants.EXTRA_CLUELESS_PERSONS_NAME, clueless_persons_name);			
+		intent.putExtra(Constants.EXTRA_SHARED_CONFIDANTE, confidante);		
+		intent.putExtra(Constants.EXTRA_SHARED_CONVO_TYPE, convo_type);			
+		//Log.i(Constants.EXTRA_CLUELESS_PERSONS_NUMBER, threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_CONVERSATION_FROM)));
+        context.startActivity(intent);	
+		
+	}
+
 	public void startShare(View v) {			
 		mixpanel.track("startshare clicked from threadslist", null);
 		if(mConversantsEditor.constructContactsFromInput(false).getNumbers().length==0) {

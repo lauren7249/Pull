@@ -5,7 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Typeface;
+import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.widget.CursorAdapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -13,12 +15,14 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.Pull.pullapp.AllThreadsListActivity;
 import com.Pull.pullapp.R;
 import com.Pull.pullapp.fragment.SimplePopupWindow;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.UserInfoStore;
 import com.mikhaellopez.circularimageview.CircularImageView;
+import com.parse.ParseUser;
 public class SharedWithCursorAdapter extends CursorAdapter {
 	
 	private Context mContext;
@@ -66,11 +70,12 @@ public class SharedWithCursorAdapter extends CursorAdapter {
 		holder.cell = (LinearLayout) v.findViewById(R.id.shared_with_cell);
 
 		String name="";
-		final String number, person_shared, person_shared_name;
+		final String number, clueless_persons_number, clueless_persons_name;
 
     	number = threads.getString(0);
-    	person_shared = threads.getString(1);
-    	person_shared_name = threads.getString(2);
+    	clueless_persons_number = threads.getString(1);
+    	clueless_persons_name = threads.getString(2);
+    	final String convoID = threads.getString(3);
     	
     	name = store.getName(number);
     	if(name==null || name.length() == 0 || name.equals(number)) {
@@ -88,12 +93,6 @@ public class SharedWithCursorAdapter extends CursorAdapter {
         		holder.initials_view.setBackgroundResource(R.drawable.circle_pressed);
         		holder.initials_view.setTypeface(null, Typeface.BOLD);
         		holder.initials_view.setSelected(true);
-        		if(!isBindView) {
-					Intent broadcastIntent = new Intent();
-					broadcastIntent.setAction(Constants.ACTION_SHARE_TAB_CLICKED);
-					broadcastIntent.putExtra(Constants.EXTRA_TAB_POSITION, position);
-					mContext.sendBroadcast(broadcastIntent);		      
-        		}
         	} else {
         		holder.initials_view.setBackgroundResource(R.drawable.circle_green);
         		holder.initials_view.setTypeface(null, Typeface.NORMAL);
@@ -107,6 +106,7 @@ public class SharedWithCursorAdapter extends CursorAdapter {
     	}
     	  	
     	final String final_name = name;
+    	final String final_number = number;
     	holder.cell.setOnClickListener(new OnClickListener(){
 
 			private SimplePopupWindow popup;
@@ -119,10 +119,19 @@ public class SharedWithCursorAdapter extends CursorAdapter {
 					popup.setMessage("Privately message " + final_name );	
 				} else {
 					current_tab = number;
-					Intent broadcastIntent = new Intent();
-					broadcastIntent.setAction(Constants.ACTION_SHARE_TAB_CLICKED);
-					broadcastIntent.putExtra(Constants.EXTRA_TAB_POSITION, position);
-					mContext.sendBroadcast(broadcastIntent);	
+					holder.initials_view.setBackgroundResource(R.drawable.circle_pressed);
+        			if(activity.getLocalClassName().equals("MessageActivityCheckboxCursor")) {
+        				Intent broadcastIntent = new Intent();
+						broadcastIntent.setAction(Constants.ACTION_SHARE_TAB_CLICKED);
+						broadcastIntent.putExtra(Constants.EXTRA_TAB_POSITION, position);
+						mContext.sendBroadcast(broadcastIntent);	
+        			} else  {	
+        				
+    					AllThreadsListActivity.openSharedConvo(activity,convoID, 
+    							ParseUser.getCurrentUser().getUsername(), 
+    							clueless_persons_number, clueless_persons_name, final_number, 
+    							TextBasedSmsColumns.MESSAGE_TYPE_SENT);    				
+        			}
 					holder.initials_view.setSelected(true);
 				}
 			}

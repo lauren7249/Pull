@@ -315,8 +315,8 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 		ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);		
 		ni.putExtra(Constants.EXTRA_SHARED_CONVERSATION_ID, convoID);
-		ni.putExtra(Constants.EXTRA_SHARED_ADDRESS, address);
-		ni.putExtra(Constants.EXTRA_SHARED_NAME, person_shared);
+		ni.putExtra(Constants.EXTRA_CLUELESS_PERSONS_NUMBER, address);
+		ni.putExtra(Constants.EXTRA_CLUELESS_PERSONS_NAME, person_shared);
 		ni.putExtra(Constants.EXTRA_SHARED_SENDER, owner);
 		ni.putExtra(Constants.EXTRA_MESSAGE_TYPE, messageType);
 		ni.putExtra(Constants.EXTRA_SHARED_CONFIDANTE, confidante);

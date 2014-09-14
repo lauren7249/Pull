@@ -2,9 +2,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
         <item android:id="@+id/settings"
           android:icon="@drawable/settings"
+          android:title="Settings" 
           android:showAsAction="always"/>    
     <item android:id="@+id/new_message"
-          android:title="NEW" 
+          android:title="New Message" 
           android:showAsAction="always"/>
 
 </menu>

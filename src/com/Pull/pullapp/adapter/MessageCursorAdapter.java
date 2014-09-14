@@ -79,6 +79,8 @@ public class MessageCursorAdapter extends CursorAdapter {
     	this.conversant_name = store.getName(conversant);
     	this.other_person = other_person;
     	this.other_person_name = person_shared;
+    	Log.i("other_person",other_person);
+    	Log.i("other_person_name",other_person_name);
 		this.activity = activity;
 		this.isTextConvo = false;
 		this.isMine = isMine;

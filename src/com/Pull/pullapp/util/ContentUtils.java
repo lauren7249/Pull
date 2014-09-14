@@ -49,6 +49,7 @@ import com.jjoe64.graphview.GraphView.GraphViewData;
 import com.jjoe64.graphview.GraphViewSeries;
 import com.jjoe64.graphview.GraphViewSeries.GraphViewSeriesStyle;
 import com.jjoe64.graphview.LineGraphView;
+import com.parse.ParseUser;
 
 public class ContentUtils {
 	public static CharSequence getInitials(String name, String number) {
@@ -493,6 +494,7 @@ public class ContentUtils {
 		public static ArrayList<GraphViewData[]> getContactInitiationSeries(
 				Cursor messages_cursor, Context context) {
 			UserInfoStore store = new UserInfoStore(context);
+			String owner = ParseUser.getCurrentUser().getUsername();
 			int num = messages_cursor.getCount();
 			ArrayList<GraphViewData[]> data = new ArrayList<GraphViewData[]>();
 			GraphViewData[] data1 = new GraphViewData[num];
@@ -513,7 +515,7 @@ public class ContentUtils {
 			  String body = messages_cursor.getString(2).toString();
 			  int type = Integer.parseInt(messages_cursor.getString(1).toString());
 			  String address = messages_cursor.getString(4).toString();
-			  String owner = messages_cursor.getString(7);
+			  
 		      SMSMessage message = new SMSMessage(date, body, address, store.getName(address), type, store, owner);			  
 			  try {
 				message.saveToParse();
