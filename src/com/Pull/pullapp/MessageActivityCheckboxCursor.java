@@ -317,6 +317,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			number =  ContentUtils.addCountryCode(getIntent().getStringExtra(Constants.EXTRA_NUMBER)); 
 			name =  getIntent().getStringExtra(Constants.EXTRA_NAME); 
 			status = getIntent().getStringExtra(Constants.EXTRA_STATUS); 
+			if(status==null)  status = "";
 			
 			thread_id = getIntent().getStringExtra(Constants.EXTRA_THREAD_ID); 
 			Long scheduledFor = getIntent().getLongExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, 0);
@@ -702,7 +703,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		intentFilter.addAction(Constants.ACTION_SMS_INBOXED);
 		intentFilter.addAction(Constants.ACTION_SHARE_TAB_CLICKED);
 		registerReceiver(mBroadcastReceiver, intentFilter);	
-
+		hideInputs();
 		if(number!=null) {
 			//position = store.getPosition(number);
 			rePopulateMessages();
@@ -718,7 +719,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		calendar.get(Calendar.HOUR_OF_DAY);
 		calendar.get(Calendar.MINUTE);	
 		registerReceiver(tickReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
-		hideInputs();
+		
 
 	}	
 	
@@ -730,8 +731,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		messages_adapter.swapCursor(messages_cursor);
 		messages_adapter.notifyDataSetChanged();
 		merge_adapter.notifyDataSetChanged();
-		Log.i("merge_adapter.getCount()","merge_adapter.getCount()" + merge_adapter.getCount());
-		mListView.setSelection(merge_adapter.getCount()-1);			
+		
+		mListView.setSelection(merge_adapter.getCount()-1);	
+		Log.i("mListView","getselection" + mListView.getSelectedItemPosition());
 	}
 
 
@@ -758,8 +760,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		initials_view.setSelected(true);
 		sharedWithAdapter.setCurrentTab("");
 		sharedWithAdapter.notifyDataSetChanged();	
-		Log.i("merge_adapter.getCount()","merge_adapter.getCount()" + merge_adapter.getCount());
-		mListView.setSelection(merge_adapter.getCount()-1);	
+		//Log.i("merge_adapter.getCount()","merge_adapter.getCount()" + merge_adapter.getCount());
+		//mListView.setSelection(merge_adapter.getCount()-1);	
 	}
 	private void getSharedWithTab(final String original_number, final String original_name) {
 		dh = new DatabaseHandler(mContext);

@@ -59,7 +59,8 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
         put("sentByMe",(
         		type == TextBasedSmsColumns.MESSAGE_TYPE_SENT) || 
         		type == Constants.MESSAGE_TYPE_SENT_COMMENT ||
-        		type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX );
+        		type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX ||
+        		type == TextBasedSmsColumns.MESSAGE_TYPE_QUEUED);
         put("isDelayed",(type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX));
         put("person", person);
 		put("user", ParseUser.getCurrentUser());
