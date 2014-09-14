@@ -203,4 +203,9 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 		return getString("owner");
 	}
 
+	public void setGraphed() {
+		put("graphed",true);
+		
+	}
+
 }

@@ -517,7 +517,8 @@ public class ContentUtils {
 			  String address = messages_cursor.getString(4).toString();
 			  
 		      SMSMessage message = new SMSMessage(date, body, address, store.getName(address), type, store, owner);			  
-			  try {
+			  message.setGraphed();
+		      try {
 				message.saveToParse();
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
