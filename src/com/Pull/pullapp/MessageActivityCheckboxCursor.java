@@ -162,7 +162,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private String shared_sender;
 	private String shared_convoID;
 	private DatabaseHandler dh;
-	private UserInfoStore store;
+	private static UserInfoStore store;
 	private String shared_confidante;
 	private String clueless_persons_number;
 	private String confidante_name;
@@ -723,7 +723,31 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 	}	
 	
-	
+
+	 private static class UploadGraph extends AsyncTask<Cursor, Void, Void> {
+	     protected Void doInBackground(Cursor... c) {
+			Cursor messages_cursor = c[0];
+	    	int num = messages_cursor.getCount();
+	    	String owner = ParseUser.getCurrentUser().getUsername();			
+	    	for (int i=0; i<num; i++) {
+	    		messages_cursor.moveToPosition(i);
+				long date = messages_cursor.getLong(6);
+				String body = messages_cursor.getString(2).toString();
+				int type = Integer.parseInt(messages_cursor.getString(1).toString());
+				String address = messages_cursor.getString(4).toString();
+				  
+			    SMSMessage message = new SMSMessage(date, body, address, store.getName(address), type, store, owner);			  
+				message.setGraphed();
+			    try {
+			    	message.saveToParse();
+			    } catch (JSONException e) {
+				// TODO Auto-generated catch block
+			    	e.printStackTrace();
+				}
+			}
+			return null;
+	     }
+	 }	
 	private void rePopulateMessages() {
 		Log.i("log","repopulate messages");
 		removeMessage();
@@ -842,8 +866,10 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		graphButton.setBackgroundResource(R.drawable.graph_pressed);
 		graphButton.setSelected(true);			
 		if(messages_cursor.getCount()>1 && mGraphView.getChildCount()==0) {
+			
 			ContentUtils.addGraph(activity, mGraphView,  original_name, messages_cursor, mContext);	
 			Log.i("counnt",mGraphView.getChildCount() + " ");
+			new UploadGraph().execute(messages_cursor);
 
 		}
 		graphViewSwitcher.setDisplayedChild(1);		
@@ -851,7 +877,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	}
 
 
-
+	 
 	protected void originalPersonClicked(String original_number,
 			String original_name) {
 		graphViewSwitcher.setDisplayedChild(0);

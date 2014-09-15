@@ -292,7 +292,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 			return;
 		} 
 		if(type==TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return;
-		Log.i("type","type " + type);
+	//	Log.i("type","type " + type);
 		body = c.getString(2).toString();
     	address = c.getString(4).toString();
     	date = c.getLong(6);

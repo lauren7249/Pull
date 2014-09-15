@@ -43,14 +43,14 @@ import com.parse.ParseUser;
 
 public class AllThreadsListActivity extends SherlockListActivity implements View.OnClickListener {
 	
-	private ThreadItemsCursorAdapter adapter;
-	private ListView listview;
+	private static ThreadItemsCursorAdapter adapter;
+	private static ListView listview;
 	private Context mContext;
 	private RadioGroup radioGroup;
     protected static final int CONTEXTMENU_DELETEITEM = 0;
     protected static final int CONTEXTMENU_CONTACTITEM = 1;	
 	private Cursor threads_cursor;
-	private int currentTab;
+	private static int currentTab;
 	private DatabaseHandler dbHandler;
     private RecipientsEditor mConfidantesEditor;
 	private RecipientsAdapter mRecipientsAdapter;
@@ -61,7 +61,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	private String conversant;
 	private String recipient;
 	private Button hint, setDefault;
-	private UserInfoStore store;
+	private static UserInfoStore store;
 	private final String columns = DatabaseHandler.KEY_SHARED_WITH + 
 			", " + DatabaseHandler.KEY_CONVERSATION_FROM_NAME +
 			", " + DatabaseHandler.KEY_SHARER +
@@ -117,9 +117,15 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 			    	
 			@Override
 			public void onCheckedChanged(RadioGroup group, int checkedId) {
-				
+				store.putPosition("tab"+currentTab,listview.getFirstVisiblePosition());
 				currentTab = checkedId;		
 				populateList();
+				Log.i("previous position","position"+store.getPosition("tab"+currentTab));
+		        if(store.getPosition("tab"+currentTab)>=0) {
+		        	
+		        	listview.setSelection(store.getPosition("tab"+currentTab));
+		        }
+
 			}
 		});
 	    
@@ -142,7 +148,10 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	                    new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
 	            intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, 
 	                    myPackageName);
+	            store.putPosition("tab"+currentTab,listview.getFirstVisiblePosition());
 	            startActivity(intent);
+	    		
+	    		//Log.i("position","position " + listview.getFirstVisiblePosition());	           
 	        } 	
 		}		
 		
@@ -211,6 +220,11 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
         	}
         			
         }
+		Log.i("previous position","position"+store.getPosition("tab"+currentTab));
+        if(store.getPosition("tab"+currentTab)>=0) {
+        	
+        	listview.setSelection(store.getPosition("tab"+currentTab));
+        }                
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(Constants.ACTION_ADDPPL_TAB_CLICKED);
 		intentFilter.addAction(Constants.ACTION_GRAPH_TAB_CLICKED);
@@ -247,7 +261,10 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
   	            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
   	            intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
   	            intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
-  	            startActivity(intent);    				
+  	            store.putPosition("tab"+currentTab,listview.getFirstVisiblePosition());
+  	            startActivity(intent);    		
+  	            
+  	            //Log.i("position","position " + listview.getFirstVisiblePosition());  	            
   			}
   		    return true;
   		case R.id.my_conversation_tab: 
@@ -268,7 +285,10 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 	            intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
 	            intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
+	            store.putPosition("tab"+currentTab,listview.getFirstVisiblePosition());
 	            startActivity(intent);     
+	    		
+	    		//Log.i("position","position " + listview.getFirstVisiblePosition());	            
   			}
   		    return true;
   		default: 
@@ -315,7 +335,10 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 				case R.id.my_conversation_tab: 
 					c = MessageActivityCheckboxCursor.class;
 		            intent = new Intent(mContext, c);
+		            store.putPosition("tab"+currentTab,listview.getFirstVisiblePosition());
 		            startActivity(intent);	
+		    		
+		    		//Log.i("position","position " + listview.getFirstVisiblePosition());		            
 		            return true;
 				default: 
 					mBox.setVisibility(View.VISIBLE);
@@ -325,7 +348,10 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		case R.id.settings:
 			mixpanel.track("settings button clicked", null);
             intent = new Intent(mContext, UserSettings.class);
+            store.putPosition("tab"+currentTab,listview.getFirstVisiblePosition());
             startActivity(intent);
+    		
+    		//Log.i("position","position " + listview.getFirstVisiblePosition());            
 			return true;				
 		default:
 			return false;
@@ -339,12 +365,15 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	}
 
 	public void launchSettings(View v) {
-		Log.i("launchSettings",myPackageName);
+		//Log.i("launchSettings",myPackageName);
         Intent intent =
                 new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
         intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, 
                 myPackageName);
+        store.putPosition("tab"+currentTab,listview.getFirstVisiblePosition());
         startActivity(intent);
+		
+		//Log.i("position","position " + listview.getFirstVisiblePosition());        
 		
 	}	
     @Override
@@ -407,7 +436,12 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
         intent.putExtra(Constants.EXTRA_NAME,name);
         intent.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(number));
         intent.putExtra(Constants.EXTRA_STATUS,action);
+        Log.i("position","position " + listview.getFirstVisiblePosition());
+        store.putPosition("tab"+currentTab,listview.getFirstVisiblePosition());
+        
         context.startActivity(intent);   
+		
+		
 	}
 
 	public static void openSharedConvo(Context context, String convoID, String sender, String clueless_persons_number,
@@ -421,7 +455,8 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		intent.putExtra(Constants.EXTRA_SHARED_CONFIDANTE, confidante);		
 		intent.putExtra(Constants.EXTRA_SHARED_CONVO_TYPE, convo_type);			
 		//Log.i(Constants.EXTRA_CLUELESS_PERSONS_NUMBER, threads.getString(threads.getColumnIndex(DatabaseHandler.KEY_CONVERSATION_FROM)));
-        context.startActivity(intent);	
+		store.putPosition("tab"+currentTab,listview.getFirstVisiblePosition());
+		context.startActivity(intent);	
 		
 	}
 

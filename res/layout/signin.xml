@@ -20,7 +20,7 @@
 		    android:layout_gravity="center|top"
 		    android:gravity="center|top"
 		    android:layout_above="@+id/mobileNumber"
-		    android:text="Conversations about conversations" /> 			    
+		    android:text="Decoding your text relationships" /> 			    
 		<EditText
 		    android:id="@id/mobileNumber"
 		    android:layout_width="wrap_content"

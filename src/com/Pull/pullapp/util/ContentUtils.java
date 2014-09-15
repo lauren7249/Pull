@@ -493,13 +493,6 @@ public class ContentUtils {
 
 		public static ArrayList<GraphViewData[]> getContactInitiationSeries(
 				Cursor messages_cursor, Context context) {
-			UserInfoStore store = new UserInfoStore(context);
-			String owner = ParseUser.getCurrentUser().getUsername();
-			int num = messages_cursor.getCount();
-			ArrayList<GraphViewData[]> data = new ArrayList<GraphViewData[]>();
-			GraphViewData[] data1 = new GraphViewData[num];
-			GraphViewData[] data2 = new GraphViewData[num];
-			GraphViewData[] data3 = new GraphViewData[num];
 			boolean initiating = false;
 			int previous_type = 0;
 			long previous_date = 0;
@@ -507,39 +500,35 @@ public class ContentUtils {
 			String previous_body = null;
 			int me=1, them=1;
 			float me_freq =0 , them_freq = 0, start_date = 0;
-			int initiation_count=0;
+			int initiation_count=0;			
+			long date;
+			float balance;
+			int num = messages_cursor.getCount();
+			ArrayList<GraphViewData[]> data = new ArrayList<GraphViewData[]>();
+			GraphViewData[] data1 = new GraphViewData[num+1];
+			GraphViewData[] data2 = new GraphViewData[num+1];
+			GraphViewData[] data3 = new GraphViewData[num+1];		
 			for (int i=0; i<num; i++) {
-			  messages_cursor.moveToPosition(i);
-			  long date = messages_cursor.getLong(6);
-			  if(i==0) start_date = date;
-			  String body = messages_cursor.getString(2).toString();
-			  int type = Integer.parseInt(messages_cursor.getString(1).toString());
-			  String address = messages_cursor.getString(4).toString();
-			  
-		      SMSMessage message = new SMSMessage(date, body, address, store.getName(address), type, store, owner);			  
-			  message.setGraphed();
-		      try {
-				message.saveToParse();
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		      if(previous_body!=null && previous_date>0) {
+				messages_cursor.moveToPosition(i);
+				date = messages_cursor.getLong(6);
+				if(i==0) start_date = date;
+				String body = messages_cursor.getString(2).toString();
+				int type = Integer.parseInt(messages_cursor.getString(1).toString());
+				if(previous_body!=null && previous_date>0) {
 			  		initiating = isInitiating(date, type, body, previous_date, previous_type, previous_body);
-			  } 
-			  long previous_initiation_date = 0;
-			  int previous_me = 0;
-			  int previous_them = 0;
-			  if(initiating) {
-				  if(type==TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
-					  me++;
-				  }
-				  else {
-					  them++;
-				  }
-				  initiation_count++;
+				} 
+				long previous_initiation_date = 0;
+				int previous_me = 0;
+				int previous_them = 0;
+				if(initiating) {
+					if(type==TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
+						me++;
+					}
+				else {
+					them++;
+				}
+				initiation_count++;
 			  }
-			  float balance;
 			  if(initiation_count>2) {
 
 				  if(them>me) balance=((float)them/(float)me)-1;
@@ -553,21 +542,21 @@ public class ContentUtils {
 				  //if(them>0) them_freq =  1/(float)their_period;
 				  //else them_freq = 0;
 				  
-				  them_freq = (float)(them-1)/(date-start_date);
+				  
 				
 				  if(my_previous_initiation_date>0) {
 					  my_period = date-my_previous_initiation_date;
 				  } else my_period = date-start_date;
 				
-				me_freq = (float)(me-1)/(date-start_date);
-				
+				  me_freq = (float)(me-1)/(date-start_date);
+				  them_freq = (float)(them-1)/(date-start_date);
 				//if(me>0) me_freq =  1/(float)my_period;
 				  //else me_freq = 0;
 				  data1[i] = new GraphViewData(date, them_freq);
 				  data2[i] = new GraphViewData(date, me_freq);
 				  data3[i] = new GraphViewData(date, balance);
 
-				if(data1[i-1]==null && data1[i]!=null) {
+				  if(data1[i-1]==null && data1[i]!=null) {
 					  //Log.i("data is null","data is null"+i);
 					  for(int j=i-1; j>=0; j--) {
 						  data1[j] = data1[i];
@@ -596,6 +585,15 @@ public class ContentUtils {
 			  previous_body = body;
 			  previous_type = type;
 			}
+			
+			date = System.currentTimeMillis();
+			if(them>me) balance=((float)them/(float)me)-1;
+			else balance=-(((float)me/(float)them)-1);			
+			me_freq = (float)(me-1)/(date-start_date);
+			them_freq = (float)(them-1)/(date-start_date);			
+			data1[num] = new GraphViewData(date, them_freq);
+			data2[num] = new GraphViewData(date, me_freq);
+			data3[num] = new GraphViewData(date, balance);			
 			data.add(data1);
 			data.add(data2);
 			data.add(data3);
@@ -609,9 +607,9 @@ public class ContentUtils {
 			GraphView[] graphViews = new GraphView[3];
 			String title = "";
 			for(int i=0; i<3; i++) {
-				if(i==0) title = original_name + "'s interest";
-				else if(i==1) title = "Your interest";
-				else if(i==2) title = original_name + "'s interest relative to yours";
+				if(i==0) title = original_name;
+				else if(i==1) title = "You";
+				else if(i==2) title = "";
 				GraphView graphView = new LineGraphView(
 					    activity
 					    , title
@@ -665,7 +663,7 @@ public class ContentUtils {
 
 				GraphView graphView = new LineGraphView(
 					    activity
-					    , "Interest level"
+					    , "How often they text first"
 					);
 					// add data
 				try {

@@ -47,6 +47,8 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 	private DatabaseHandler dh;
 	private HListView sharedWithListView;
 	private SharedWithCursorAdapter sharedWithAdapter;
+	private int position;
+	private Cursor cursor;
 	
     @SuppressWarnings("deprecation")
 	public ThreadItemsCursorAdapter(Context context, Cursor cursor, int cursorType, Activity a) {
@@ -58,6 +60,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	activity = a;
     	dh = new DatabaseHandler(mContext);
     	cu = new ContentUtils();
+    	this.cursor = cursor;
     }
 
 	@Override
@@ -77,6 +80,8 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 	}
 
 	private void populateFields(View v, Context context, Cursor threads, boolean isBindView) {
+        final int position= threads.getPosition();
+        this.position = position;		
 		switch(cursorType){
 		case R.id.my_conversation_tab:
 			setTextMessageFields(context,threads,v, isBindView);
@@ -330,6 +335,11 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 	    ImageView other_pic_mine;
 	    ImageView other_pic;
 	    
+	}
+
+	public int getSelectedItemPosition() {
+		// TODO Auto-generated method stub
+		return position;
 	}
 	
 
