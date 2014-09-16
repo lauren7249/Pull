@@ -738,9 +738,11 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				  
 			    SMSMessage message = new SMSMessage(date, body, address, store.getName(address), type, store, owner);			  
 				message.setGraphed();
+				
 			    try {
+			    	Thread.sleep(100);
 			    	message.saveToParse();
-			    } catch (JSONException e) {
+			    } catch (JSONException | InterruptedException e) {
 				// TODO Auto-generated catch block
 			    	e.printStackTrace();
 				}
@@ -1372,7 +1374,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		mConfidantesEditor.setText("");						
 		viewSwitcher.setDisplayedChild(0);
 		graphViewSwitcher.setDisplayedChild(0);
-		hideInputs();
 		
 		shared_sender = ParseUser.getCurrentUser().getUsername();
 		clueless_persons_name = name;
@@ -1425,6 +1426,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		
 		share.setClickable(true);	
 		sharedWithAdapter.notifyDataSetChanged();
+		hideInputs();
+		
 	}	    
 	
     

@@ -138,6 +138,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
             }
 			try {
 				m.saveToParse();
+				Log.i("saving to parse",m.getType() + "type");
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
