@@ -23,17 +23,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.Pull.pullapp.MessageActivityCheckboxCursor;
 import com.Pull.pullapp.R;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
 import com.Pull.pullapp.util.SendUtils;
 import com.Pull.pullapp.util.UserInfoStore;
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.GraphViewSeries;
-import com.jjoe64.graphview.LineGraphView;
-import com.jjoe64.graphview.GraphView.GraphViewData;
 import com.mikhaellopez.circularimageview.CircularImageView;
 public class ThreadItemsCursorAdapter extends CursorAdapter {
 	
@@ -99,7 +94,6 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 		holder.name_view = (TextView) v.findViewById(R.id.txt_title);
 		holder.snippet_view = (TextView) v.findViewById(R.id.txt_message_info);
 		holder.read_indicator = (ImageView) v.findViewById(R.id.indicator);
-		//holder.share = (ImageView) v.findViewById(R.id.share_button);
 	    holder.other_pic_mine = (ImageView) v.findViewById(R.id.other_pic_mine);
 	    holder.other_pic = (ImageView) v.findViewById(R.id.other_pic);
 		holder.image_view = (CircularImageView) v.findViewById(R.id.original_person_image);
@@ -116,8 +110,15 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 
     	read = (!threads.getString(1).equals("0"));	 
     	recipientId = threads.getString(2);
-    	snippet = threads.getString(4);		    		    	
+    	snippet = threads.getString(4);		
 
+    	if(snippet!=null) {
+        	if(snippet.length()>45) snippet = snippet.substring(0,45).trim() + "...";
+        	snippet = snippet.replace("\n", "").replace("\r", "");    		
+	    	holder.snippet_view.setText(snippet);
+	    	holder.snippet_view.setVisibility(View.VISIBLE);
+    	}
+    	
     	recipientID_hash.put(position, recipientId);
     	
     	holder.initials_view.setTypeface(null, Typeface.BOLD);	
@@ -139,7 +140,6 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	holder.shared_with.setVisibility(View.VISIBLE);
     	
 		holder.name_view.setText(store.getName(number));
-		holder.snippet_view.setText(snippet);
 		if(!read) {
 			holder.read_indicator.setVisibility(View.VISIBLE);
 		} else {
@@ -155,32 +155,15 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     		holder.initials_view.setText(ContentUtils.getInitials(name, number));    		
     		holder.initials_view.setOnClickListener(new OnClickListener(){
 	
-				@Override
-				public void onClick(View v) {
-					Log.i("number", number);
-					View addFriendView = View.inflate(mContext, R.layout.add_friend, null);
-					AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-				    builder.setTitle("Invite Friend");
-				    builder.setMessage("Invite " + store.getName(number) + " to be your friend on Pull?")
-				           .setCancelable(true)
-				           .setView(addFriendView)
-				           .setPositiveButton("No", new DialogInterface.OnClickListener() {
-				               public void onClick(DialogInterface dialog, int id) 
-				               {
-				                    dialog.cancel();
-				               }
-				           })				           
-				           .setNegativeButton("Yes", new DialogInterface.OnClickListener() {
-				               public void onClick(DialogInterface dialog, int id)
-				               {
-	
-				            	   SendUtils.inviteFriend(number, mContext, activity);
-	
-				               	}
-				           }) 
-				           .show();		
-	
-				}
+    			@Override
+    			public void onClick(View v) {
+    				holder.initials_view.setBackgroundResource(R.drawable.circle_pressed);
+    				Intent broadcastIntent = new Intent();
+    				broadcastIntent.setAction(Constants.ACTION_ORIGINAL_TAB_CLICKED);
+    				broadcastIntent.putExtra(Constants.EXTRA_NAME, friend_name);
+    				broadcastIntent.putExtra(Constants.EXTRA_NUMBER, friend_number);
+    				mContext.sendBroadcast(broadcastIntent);	
+    			}
     		});
     	} else if(isBindView && store.getPhotoPath(number)!=null) {
     		holder.initials_view.setVisibility(View.GONE);

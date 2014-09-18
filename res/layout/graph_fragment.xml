@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   	android:id="@+id/graph_area"
+  	android:layout_width="match_parent"
+  	android:layout_height="match_parent"			       		
+  	android:orientation="vertical"	  
+  	android:gravity="center|left"      
+	android:background="@drawable/comment_box_background"	       	
+ 	android:layout_gravity="center|left"	
+ 	>
+	<it.sephiroth.android.library.widget.HListView
+	    android:id="@+id/graphs_list"
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:divider="@android:color/transparent" />		
+</LinearLayout>
+    

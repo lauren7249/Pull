@@ -113,7 +113,7 @@ public class QueuedMessageAdapter extends BaseAdapter{
 	    	relativeTime = "Sending...";
 	    	holder.edit.setVisibility(View.GONE);
 	    }
-	    else if(difference<DateUtils.MINUTE_IN_MILLIS){
+	    else if(difference<DateUtils.MINUTE_IN_MILLIS && difference>0){
 			relativeTime = DateUtils.getRelativeDateTimeString(mContext, message.getFutureSendTime(), DateUtils.SECOND_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
 		}	    
 	    else if(System.currentTimeMillis()-message.getFutureSendTime()<DateUtils.MINUTE_IN_MILLIS){

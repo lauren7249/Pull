@@ -1,0 +1,23 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:background="#C5C5C5"
+              android:padding="10dp">
+      
+    <LinearLayout
+            android:id="@+id/xyplot"
+            android:layout_width="300dp"
+            android:orientation="vertical"
+            android:background="@drawable/card"
+            android:layout_height="fill_parent">
+    <TextView
+            android:id="@+id/header"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="hi"
+            android:padding="10dp"
+            android:gravity="center|center"
+            android:textStyle="bold"
+            android:textSize="20dp"/>        
+            </LinearLayout>            
+</LinearLayout>

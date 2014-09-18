@@ -68,7 +68,7 @@ public class SendUtils  {
 	            sentPendingIntents.add(sentPI);
 	        }
 	        if (AddtoSent)	{
-				addMessageToSent(context, phoneNumber, message);
+				addMessageToSent(context, phoneNumber, message, scheduledFor);
 			}	
 	    	sms.sendMultipartTextMessage(phoneNumber, null, msgparts, sentPendingIntents, null);
 
@@ -80,11 +80,11 @@ public class SendUtils  {
 	
 	
 	// This function add's the sent sms to the SMS sent folder
-	private static void addMessageToSent(Context context, String phoneNumber, String message) {
+	private static void addMessageToSent(Context context, String phoneNumber, String message, long date) {
 	    ContentValues sentSms = new ContentValues();
 	    sentSms.put(TextBasedSmsColumns.ADDRESS, phoneNumber);
 	    sentSms.put(TextBasedSmsColumns.BODY, message);
-	    
+	    sentSms.put(TextBasedSmsColumns.DATE, date);
 	    ContentResolver contentResolver = context.getContentResolver();
 	    Uri inserted = contentResolver.insert(SENT_MSGS_CONTENT_PROVIDER, sentSms);
 	    if(inserted!=null) Log.i("inserted ",inserted.toString());

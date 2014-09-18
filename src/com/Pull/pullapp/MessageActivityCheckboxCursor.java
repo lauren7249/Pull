@@ -7,6 +7,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.json.JSONException;
@@ -33,6 +34,8 @@ import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NavUtils;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -55,13 +58,12 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ViewAnimator;
 import android.widget.ViewSwitcher;
 
+import com.Pull.pullapp.adapter.GraphAdapter;
 import com.Pull.pullapp.adapter.MessageCursorAdapter;
 import com.Pull.pullapp.adapter.QueuedMessageAdapter;
 import com.Pull.pullapp.adapter.SharedWithCursorAdapter;
@@ -83,17 +85,11 @@ import com.Pull.pullapp.util.RecipientsEditor;
 import com.Pull.pullapp.util.SendUtils;
 import com.Pull.pullapp.util.SwipeDetector;
 import com.Pull.pullapp.util.UserInfoStore;
-import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.commonsware.cwac.merge.MergeAdapter;
 import com.github.amlcurran.showcaseview.ShowcaseView;
-import com.github.amlcurran.showcaseview.targets.ViewTarget;
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.GraphView.GraphViewData;
-import com.jjoe64.graphview.GraphViewSeries;
-import com.jjoe64.graphview.LineGraphView;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.FindCallback;
@@ -106,7 +102,6 @@ import com.parse.ParseUser;
 import com.rockerhieu.emojicon.EmojiconGridFragment;
 import com.rockerhieu.emojicon.EmojiconTextView;
 import com.rockerhieu.emojicon.EmojiconsFragment;
-import com.rockerhieu.emojicon.ViewPager;
 import com.rockerhieu.emojicon.emoji.Emojicon;
 
 public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
@@ -208,7 +203,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private ImageView graphButton;
 	private TextView header_title;
 	private String status;
-
+    private static final int NUM_PAGES = 2;
+    private ViewPager mPager;
+    private PagerAdapter mPagerAdapter;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -261,8 +258,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 		mButtonsBar = (LinearLayout) findViewById(R.id.buttons_box);
 		mLayout = (LinearLayoutThatDetectsSoftKeyboard) findViewById(R.id.main_layout);
-		mGraphView = (LinearLayout) findViewById(R.id.graph_area);
-		
+
 		delayPressed = false;
 		notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
 		
@@ -300,7 +296,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 		emojisPager = (ViewPager) findViewById(R.id.emojis_pager);
 	    emojiArea = (LinearLayout) findViewById(R.id.emojicons_area);
-	    
+	       // Instantiate a ViewPager and a PagerAdapter.
+   //     mPager = (ViewPager) findViewById(R.id.pager);
+        
 		home_button.setOnClickListener(new OnClickListener (){
 
 			@Override
@@ -712,7 +710,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				graphTabSelected(number, name);
 			} else if(status.equals(Constants.ACTION_ADDPPL_TAB_CLICKED)) {
 				shareTabSelected(number,name);	
-			}
+			}		
 		} else if(clueless_persons_name!=null && shared_sender!=null){
 			//rePopulateSharedMessages(shared_convoID);
 		}
@@ -867,14 +865,16 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		addPerson.setSelected(false);
 		graphButton.setBackgroundResource(R.drawable.graph_pressed);
 		graphButton.setSelected(true);			
-		if(messages_cursor.getCount()>1 && mGraphView.getChildCount()==0) {
-			
-			ContentUtils.addGraph(activity, mGraphView,  original_name, messages_cursor, mContext);	
-			Log.i("counnt",mGraphView.getChildCount() + " ");
+		graphViewSwitcher.setDisplayedChild(1);		
+		if(messages_cursor.getCount()>1 && mGraphView==null) {
+		    mGraphView = (LinearLayout) findViewById(R.id.graph_area);
+			HashMap<String, TreeMap<Long, Float>> data = ContentUtils.getDataSeries(messages_cursor, mContext);
+			HListView lv = (HListView) findViewById(R.id.graphs_list);
+	        lv.setAdapter(new GraphAdapter(mContext, R.layout.graph_item, null, data, original_name, activity));			
 			new UploadGraph().execute(messages_cursor);
 
 		}
-		graphViewSwitcher.setDisplayedChild(1);		
+		
 		hideInputs();	
 	}
 

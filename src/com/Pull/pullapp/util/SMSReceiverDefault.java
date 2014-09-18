@@ -88,7 +88,7 @@ public class SMSReceiverDefault extends BroadcastReceiver {
 						threadID = ContentUtils.getNextThreadID(context,sender);
 						Log.i("thread id",threadID);
 					}
-					pushMessage(context,message,sender,threadID);		
+					pushMessage(context,message,sender,threadID,date);		
 					SMSMessage m = new SMSMessage(date, message, sender, 
 							name, TextBasedSmsColumns.MESSAGE_TYPE_INBOX, store, 
 							ParseUser.getCurrentUser().getUsername());
@@ -127,14 +127,15 @@ public class SMSReceiverDefault extends BroadcastReceiver {
 			return;
 		}
 	}
-	public static void pushMessage(Context context, String message, String number, String thread_id) {
-
+	public static void pushMessage(Context context, String message, String number, String thread_id, long date) {
+ 
 		ContentValues values = new ContentValues(7);
 		values.put("address", number);
 		values.put("read", false);
 		values.put("subject", "");
 		values.put("body", message);
 		values.put("thread_id", thread_id);
+		values.put("date", date);
 		Uri uri = Uri.parse("content://sms/inbox");
 		context.getContentResolver().insert(uri, values);		
 	    Intent intent = new Intent(Constants.ACTION_SMS_INBOXED);

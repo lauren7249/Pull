@@ -149,8 +149,16 @@ public class Constants {
 	public static final String ACTION_SHARE_TAB_CLICKED = PACKAGE_NAME + ".util.ACTION_SHARE_TAB_CLICKED";
 	public static final String EXTRA_IS_DELAYED = PACKAGE_NAME + "EXTRA_IS_DELAYED";
 	public static final String EXTRA_STATUS = PACKAGE_NAME + "EXTRA_STATUS";
-	
-	
+	public static final String GRAPH_CONTACT_INIT_FREQ_THEM = "How often he/she texts first";
+	public static final String GRAPH_CONTACT_INIT_FREQ_ME = "How often you text first";
+	public static final String GRAPH_CONTACT_INIT_FREQ_RATIO = "he/she's initiating relative to you";
+	public static final String GRAPH_RESPONSE_TIME_THEM = "How long he/she takes to respond";
+	public static final String GRAPH_RESPONSE_TIME_ME = "How long you take to respond";
+	public static final String GRAPH_RESPONSE_TIME_RATIO = "he/she's response time relative to you";	
+	public static final String GRAPH_VOLUME_THEM = "How much he/she writes";
+	public static final String GRAPH_VOLUME_ME = "How much you write";
+	public static final String GRAPH_VOLUME_RATIO = "he/she's volume relative to you";
+	public static final String ACTION_ORIGINAL_TAB_CLICKED = PACKAGE_NAME + ".util.ACTION_ORIGINAL_TAB_CLICKED";
 	
 	
 	

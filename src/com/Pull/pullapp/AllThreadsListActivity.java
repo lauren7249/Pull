@@ -100,7 +100,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	    ParseAnalytics.trackAppOpened(getIntent());
 	    dbHandler = new DatabaseHandler(mContext);
 	    hint = (Button) findViewById(R.id.hint);   
-	    hint.setVisibility(View.VISIBLE);
+	    hint.setVisibility(View.GONE);
 	    setDefault = (Button) findViewById(R.id.set_message_default);   
 	    setDefault.setVisibility(View.GONE);
 	    
@@ -228,6 +228,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(Constants.ACTION_ADDPPL_TAB_CLICKED);
 		intentFilter.addAction(Constants.ACTION_GRAPH_TAB_CLICKED);
+		intentFilter.addAction(Constants.ACTION_ORIGINAL_TAB_CLICKED);
 		registerReceiver(mBroadcastReceiver, intentFilter);		        
 	}
 	
@@ -297,7 +298,6 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
     } 
     
 
-
 	private void populateList() {
 		switch(currentTab) {
 		case R.id.shared_tab:
@@ -306,7 +306,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		    adapter = new ThreadItemsCursorAdapter(mContext, threads_cursor, currentTab, this);
 		    setListAdapter(adapter);  	
 		    mBox.setVisibility(View.GONE);
-		    hint.setVisibility(View.VISIBLE);
+		   // hint.setVisibility(View.VISIBLE);
 		    setDefault.setVisibility(View.GONE);
 		    return;
 		case R.id.my_conversation_tab: 

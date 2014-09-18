@@ -206,16 +206,9 @@
 		
 		</com.Pull.pullapp.util.LinearLayoutThatDetectsSoftKeyboard>
 
-		   	<LinearLayout 
-		   	    android:id="@+id/graph_area"
-		       	android:layout_width="match_parent"
-		       	android:layout_height="match_parent"	
-			    android:layout_marginRight="30dp"
-			    android:layout_marginLeft="20dp" 		       		
-		       	android:orientation="vertical"	  
-		       	android:gravity="center|left"      
-			    android:background="@drawable/comment_box_background"	       	
-		      	android:layout_gravity="center|left"	/>
+		    <include 
+		        layout="@layout/graph_fragment"
+		        />		
 
 	</ViewSwitcher>
    	<LinearLayout 

@@ -9,11 +9,11 @@ import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.DateFormat;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
-
-import org.json.JSONException;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -42,14 +42,12 @@ import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TextView;
 
-import com.Pull.pullapp.model.SMSMessage;
 import com.jjoe64.graphview.CustomLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GraphView.GraphViewData;
 import com.jjoe64.graphview.GraphViewSeries;
 import com.jjoe64.graphview.GraphViewSeries.GraphViewSeriesStyle;
 import com.jjoe64.graphview.LineGraphView;
-import com.parse.ParseUser;
 
 public class ContentUtils {
 	public static CharSequence getInitials(String name, String number) {
@@ -260,20 +258,18 @@ public class ContentUtils {
 		   				ContentUtils.addCountryCode(number) + "', '+" +
 		   				ContentUtils.addCountryCode(number) + "', '" +
 		   				number + "')" 
-		   				+  " and " + TextBasedSmsColumns.TYPE + "!=" + 
-		   				TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX 					
-   				+  " and " + TextBasedSmsColumns.TYPE + "!=" + 
-		   				TextBasedSmsColumns.MESSAGE_TYPE_DRAFT ;					
+		   				+  " and " + TextBasedSmsColumns.TYPE + " in (" + 
+		   				TextBasedSmsColumns.MESSAGE_TYPE_SENT 					
+   				+  " , " + TextBasedSmsColumns.MESSAGE_TYPE_INBOX + ")"  ;					
 
 			}
 			else {
 				Log.i("thread id is here", thread_id);
 				querystring = TextBasedSmsColumns.THREAD_ID + "=" + thread_id 
 			
-					+ " and " + TextBasedSmsColumns.TYPE + "!=" + 
-					TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX
-				+  " and " + TextBasedSmsColumns.TYPE + "!=" + 
-					TextBasedSmsColumns.MESSAGE_TYPE_DRAFT ;	
+					+ TextBasedSmsColumns.TYPE + " in (" + 
+			   				TextBasedSmsColumns.MESSAGE_TYPE_SENT 					
+			   				+  " , " + TextBasedSmsColumns.MESSAGE_TYPE_INBOX + ")";
 				Log.i("thread id",thread_id);
 			}
 
@@ -491,27 +487,39 @@ public class ContentUtils {
      		return initiating;
 		}
 
-		public static ArrayList<GraphViewData[]> getContactInitiationSeries(
+		public static HashMap<String, TreeMap<Long, Float>> getDataSeries(
 				Cursor messages_cursor, Context context) {
 			boolean initiating = false;
 			int previous_type = 0;
 			long previous_date = 0;
 			long my_previous_initiation_date =0, their_previous_initiation_date=0;
 			String previous_body = null;
-			int me=1, them=1;
-			float me_freq =0 , them_freq = 0, start_date = 0;
+			int me=1, them=1, responses_mine=0, responses_theirs=0, my_characters=0, their_characters=0;
+			float me_freq =0 , them_freq = 0, start_date = 0,
+					my_total_minutes = 0, their_total_minutes = 0;
 			int initiation_count=0;			
 			long date;
-			float balance;
+			float balance, minutes_elapsed, my_average_response_time = 0, their_average_response_time = 0;
 			int num = messages_cursor.getCount();
-			ArrayList<GraphViewData[]> data = new ArrayList<GraphViewData[]>();
-			GraphViewData[] data1 = new GraphViewData[num+1];
-			GraphViewData[] data2 = new GraphViewData[num+1];
-			GraphViewData[] data3 = new GraphViewData[num+1];		
+			HashMap<String,TreeMap<Long,Float>> data = new HashMap<String,TreeMap<Long,Float>>();
+			
+			TreeMap<Long,Float> initiation_me = new TreeMap<Long,Float>();
+			TreeMap<Long,Float> initiation_them = new TreeMap<Long,Float>();
+			TreeMap<Long,Float> initiation_ratio = new TreeMap<Long,Float>();	
+			
+			TreeMap<Long,Float> response_times_me = new TreeMap<Long,Float>();
+			TreeMap<Long,Float> response_times_them = new TreeMap<Long,Float>();
+			TreeMap<Long,Float> response_time_ratio = new TreeMap<Long,Float>();
+
+			TreeMap<Long,Float> volume_me = new TreeMap<Long,Float>();
+			TreeMap<Long,Float> volume_them = new TreeMap<Long,Float>();
+			TreeMap<Long,Float> volume_ratio = new TreeMap<Long,Float>();
 			for (int i=0; i<num; i++) {
 				messages_cursor.moveToPosition(i);
 				date = messages_cursor.getLong(6);
-				if(i==0) start_date = date;
+				if(i==0) {
+					start_date = date;
+				}
 				String body = messages_cursor.getString(2).toString();
 				int type = Integer.parseInt(messages_cursor.getString(1).toString());
 				if(previous_body!=null && previous_date>0) {
@@ -524,10 +532,28 @@ public class ContentUtils {
 					if(type==TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
 						me++;
 					}
-				else {
-					them++;
-				}
+					else {
+						them++;
+					}
 				initiation_count++;
+				
+				} 
+				else if(previous_type != type && previous_date>0) { // not a retext and not an initiation, therefore a response
+				  minutes_elapsed = (date - previous_date)/(float)(1000*60);
+				  if(type==TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
+					  my_total_minutes = (float) my_total_minutes + minutes_elapsed;
+					  responses_mine++;
+					  my_average_response_time = my_total_minutes/(float)responses_mine;
+					  if(my_average_response_time>0) response_times_me.put(date, my_average_response_time);					  
+				  }
+				  else {
+					their_total_minutes = (float) their_total_minutes + minutes_elapsed;
+					responses_theirs++;
+					their_average_response_time = their_total_minutes/(float)responses_theirs;
+					if(their_average_response_time>0) response_times_them.put(date, their_average_response_time);					
+				  }
+				  if(their_average_response_time>0 && my_average_response_time>0)
+				  response_time_ratio.put(date, (float) their_average_response_time/(float) my_average_response_time);
 			  }
 			  if(initiation_count>2) {
 
@@ -539,38 +565,20 @@ public class ContentUtils {
 				  if(their_previous_initiation_date>0) {
 					  their_period = date-their_previous_initiation_date;
 				  } else their_period = date-start_date;
-				  //if(them>0) them_freq =  1/(float)their_period;
-				  //else them_freq = 0;
-				  
-				  
-				
+
 				  if(my_previous_initiation_date>0) {
 					  my_period = date-my_previous_initiation_date;
 				  } else my_period = date-start_date;
 				
 				  me_freq = (float)(me-1)/(date-start_date);
 				  them_freq = (float)(them-1)/(date-start_date);
-				//if(me>0) me_freq =  1/(float)my_period;
-				  //else me_freq = 0;
-				  data1[i] = new GraphViewData(date, them_freq);
-				  data2[i] = new GraphViewData(date, me_freq);
-				  data3[i] = new GraphViewData(date, balance);
 
-				  if(data1[i-1]==null && data1[i]!=null) {
-					  //Log.i("data is null","data is null"+i);
-					  for(int j=i-1; j>=0; j--) {
-						  data1[j] = data1[i];
-						  data2[j] = data2[i];
-						  data3[j] = data3[i];					  
-					  }
-				  }
+				  initiation_me.put(date, me_freq);
+				  initiation_them.put(date, them_freq);
+				  initiation_ratio.put(date, balance);
+
 			  }		
 			  if(initiating) {
-				 /** Log.i("me",body);
-				  Log.i("me","me"+me);
-				  Log.i("me","me_Freq"+me_freq);
-				  Log.i("date","date"+date);
-				  Log.i("start_date","start_date"+start_date);			**/  
 				  if(type==TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
 					  my_previous_initiation_date = date;
 					  previous_me = me;
@@ -581,6 +589,7 @@ public class ContentUtils {
 				  }
 				  initiation_count++;
 			  }
+			  			  
 			  previous_date = date;
 			  previous_body = body;
 			  previous_type = type;
@@ -591,33 +600,39 @@ public class ContentUtils {
 			else balance=-(((float)me/(float)them)-1);			
 			me_freq = (float)(me-1)/(date-start_date);
 			them_freq = (float)(them-1)/(date-start_date);			
-			data1[num] = new GraphViewData(date, them_freq);
-			data2[num] = new GraphViewData(date, me_freq);
-			data3[num] = new GraphViewData(date, balance);			
-			data.add(data1);
-			data.add(data2);
-			data.add(data3);
+			initiation_me.put(date, me_freq);
+			initiation_them.put(date, them_freq);
+			initiation_ratio.put(date, balance);			
+			
+			data.put(Constants.GRAPH_CONTACT_INIT_FREQ_THEM, initiation_them);
+			data.put(Constants.GRAPH_CONTACT_INIT_FREQ_ME,initiation_me);
+			data.put(Constants.GRAPH_CONTACT_INIT_FREQ_RATIO,initiation_ratio);
+			 
+			data.put(Constants.GRAPH_RESPONSE_TIME_THEM,response_times_them);
+			data.put(Constants.GRAPH_RESPONSE_TIME_ME, response_times_me);
+			data.put(Constants.GRAPH_RESPONSE_TIME_RATIO,response_time_ratio);	
+			
 			return data;
 		}
-
+		
+		@Deprecated
 		public static void addGraphs(Activity activity,
 				LinearLayout mGraphView, String original_name,
 				Cursor messages_cursor, Context mContext) {
-			ArrayList<GraphViewData[]> data = getContactInitiationSeries(messages_cursor, mContext);
-			GraphView[] graphViews = new GraphView[3];
+			HashMap<String,TreeMap<Long,Float>> data = getDataSeries(messages_cursor, mContext);
+			GraphView[] graphViews = new GraphView[data.size()];
 			String title = "";
-			for(int i=0; i<3; i++) {
-				if(i==0) title = original_name;
-				else if(i==1) title = "You";
-				else if(i==2) title = "";
+			for(int i=0; i<data.size(); i++) {
+				if(i%3==0) title = original_name;
+				else if(i%3==1) title = "You";
+				else if(i%3==2) title = "";
 				GraphView graphView = new LineGraphView(
 					    activity
 					    , title
 					);
 					// add data
-				Log.i("data","length"+data.get(i).length);
 				try {
-					graphView.addSeries(new GraphViewSeries(data.get(i)));
+					graphView.addSeries(new GraphViewSeries(treemapToGraphSeries(data.get(i))));
 				} catch(RuntimeException e) {
 					continue;
 				}
@@ -637,40 +652,48 @@ public class ContentUtils {
 					});		
 				graphView.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,1f));
 				graphViews[i] = graphView;
+				mGraphView.addView(graphViews[i]);	 
 			}
-			if(graphViews[0]!=null) {
-				//tv1.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,0.2f));
-			//	mGraphView.addView(tv1);
-				mGraphView.addView(graphViews[0]);	 
-			}
-			if(graphViews[1]!=null) {
-			//	tv2.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,0.2f));
-			//	mGraphView.addView(tv2);
-				mGraphView.addView(graphViews[1]);
-			}
-			if(graphViews[2]!=null) {
-			//	tv3.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,0.2f));
-			//	mGraphView.addView(tv3);
-				mGraphView.addView(graphViews[2]);	
-			}
-
 		}	
 		
+		private static GraphViewData[] treemapToGraphSeries(
+				TreeMap<Long, Float> hashMap) {
+			GraphViewData[] k = new GraphViewData[hashMap.size()];
+			int i = 0;
+			for(Entry<Long, Float> entry : hashMap.entrySet()) {
+				k[i] = new GraphViewData(entry.getKey(),entry.getValue());
+				i++;
+			}
+			return k;
+			
+		}
+
 		public static void addGraph(Activity activity,
-				LinearLayout mGraphView, String original_name,
-				Cursor messages_cursor, Context mContext) {
-			ArrayList<GraphViewData[]> data = getContactInitiationSeries(messages_cursor, mContext);
+				LinearLayout mGraphView, String original_name, HashMap<String, TreeMap<Long,Float>> data,
+				String[] series_names, String title) {
+			
 
 				GraphView graphView = new LineGraphView(
 					    activity
-					    , "How often they text first"
+					    , title
 					);
+				/**GraphViewData[] d = hahdata.get(series_names[2]);
+		/*		for(GraphViewData i : d) {
+					Log.i("data" , i.getX() + " " + i.getY());
+				}*/
 					// add data
 				try {
-					graphView.addSeries(new GraphViewSeries(original_name,new GraphViewSeriesStyle(Color.rgb(251, 76, 60), 3), data.get(0)));
-					graphView.addSeries(new GraphViewSeries("You",new GraphViewSeriesStyle(Color.rgb(52, 185, 204), 3),data.get(1)));
+					graphView.addSeries(new GraphViewSeries(original_name,
+							new GraphViewSeriesStyle(Color.rgb(251, 76, 60), 3), 
+							treemapToGraphSeries(data.get(series_names[0]))));
+					graphView.addSeries(new GraphViewSeries("You",
+							new GraphViewSeriesStyle(Color.rgb(52, 185, 204), 3),
+							treemapToGraphSeries(data.get(series_names[1]))));
 				} catch(RuntimeException e) {
-					Log.i("tag",e.toString());
+					TextView tv = new TextView(activity);
+					tv.setText("Not enough messages for this graph -- check back later!");
+					e.printStackTrace();
+					mGraphView.addView(tv);
 					return;
 				}
 				graphView.setShowLegend(true);
@@ -688,44 +711,53 @@ public class ContentUtils {
 					    return "";
 					  }
 					});		
-				graphView.getGraphViewStyle().setNumHorizontalLabels(2);
+
+				graphView.getGraphViewStyle().setNumHorizontalLabels(1);
 				graphView.getGraphViewStyle().setNumVerticalLabels(1);	
-				graphView.getGraphViewStyle().setTextSize(22);
-				graphView.getGraphViewStyle().setLegendWidth(300);
+				graphView.getGraphViewStyle().setVerticalLabelsWidth(0);
+				graphView.getGraphViewStyle().setTextSize(20);
+				graphView.getGraphViewStyle().setLegendWidth(280);
+				graphView.setPadding(0, 0, 20, 10);
 				graphView.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,1f));
 				mGraphView.addView(graphView);	 
 				graphView = new LineGraphView(
 					    activity
-					    , "Ratio ("+original_name+":You)"
+					    , original_name + " relative to you "
 					);
 					// add data
 				try {
-					graphView.addSeries(new GraphViewSeries(data.get(2)));
+					graphView.addSeries(new GraphViewSeries(treemapToGraphSeries(data.get(series_names[2]))));
+					graphView.setCustomLabelFormatter(new CustomLabelFormatter() {
+						  @Override
+						  public String formatLabel(double value, boolean isValueX) {
+						    if (isValueX) {
+						    	
+						    	Date d = new Date((long) value);
+						    	DateFormat dateFormatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.ENGLISH);
+						    	String dateOut = dateFormatter.format(d);
+						    	//return dateOut;
+						    	return "";
+						    }
+						    if(value==1) return "";
+						    return "";
+						  }
+						});		
+					graphView.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,1f));
+					graphView.getGraphViewStyle().setNumHorizontalLabels(1);
+					graphView.getGraphViewStyle().setNumVerticalLabels(1);	
+					graphView.getGraphViewStyle().setVerticalLabelsWidth(0);
+					graphView.setPadding(0, 20, 10, 10);
+					graphView.getGraphViewStyle().setTextSize(20);
+					
+					mGraphView.addView(graphView);	 
+					
 				} catch(RuntimeException e) {
-					Log.i("tag",e.toString());
+				/*	TextView tv = new TextView(activity);
+					tv.setText("Not enough messages for this graph -- check back later!");
+					mGraphView.addView(tv);**/
+					e.printStackTrace();
 					return;
 				}
-				graphView.setCustomLabelFormatter(new CustomLabelFormatter() {
-					  @Override
-					  public String formatLabel(double value, boolean isValueX) {
-					    if (isValueX) {
-					    	
-					    	Date d = new Date((long) value);
-					    	DateFormat dateFormatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.ENGLISH);
-					    	String dateOut = dateFormatter.format(d);
-					    	//return dateOut;
-					    	return "";
-					    }
-					    if(value==1) return "";
-					    return "";
-					  }
-					});		
-				graphView.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,1f));
-				graphView.getGraphViewStyle().setNumHorizontalLabels(2);
-				graphView.getGraphViewStyle().setNumVerticalLabels(1);	
-				graphView.getGraphViewStyle().setTextSize(22);
-				
-				mGraphView.addView(graphView);	 
 
 		}
 
