@@ -14,7 +14,7 @@
             android:id="@+id/header"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="hi"
+            android:text=""
             android:padding="10dp"
             android:gravity="center|center"
             android:textStyle="bold"

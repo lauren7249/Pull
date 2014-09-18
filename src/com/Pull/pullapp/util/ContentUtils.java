@@ -9,6 +9,7 @@ import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -36,6 +37,7 @@ import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -668,20 +670,15 @@ public class ContentUtils {
 			
 		}
 
-		public static void addGraph(Activity activity,
-				LinearLayout mGraphView, String original_name, HashMap<String, TreeMap<Long,Float>> data,
+		public static ArrayList<View> getGraphs(Activity activity,String original_name, HashMap<String, TreeMap<Long,Float>> data,
 				String[] series_names, String title) {
 			
-
+				ArrayList<View> views = new ArrayList<View>();
 				GraphView graphView = new LineGraphView(
 					    activity
 					    , title
 					);
-				/**GraphViewData[] d = hahdata.get(series_names[2]);
-		/*		for(GraphViewData i : d) {
-					Log.i("data" , i.getX() + " " + i.getY());
-				}*/
-					// add data
+
 				try {
 					graphView.addSeries(new GraphViewSeries(original_name,
 							new GraphViewSeriesStyle(Color.rgb(251, 76, 60), 3), 
@@ -693,8 +690,8 @@ public class ContentUtils {
 					TextView tv = new TextView(activity);
 					tv.setText("Not enough messages for this graph -- check back later!");
 					e.printStackTrace();
-					mGraphView.addView(tv);
-					return;
+					views.add(tv);
+					return views;
 				}
 				graphView.setShowLegend(true);
 				graphView.setCustomLabelFormatter(new CustomLabelFormatter() {
@@ -719,7 +716,7 @@ public class ContentUtils {
 				graphView.getGraphViewStyle().setLegendWidth(280);
 				graphView.setPadding(0, 0, 20, 10);
 				graphView.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,1f));
-				mGraphView.addView(graphView);	 
+				views.add(graphView);
 				graphView = new LineGraphView(
 					    activity
 					    , original_name + " relative to you "
@@ -749,16 +746,16 @@ public class ContentUtils {
 					graphView.setPadding(0, 20, 10, 10);
 					graphView.getGraphViewStyle().setTextSize(20);
 					
-					mGraphView.addView(graphView);	 
+					views.add(graphView);
 					
 				} catch(RuntimeException e) {
 				/*	TextView tv = new TextView(activity);
 					tv.setText("Not enough messages for this graph -- check back later!");
 					mGraphView.addView(tv);**/
 					e.printStackTrace();
-					return;
+					return views;
 				}
-
+				return views;
 		}
 
 		public static void deleteConversation(Context mContext, String threadID) {

@@ -870,7 +870,23 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		    mGraphView = (LinearLayout) findViewById(R.id.graph_area);
 			HashMap<String, TreeMap<Long, Float>> data = ContentUtils.getDataSeries(messages_cursor, mContext);
 			HListView lv = (HListView) findViewById(R.id.graphs_list);
-	        lv.setAdapter(new GraphAdapter(mContext, R.layout.graph_item, null, data, original_name, activity));			
+			TreeMap<String, ArrayList<View>> graph_sections = new TreeMap<String, ArrayList<View>> ();
+			String[] graphs = new String[]{Constants.GRAPH_CONTACT_INIT_FREQ_THEM,
+					Constants.GRAPH_CONTACT_INIT_FREQ_ME,
+					Constants.GRAPH_CONTACT_INIT_FREQ_RATIO};
+			String graph_title = "How often you each text first";
+			
+			ArrayList<View> views = ContentUtils.getGraphs(activity, original_name, data, graphs, "");
+			graph_sections.put(graph_title, views);
+
+			graphs = new String[]{Constants.GRAPH_RESPONSE_TIME_THEM,
+				Constants.GRAPH_RESPONSE_TIME_ME,
+				Constants.GRAPH_RESPONSE_TIME_RATIO};
+		
+			graph_title = "How long you each take to respond";
+			views = ContentUtils.getGraphs(activity, original_name, data, graphs, "");	
+			graph_sections.put(graph_title, views);
+	        lv.setAdapter(new GraphAdapter(mContext, R.layout.graph_item, null, graph_sections));			
 			new UploadGraph().execute(messages_cursor);
 
 		}
