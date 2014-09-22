@@ -480,7 +480,8 @@ public class ContentUtils {
 				long previous_date, int previous_type, String previous_body) {
 			boolean initiating = false, retexting=false;
      		if(previous_type==type) retexting = true;
-     		long hours_elapsed = (date-previous_date)/(long)(1000*60*60);
+     		long hours_elapsed = (long)(date-previous_date)/((long)(1000.0*60.0*60.0));
+     		Log.i("hours elapsed ", ""+hours_elapsed);
      		if(retexting && hours_elapsed > 0.167) initiating=true;
      		else if(!retexting) {
      			if (hours_elapsed > 24) initiating=true;

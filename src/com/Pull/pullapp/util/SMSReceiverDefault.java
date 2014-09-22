@@ -109,7 +109,7 @@ public class SMSReceiverDefault extends BroadcastReceiver {
 							.setPriority(NotificationCompat.PRIORITY_LOW)
 							.setOnlyAlertOnce(true);
 					Intent ni = new Intent(context, MessageActivityCheckboxCursor.class);
-					ni.putExtra(Constants.EXTRA_THREAD_ID,threadID);
+					//ni.putExtra(Constants.EXTRA_THREAD_ID,threadID);
 					ni.putExtra(Constants.EXTRA_NAME,name);
 			        ni.putExtra(Constants.EXTRA_NUMBER,sender);
 					ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
