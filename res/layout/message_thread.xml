@@ -5,6 +5,7 @@
     xmlns:widget="http://schemas.android.com/apk/res-auto"
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
+    android:background="@android:color/white"
     android:layout_height="match_parent">
 
     <ViewSwitcher
@@ -19,7 +20,7 @@
 		    android:layout_height="wrap_content"
 		              
 		    
-		    android:background="@drawable/comment_box_background"
+		    android:background="@drawable/rainbow"
 		    android:gravity="bottom"
 		    android:orientation="vertical" >
 	    
@@ -223,6 +224,7 @@
 			android:id="@+id/home_button"
 			android:layout_width="50dp"
 			android:layout_height="50dp"
+			android:layout_margin="5dp"
 			android:gravity="center|left"   
 			android:layout_gravity="center|left"   
 			android:paddingTop="10dp"

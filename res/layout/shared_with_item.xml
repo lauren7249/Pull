@@ -10,8 +10,6 @@
 	        android:layout_width="match_parent"
 	        android:layout_height="match_parent"
 	        android:layout_gravity="center"
-	        android:padding="0dp"
-	        android:layout_margin="0dp"
 	        android:scaleType="fitXY"
 	        android:visibility="gone" /> 
 	<TextView 
@@ -21,6 +19,6 @@
 		android:layout_height="match_parent"
 		android:background="@drawable/circle"
 		android:textSize="16dp"
-		android:textColor="@color/textColor"
+		android:textColor="#235c66"
 		android:visibility="visible"/>	
 </LinearLayout>

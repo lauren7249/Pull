@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.widget.CursorAdapter;
@@ -122,7 +123,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	recipientID_hash.put(position, recipientId);
     	
     	holder.initials_view.setTypeface(null, Typeface.BOLD);	
-    	holder.initials_view.setBackgroundResource(R.drawable.circle_blue);
+    	holder.initials_view.setBackgroundResource(R.drawable.circle);
     	if(store.getPhoneNumber(recipientId)==null) {
 			number = ContentUtils.addCountryCode(ContentUtils.getAddressFromID(context, recipientId));
 			store.setPhoneNumber(recipientId, number);

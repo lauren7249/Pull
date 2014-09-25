@@ -857,12 +857,13 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 
 	protected void graphTabSelected(String original_number, String original_name) {
-		initials_view.setBackgroundResource(R.drawable.circle_blue);
+		initials_view.setBackgroundResource(R.drawable.circle);
 		initials_view.setTypeface(null, Typeface.NORMAL);
 		initials_view.setSelected(false);
 		title_view.setText(original_name);
 		addPerson.setBackgroundResource(R.drawable.add);			
 		addPerson.setSelected(false);
+		//graphButton.setBackgroundResource(R.drawable.circle_pressed);
 		graphButton.setBackgroundResource(R.drawable.graph_pressed);
 		graphButton.setSelected(true);			
 		graphViewSwitcher.setDisplayedChild(1);		
@@ -918,14 +919,15 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		graphViewSwitcher.setDisplayedChild(0);
 		viewSwitcher.setDisplayedChild(1);
 		messages_adapter.showCheckboxes=true;
-		initials_view.setBackgroundResource(R.drawable.circle_blue);
+		initials_view.setBackgroundResource(R.drawable.circle);
 		initials_view.setTypeface(null, Typeface.NORMAL);
 		initials_view.setSelected(false);
 		messages_adapter.notifyDataSetChanged();
 		merge_adapter.notifyDataSetChanged();	
 		title_view.setText(original_name);
 		mConfidantesEditor.setHint("Tap messages to select");
-		addPerson.setBackgroundResource(R.drawable.add_pressed);			
+		addPerson.setBackgroundResource(R.drawable.add_pressed);
+		//addPerson.setBackgroundResource(R.drawable.circle_pressed);
 		addPerson.setSelected(true);
 		graphButton.setBackgroundResource(R.drawable.graph);
 		graphButton.setSelected(false);				
@@ -1025,7 +1027,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		});
 		getSharedWithTab(clueless_persons_number, clueless_persons_name);
 		sharedWithAdapter.setCurrentTab(shared_confidante);
-		initials_view.setBackgroundResource(R.drawable.circle_blue);
+		initials_view.setBackgroundResource(R.drawable.circle);
 		initials_view.setTypeface(null, Typeface.NORMAL);
 		initials_view.setSelected(false);
 		sharedWithAdapter.notifyDataSetChanged();

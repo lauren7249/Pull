@@ -357,7 +357,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 			}
         }
         else {
-        	holder.addPPl.setBackgroundResource(R.drawable.add);
+        	holder.addPPl.setBackgroundResource(R.drawable.green_plus);
 			if(message.isSentByMe()) {
 				holder.messageBox.setBackgroundResource(R.drawable.outgoing);
 				holder.message.setPadding(50, 0, 10, 0);

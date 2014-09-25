@@ -480,8 +480,12 @@ public class ContentUtils {
 				long previous_date, int previous_type, String previous_body) {
 			boolean initiating = false, retexting=false;
      		if(previous_type==type) retexting = true;
-     		long hours_elapsed = (long)(date-previous_date)/((long)(1000.0*60.0*60.0));
+     	//long hours_elapsed = ((long)(date-previous_date))/((long)(1000.0*60.0*60.0));
+     		//long hours_elapsed = (long)(date-previous_date)/(1000*60*60);
+     		long hours_elapsed = Long.valueOf((date-previous_date)/(1000*60*60));
      		Log.i("hours elapsed ", ""+hours_elapsed);
+     		Log.i("DATE ", ""+date);
+     		Log.i("previous_date ", ""+previous_date);
      		if(retexting && hours_elapsed > 0.167) initiating=true;
      		else if(!retexting) {
      			if (hours_elapsed > 24) initiating=true;
@@ -718,7 +722,7 @@ public class ContentUtils {
 				graphView.setPadding(0, 0, 20, 10);
 				graphView.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,1f));
 				views.add(graphView);
-				graphView = new LineGraphView(
+				/*graphView = new LineGraphView(
 					    activity
 					    , original_name + " relative to you "
 					);
@@ -750,12 +754,10 @@ public class ContentUtils {
 					views.add(graphView);
 					
 				} catch(RuntimeException e) {
-				/*	TextView tv = new TextView(activity);
-					tv.setText("Not enough messages for this graph -- check back later!");
-					mGraphView.addView(tv);**/
+
 					e.printStackTrace();
 					return views;
-				}
+				}*/
 				return views;
 		}
 

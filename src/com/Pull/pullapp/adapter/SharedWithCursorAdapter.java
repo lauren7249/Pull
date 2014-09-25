@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.widget.CursorAdapter;
@@ -94,7 +95,7 @@ public class SharedWithCursorAdapter extends CursorAdapter {
         		holder.initials_view.setTypeface(null, Typeface.BOLD);
         		holder.initials_view.setSelected(true);
         	} else {
-        		holder.initials_view.setBackgroundResource(R.drawable.circle_green);
+        		holder.initials_view.setBackgroundResource(R.drawable.circle);
         		holder.initials_view.setTypeface(null, Typeface.NORMAL);
         		holder.initials_view.setSelected(false);
         	}    		

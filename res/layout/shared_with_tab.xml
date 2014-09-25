@@ -28,21 +28,24 @@
 		            android:id="@+id/original_person_image"
 			        android:layout_width="50dp"
 			        android:layout_height="50dp"
+			        android:layout_margin="5dp"
 			        android:visibility="gone" /> 
 			<TextView 
 				android:id="@+id/original_person_initials"
 				android:gravity="center"
 				android:layout_width="50dp"
 				android:layout_height="50dp"
+				android:layout_margin="5dp"
 				android:background="@drawable/circle"
 				android:textSize="16dp"
 				android:text="TT"
-				android:textColor="@color/textColor"
+				android:textColor="#235c66"
 				android:visibility="visible"/>					
 			<ImageView 
 				android:id="@+id/graph_button"
 				android:gravity="center"
 				android:layout_width="50dp"
+				android:layout_margin="5dp"
 				android:layout_height="50dp"
 				android:contentDescription="graph button"
 				android:background="@drawable/graph"
@@ -51,6 +54,7 @@
 				android:id="@+id/add_person"
 				android:gravity="center"
 				android:layout_width="50dp"
+				android:layout_margin="5dp"
 				android:layout_height="50dp"
 				android:background="@drawable/add"
 				android:visibility="visible"/>		            
@@ -59,7 +63,8 @@
 			<it.sephiroth.android.library.widget.HListView
 			    android:id="@+id/shared_with_list"
 			    android:layout_width="match_parent"
-			    android:layout_height="match_parent"
+			    android:layout_height="50dp"
+			    android:layout_margin="5dp"
 			    android:divider="#00000000" />						            
 	
 		</LinearLayout>    	
