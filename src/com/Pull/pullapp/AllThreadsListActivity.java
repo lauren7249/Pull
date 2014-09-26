@@ -533,6 +533,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	@Override
 	protected void onPause(){
 		super.onPause();
+		if(mBroadcastReceiver!=null) unregisterReceiver(mBroadcastReceiver);	
 	}
 
 

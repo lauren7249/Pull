@@ -12,6 +12,7 @@ import java.util.Timer;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.Pull.pullapp.R;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.AlertDialog;
@@ -35,6 +36,7 @@ import android.os.Bundle;
 import android.telephony.PhoneNumberFormattingTextWatcher;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
+import android.text.method.LinkMovementMethod;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
@@ -103,6 +105,7 @@ public class ViewPagerSignIn extends BaseActivity {
 	private UserInfoStore store;
 	private boolean receiverIsTrumped;
 	private PhoneNumberFormattingTextWatcher mWatcher;
+	private TextView mTerms;
 	
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,6 +132,9 @@ public class ViewPagerSignIn extends BaseActivity {
         mConfirmPassword = (EditText) findViewById(R.id.confirmPassword);
         mAssurance = (TextView) findViewById(R.id.assurance);
         mKeyHashBox = (EditText) findViewById(R.id.keyhash);
+        mTerms = (TextView) findViewById(R.id.privacy);
+        mTerms.setMovementMethod(LinkMovementMethod.getInstance());  
+        mTerms.setText(R.string.terms_of_service);
         
 	    prefs = getSharedPreferences(MainApplication.class.getSimpleName(), Context.MODE_PRIVATE);
 	    tMgr =(TelephonyManager)this.getSystemService(Context.TELEPHONY_SERVICE);

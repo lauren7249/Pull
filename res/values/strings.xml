@@ -14,7 +14,8 @@
     <string name="announce">Announcement</string>
     <string name="drawer_open">open</string>
     <string name="drawer_close">close</string>
-	
+	<string name="terms_of_service"><a href="http://www.thepullapp.com/termsAndPolicies.html"> By logging in, you agree to our Terms of Service and Privacy Policy.</a></string>
+    
     <string name="facebook_app_id">609671019119718</string>
     
     <string name="parse_key">ccQmmMwIY3wTRaBayFecdfZc4N0EIpYR30R5KdeH</string>    

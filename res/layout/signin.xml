@@ -96,7 +96,15 @@
 		    android:visibility="visible"
 		    android:text="Sign Up without Facebook" />    		    
 
-		    	    
+		<TextView
+		    android:id="@+id/privacy"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:layout_gravity="bottom|center"
+		    android:gravity="bottom|center"
+		    android:padding="10dp"
+		    android:textSize="10dp"
+		    android:layout_below="@id/generic_sign_in" /> 				    	    
 
         
 </LinearLayout>

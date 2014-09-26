@@ -71,7 +71,7 @@ public class SMSReceiverDefault extends BroadcastReceiver {
 		        Log.i("received broadcast",sender);
 		       
 				
-				boolean receive = sharedPrefs.getBoolean("prefReceiveTexts", false);
+				boolean receive = sharedPrefs.getBoolean("prefReceiveTexts", true);
 				 Log.i("receive","is " + receive);
 				if ((currentapiVersion >= android.os.Build.VERSION_CODES.KITKAT &&
 						Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName())) ||

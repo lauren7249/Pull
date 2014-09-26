@@ -16,6 +16,8 @@ import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import org.apache.commons.math3.stat.regression.SimpleRegression;
+
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -483,9 +485,9 @@ public class ContentUtils {
      	//long hours_elapsed = ((long)(date-previous_date))/((long)(1000.0*60.0*60.0));
      		//long hours_elapsed = (long)(date-previous_date)/(1000*60*60);
      		long hours_elapsed = Long.valueOf((date-previous_date)/(1000*60*60));
-     		Log.i("hours elapsed ", ""+hours_elapsed);
+     		/*Log.i("hours elapsed ", ""+hours_elapsed);
      		Log.i("DATE ", ""+date);
-     		Log.i("previous_date ", ""+previous_date);
+     		Log.i("previous_date ", ""+previous_date);*/
      		if(retexting && hours_elapsed > 0.167) initiating=true;
      		else if(!retexting) {
      			if (hours_elapsed > 24) initiating=true;
@@ -683,11 +685,23 @@ public class ContentUtils {
 					    activity
 					    , title
 					);
-
+				String ratio_name = series_names[2];
+				TreeMap <Long,Float> ratios = data.get(ratio_name);
+				Long lastDate = ratios.lastKey();
+				Float lastRatio = ratios.get(lastDate);
+				String response_Time_balance_overall;
+				if(ratio_name.equals(Constants.GRAPH_RESPONSE_TIME_RATIO)) {
+					//if(lastRatio<.9) response_Time_balance_overall = original_name + " generally responds to texts faster than you.";
+				} else if(ratio_name.equals(Constants.GRAPH_CONTACT_INIT_FREQ_RATIO)) {
+					
+				}
+				
+				Log.i("ratio",series_names[1] + " " + lastRatio);
 				try {
 					graphView.addSeries(new GraphViewSeries(original_name,
 							new GraphViewSeriesStyle(Color.rgb(251, 76, 60), 3), 
 							treemapToGraphSeries(data.get(series_names[0]))));
+					
 					graphView.addSeries(new GraphViewSeries("You",
 							new GraphViewSeriesStyle(Color.rgb(52, 185, 204), 3),
 							treemapToGraphSeries(data.get(series_names[1]))));
@@ -706,9 +720,9 @@ public class ContentUtils {
 					    	
 					    	Date d = new Date((long) value);
 					    	DateFormat dateFormatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.ENGLISH);
-					    	String dateOut = dateFormatter.format(d);
-					    	//return dateOut;
-					    	return "";
+					    	String dateOut = dateFormatter.format(d); 
+					    	return dateOut;
+					    	//return "";
 					    }
 					    return "";
 					  }
@@ -722,42 +736,8 @@ public class ContentUtils {
 				graphView.setPadding(0, 0, 20, 10);
 				graphView.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,1f));
 				views.add(graphView);
-				/*graphView = new LineGraphView(
-					    activity
-					    , original_name + " relative to you "
-					);
-					// add data
-				try {
-					graphView.addSeries(new GraphViewSeries(treemapToGraphSeries(data.get(series_names[2]))));
-					graphView.setCustomLabelFormatter(new CustomLabelFormatter() {
-						  @Override
-						  public String formatLabel(double value, boolean isValueX) {
-						    if (isValueX) {
-						    	
-						    	Date d = new Date((long) value);
-						    	DateFormat dateFormatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.ENGLISH);
-						    	String dateOut = dateFormatter.format(d);
-						    	//return dateOut;
-						    	return "";
-						    }
-						    if(value==1) return "";
-						    return "";
-						  }
-						});		
-					graphView.setLayoutParams(new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,1f));
-					graphView.getGraphViewStyle().setNumHorizontalLabels(1);
-					graphView.getGraphViewStyle().setNumVerticalLabels(1);	
-					graphView.getGraphViewStyle().setVerticalLabelsWidth(0);
-					graphView.setPadding(0, 20, 10, 10);
-					graphView.getGraphViewStyle().setTextSize(20);
-					
-					views.add(graphView);
-					
-				} catch(RuntimeException e) {
-
-					e.printStackTrace();
-					return views;
-				}*/
+				
+				
 				return views;
 		}
 
