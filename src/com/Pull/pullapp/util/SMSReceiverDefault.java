@@ -113,6 +113,8 @@ public class SMSReceiverDefault extends BroadcastReceiver {
 					ni.putExtra(Constants.EXTRA_NAME,name);
 			        ni.putExtra(Constants.EXTRA_NUMBER,sender);
 					ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					//ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+					ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 					PendingIntent pi = PendingIntent.getActivity(context, 0,
 							ni, PendingIntent.FLAG_CANCEL_CURRENT);
 					mBuilder.setContentIntent(pi);

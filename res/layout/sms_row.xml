@@ -61,9 +61,9 @@
 	             emojicon:emojiconSize="22sp"
 	             android:paddingRight="8dp"
 	             android:paddingLeft="8dp"
-	             android:fontFamily="sans-serif-light"
 	             android:text="Message Content"
 	             android:autoLink="web|email"
+	             android:textStyle="bold"
 	             android:textColor="@color/textColor"
 	             android:textSize="13sp" />
 	
@@ -78,6 +78,7 @@
 				 android:layout_marginTop="7dp"
 	             android:text="Message Time"
 	             android:textSize="11sp"
+	             android:textStyle="bold|italic"
 	             />    
 	                           
 	          <Button

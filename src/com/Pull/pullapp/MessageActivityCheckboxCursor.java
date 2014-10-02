@@ -756,7 +756,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		messages_adapter.notifyDataSetChanged();
 		merge_adapter.notifyDataSetChanged();
 		
-		mListView.setSelection(merge_adapter.getCount()-1);	
+		mListView.setSelection(mListView.getCount()-1);	
 		Log.i("mListView","getselection" + mListView.getSelectedItemPosition());
 	}
 

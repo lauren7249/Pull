@@ -482,11 +482,14 @@ public class ContentUtils {
 				long previous_date, int previous_type, String previous_body) {
 			boolean initiating = false, retexting=false;
      		if(previous_type==type) retexting = true;
-     	//long hours_elapsed = ((long)(date-previous_date))/((long)(1000.0*60.0*60.0));
+     		long milliseconds_elapsed = (long)(date-previous_date);
+     		long seconds_elapsed = (long) (milliseconds_elapsed*0.001);
+     		long minutes_elapsed = (long) (seconds_elapsed*0.016666666667);
+     		float hours_elapsed = (float) (minutes_elapsed*0.016666666667);
      		//long hours_elapsed = (long)(date-previous_date)/(1000*60*60);
-     		long hours_elapsed = Long.valueOf((date-previous_date)/(1000*60*60));
-     		/*Log.i("hours elapsed ", ""+hours_elapsed);
-     		Log.i("DATE ", ""+date);
+     		//long hours_elapsed = Long.valueOf((date-previous_date)/(1000*60*60));
+     		Log.i("hours elapsed ", ""+hours_elapsed);
+     		/*Log.i("DATE ", ""+date);
      		Log.i("previous_date ", ""+previous_date);*/
      		if(retexting && hours_elapsed > 0.167) initiating=true;
      		else if(!retexting) {
@@ -548,7 +551,9 @@ public class ContentUtils {
 				
 				} 
 				else if(previous_type != type && previous_date>0) { // not a retext and not an initiation, therefore a response
-				  minutes_elapsed = (date - previous_date)/(float)(1000*60);
+		     		long milliseconds_elapsed = (long)(date-previous_date);
+		     		long seconds_elapsed = (long) (milliseconds_elapsed*0.001);
+		     		minutes_elapsed = (long) (seconds_elapsed*0.016666666667);
 				  if(type==TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
 					  my_total_minutes = (float) my_total_minutes + minutes_elapsed;
 					  responses_mine++;
@@ -685,19 +690,20 @@ public class ContentUtils {
 					    activity
 					    , title
 					);
-				String ratio_name = series_names[2];
-				TreeMap <Long,Float> ratios = data.get(ratio_name);
-				Long lastDate = ratios.lastKey();
-				Float lastRatio = ratios.get(lastDate);
-				String response_Time_balance_overall;
-				if(ratio_name.equals(Constants.GRAPH_RESPONSE_TIME_RATIO)) {
-					//if(lastRatio<.9) response_Time_balance_overall = original_name + " generally responds to texts faster than you.";
-				} else if(ratio_name.equals(Constants.GRAPH_CONTACT_INIT_FREQ_RATIO)) {
-					
-				}
-				
-				Log.i("ratio",series_names[1] + " " + lastRatio);
+
 				try {
+					String ratio_name = series_names[2];
+					TreeMap <Long,Float> ratios = data.get(ratio_name);
+					Long lastDate = ratios.lastKey();
+					Float lastRatio = ratios.get(lastDate);
+					String response_Time_balance_overall;
+					if(ratio_name.equals(Constants.GRAPH_RESPONSE_TIME_RATIO)) {
+						//if(lastRatio<.9) response_Time_balance_overall = original_name + " generally responds to texts faster than you.";
+					} else if(ratio_name.equals(Constants.GRAPH_CONTACT_INIT_FREQ_RATIO)) {
+						
+					}
+					
+					Log.i("ratio",series_names[1] + " " + lastRatio);					
 					graphView.addSeries(new GraphViewSeries(original_name,
 							new GraphViewSeriesStyle(Color.rgb(251, 76, 60), 3), 
 							treemapToGraphSeries(data.get(series_names[0]))));

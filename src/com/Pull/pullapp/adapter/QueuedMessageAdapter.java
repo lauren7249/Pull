@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -95,14 +96,10 @@ public class QueuedMessageAdapter extends BaseAdapter{
 		else if(message.isSentByMe())
 		{
 			holder.messageBox.setBackgroundResource(R.drawable.outgoing);
+			holder.message.setTextColor(mContext.getResources().getColor(R.color.lightGreen));
+			holder.time.setTextColor(mContext.getResources().getColor(R.color.lightGreen));		
 			lp.gravity = Gravity.RIGHT;
 			
-		}
-		//If not mine then it is from sender to show yellow background and align to left
-		else
-		{
-			holder.messageBox.setBackgroundResource(R.drawable.incoming);
-			lp.gravity = Gravity.LEFT;
 		}
 		
 		holder.edit.setVisibility(View.VISIBLE);

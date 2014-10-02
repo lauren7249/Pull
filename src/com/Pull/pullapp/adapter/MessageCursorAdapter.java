@@ -135,7 +135,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 
 		holder.addPPl.setVisibility(View.GONE);
 
-    	holder.message.setTypeface(Typeface.SANS_SERIF, Typeface.NORMAL);
+    	holder.message.setTypeface(Typeface.SANS_SERIF, Typeface.BOLD);
     	holder.my_initials.setVisibility(View.GONE);
     	LayoutParams layoutParams=(LayoutParams) holder.addPPl.getLayoutParams();
     	LayoutParams lp = (LayoutParams) holder.messageBox.getLayoutParams();
@@ -147,6 +147,8 @@ public class MessageCursorAdapter extends CursorAdapter {
 				holder.time.setTextColor(Color.GRAY);						
 			} else {
 				holder.messageBox.setBackgroundResource(R.drawable.outgoing);
+				holder.message.setTextColor(context.getResources().getColor(R.color.lightGreen));
+				holder.time.setTextColor(context.getResources().getColor(R.color.lightGreen));				
 				if(!isMine) {
 					holder.my_initials.setVisibility(View.VISIBLE);
 		    		holder.my_initials.setText(ContentUtils.getInitials(conversant_name, conversant));
@@ -212,6 +214,8 @@ public class MessageCursorAdapter extends CursorAdapter {
 		    	}
 			}else {
 				holder.messageBox.setBackgroundResource(R.drawable.incoming);
+				holder.message.setTextColor(Color.WHITE);
+				holder.time.setTextColor(Color.WHITE);					
 				holder.their_pic.setVisibility(View.GONE);
 	    		holder.their_initials.setVisibility(View.VISIBLE);
 	    		holder.their_initials.setText(ContentUtils.getInitials(other_person_name, other_person));
@@ -343,30 +347,53 @@ public class MessageCursorAdapter extends CursorAdapter {
         if (check_hash.contains(message)) {
         	holder.addPPl.setBackgroundResource(R.drawable.good_indicator);
 			if(message.isSentByMe()) {
-				if(showCheckboxes) holder.messageBox.setBackgroundResource(R.drawable.outgoing_pressed);
-				else holder.messageBox.setBackgroundResource(R.drawable.outgoing);
+				if(showCheckboxes) {
+					holder.messageBox.setBackgroundResource(R.drawable.outgoing_pressed);
+					holder.message.setTextColor(Color.GRAY);
+					holder.time.setTextColor(Color.GRAY);						
+				}
+				else {
+					holder.messageBox.setBackgroundResource(R.drawable.outgoing);
+					holder.message.setTextColor(context.getResources().getColor(R.color.lightGreen));
+					holder.time.setTextColor(context.getResources().getColor(R.color.lightGreen));							
+				}
+				holder.message.setTypeface(Typeface.SANS_SERIF, Typeface.BOLD);			
 				holder.message.setGravity(Gravity.RIGHT);
 				holder.time.setGravity(Gravity.RIGHT);
 				layoutParams.gravity = Gravity.LEFT;
 			}else {
-				if(showCheckboxes) holder.messageBox.setBackgroundResource(R.drawable.incoming_pressed);
-				else holder.messageBox.setBackgroundResource(R.drawable.incoming);  
+				if(showCheckboxes) {
+					holder.messageBox.setBackgroundResource(R.drawable.incoming_pressed);
+					holder.message.setTextColor(Color.GRAY);
+					holder.time.setTextColor(Color.GRAY);							
+				}
+				else {
+					holder.messageBox.setBackgroundResource(R.drawable.incoming); 
+					holder.message.setTextColor(Color.WHITE);
+					holder.time.setTextColor(Color.WHITE);						
+				}
 				holder.message.setGravity(Gravity.LEFT);
 				holder.time.setGravity(Gravity.LEFT);
 				layoutParams.gravity = Gravity.RIGHT;
 			}
         }
         else {
-        	holder.addPPl.setBackgroundResource(R.drawable.green_plus);
+        	
 			if(message.isSentByMe()) {
+				holder.addPPl.setBackgroundResource(R.drawable.add_green);
 				holder.messageBox.setBackgroundResource(R.drawable.outgoing);
+				holder.message.setTextColor(context.getResources().getColor(R.color.lightGreen));
+				holder.time.setTextColor(context.getResources().getColor(R.color.lightGreen));
 				holder.message.setPadding(50, 0, 10, 0);
 				holder.time.setPadding(50, 0, 10, 0);
 				layoutParams.gravity = Gravity.LEFT;
 				holder.message.setGravity(Gravity.RIGHT);
 				holder.time.setGravity(Gravity.RIGHT);				
 			}else {
+				holder.addPPl.setBackgroundResource(R.drawable.add_white);
 				holder.messageBox.setBackgroundResource(R.drawable.incoming);  
+				holder.message.setTextColor(Color.WHITE);
+				holder.time.setTextColor(Color.WHITE);					
 				holder.message.setPadding(10, 0, 50, 0);
 				holder.time.setPadding(10, 0, 50, 0);
 				layoutParams.gravity = Gravity.RIGHT;
