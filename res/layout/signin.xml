@@ -15,12 +15,12 @@
 		    android:layout_width="wrap_content"
 		    android:layout_height="wrap_content"
 		    android:padding="10dp"
-		    android:textSize="25dp"
+		    android:textSize="35dp"
 		    android:textStyle="bold|italic"
 		    android:layout_gravity="center|top"
 		    android:gravity="center|top"
 		    android:layout_above="@+id/mobileNumber"
-		    android:text="Decoding your text relationships" /> 			    
+		    android:text="Decoding text relationships" /> 			    
 		<EditText
 		    android:id="@id/mobileNumber"
 		    android:layout_width="wrap_content"
@@ -74,6 +74,7 @@
 		    android:textColor="#ffffff"
 		    android:background="@drawable/fb_signin_button"
 		    android:onClick="facebookLogin"
+		    android:textSize="25dp"
 		    android:text="Sign up with Facebook" />   
 		<TextView
 		    android:id="@+id/assurance"
@@ -92,7 +93,7 @@
 		    android:background="#8fffffff"
 		    android:layout_centerHorizontal="true"
 		    android:textColor="#000000"
-		    android:textSize="12dp"
+		    android:textSize="25dp"
 		    android:visibility="visible"
 		    android:text="Sign Up without Facebook" />    		    
 

@@ -516,6 +516,7 @@ public class ViewPagerSignIn extends BaseActivity {
 	protected void displayAlternateLoginOption() {
 		// TODO Auto-generated method stub
 		mSignInButton.setVisibility(View.GONE);
+		mAssurance.setVisibility(View.GONE);
 		mGenericSignInButton.setVisibility(View.VISIBLE);
 		mGenericSignInButton.setBackgroundResource(R.drawable.neutral_signin_button);
 		mGenericSignInButton.setTextColor(Color.WHITE);
