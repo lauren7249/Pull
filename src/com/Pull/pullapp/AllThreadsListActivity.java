@@ -6,11 +6,11 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
-import android.provider.Telephony.TextBasedSmsColumns;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
@@ -39,7 +39,6 @@ import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.ParseAnalytics;
 import com.parse.ParseInstallation;
-import com.parse.ParseUser;
 
 public class AllThreadsListActivity extends SherlockListActivity implements View.OnClickListener {
 	
@@ -353,6 +352,15 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
     		
     		//Log.i("position","position " + listview.getFirstVisiblePosition());            
 			return true;				
+		case R.id.terms:
+			mixpanel.track("terms button clicked", null);
+            intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("http://www.thepullapp.com/termsAndPolicies.html"));
+            store.putPosition("tab"+currentTab,listview.getFirstVisiblePosition());
+            startActivity(intent);
+    		
+    		//Log.i("position","position " + listview.getFirstVisiblePosition());            
+			return true;			
 		default:
 			return false;
 		}
