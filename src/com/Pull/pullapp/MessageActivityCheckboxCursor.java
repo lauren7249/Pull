@@ -1164,7 +1164,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	  super.onSaveInstanceState(savedInstanceState);  
 	}  
 	//onRestoreInstanceState  
-	    @Override  
+	/*    @Override  
 	public void onRestoreInstanceState(Bundle savedInstanceState) {  
 	  super.onRestoreInstanceState(savedInstanceState);  
 	  number = savedInstanceState.getString("number");    
@@ -1179,7 +1179,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	  if(savedInstanceState.getLong("scheduled_for")>0) 
 		  sendDate = new Date(savedInstanceState.getLong("scheduled_for"));
 	//  position = savedInstanceState.getInt("position"); 	
-	}	
+	}	*/
 	private void updateDelayButton(){
 		if(sendDate!=null){
 			CharSequence date = DateUtils.getRelativeDateTimeString(mContext, sendDate.getTime(), DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS, DateUtils.FORMAT_ABBREV_ALL);
