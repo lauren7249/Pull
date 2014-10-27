@@ -60,6 +60,7 @@ public class ContentUtils {
 		if(name.equals(number)) return "??";
 		String[] i = name.split(" ");
 		for(String chunk : i) {
+			if(chunk.length()<1) continue;
 			initials = initials + chunk.substring(0,1);
 		}
 		return initials;

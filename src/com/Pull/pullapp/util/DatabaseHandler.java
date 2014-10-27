@@ -306,6 +306,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	}
 
 	public Cursor getSharedWithCursor(String number) {
+		if(number==null || number.length()==0) return null;
         String[] variables = new String[]{KEY_SHARED_WITH, KEY_CONVERSATION_FROM, KEY_CONVERSATION_FROM_NAME,
         		KEY_ID + " as " + BaseColumns._ID};		
         Cursor cursor = db.query(TABLE_SHARED_CONVERSATIONS, variables, 
