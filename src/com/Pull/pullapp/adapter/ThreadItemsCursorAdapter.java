@@ -130,7 +130,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	}		
     	else number = store.getPhoneNumber(recipientId);
     	
-    	if(number==null || number.length()==0) return;
+    	//if(number==null || number.length()==0) return;
     	name = store.getName(number);
     	if(name==null || name.length() == 0 || ContentUtils.addCountryCode(name).equals(ContentUtils.addCountryCode(number))) {
     		name = ContentUtils.getContactDisplayNameByNumber(context, number);
