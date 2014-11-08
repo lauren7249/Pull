@@ -1,7 +1,6 @@
 package com.Pull.pullapp.util;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.TimeZone;
 
 import org.json.JSONException;

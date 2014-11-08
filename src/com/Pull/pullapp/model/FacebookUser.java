@@ -1,16 +1,11 @@
 package com.Pull.pullapp.model;
 
-import android.content.Intent;
 import android.util.Log;
 
-import com.Pull.pullapp.util.Constants;
 import com.facebook.model.GraphUser;
 import com.parse.ParseClassName;
-import com.parse.ParseException;
 import com.parse.ParseInstallation;
 import com.parse.ParseObject;
-import com.parse.ParseUser;
-import com.parse.SaveCallback;
 
 @ParseClassName("FacebookUser")
 public class FacebookUser extends ParseObject {

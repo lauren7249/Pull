@@ -18,9 +18,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import android.R;
-import android.content.Intent;
-
 public class Constants {
 	
 	public static final String PICTURE_BUCKET = "pull-lauren-julia-hackday1";

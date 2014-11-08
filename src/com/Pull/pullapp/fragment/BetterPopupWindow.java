@@ -1,8 +1,5 @@
 package com.Pull.pullapp.fragment;
 
-import com.Pull.pullapp.R;
-import com.Pull.pullapp.R.style;
-
 import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
@@ -15,6 +12,8 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
 import android.widget.PopupWindow;
+
+import com.Pull.pullapp.R;
 
 /**
  * This class does most of the work of wrapping the {@link PopupWindow} so it's simpler to use.

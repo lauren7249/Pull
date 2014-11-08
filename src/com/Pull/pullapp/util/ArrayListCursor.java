@@ -15,11 +15,10 @@ package com.Pull.pullapp.util;
  * limitations under the License.
  */
 
+import java.util.ArrayList;
+
 import android.database.AbstractCursor;
 import android.database.CursorWindow;
-
-import java.lang.System;
-import java.util.ArrayList;
 
 /**
  * A convenience class that presents a two-dimensional ArrayList

@@ -16,8 +16,6 @@ import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import org.apache.commons.math3.stat.regression.SimpleRegression;
-
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;

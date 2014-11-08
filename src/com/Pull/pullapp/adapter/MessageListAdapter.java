@@ -6,7 +6,6 @@ import java.util.TreeSet;
 
 import android.content.Context;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,9 +16,6 @@ import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 
 import com.Pull.pullapp.R;
-import com.Pull.pullapp.R.drawable;
-import com.Pull.pullapp.R.id;
-import com.Pull.pullapp.R.layout;
 import com.Pull.pullapp.model.SMSMessage;
 
 public class MessageListAdapter extends BaseAdapter {

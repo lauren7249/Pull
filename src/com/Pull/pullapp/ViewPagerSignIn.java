@@ -12,7 +12,6 @@ import java.util.Timer;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.Pull.pullapp.R;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.AlertDialog;

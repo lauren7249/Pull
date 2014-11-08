@@ -1,6 +1,8 @@
 package com.Pull.pullapp;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -141,16 +143,36 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		mixpanel.track("AllThreadsListActivity created ", null);		
 		myPackageName = getPackageName();
 		currentapiVersion = android.os.Build.VERSION.SDK_INT;
+		
 		if (currentapiVersion >= android.os.Build.VERSION_CODES.KITKAT){
 	        if (!Telephony.Sms.getDefaultSmsPackage(this).equals(myPackageName)) {
-	            Intent intent =
-	                    new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
-	            intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, 
-	                    myPackageName);
-	            store.putPosition("tab"+currentTab,listview.getFirstVisiblePosition());
-	            startActivity(intent);
-	    		
-	    		//Log.i("position","position " + listview.getFirstVisiblePosition());	           
+	        	//Log.i("default package",Telephony.Sms.getDefaultSmsPackage(this));
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			    builder.setTitle("Use Pull to Text");
+			    builder.setMessage("Do you want to use Pull as your default texting app? " +
+			    		"Doing so will allow you automatically cancel texts within 5 seconds of sending! " +
+			    		"Just click 'OK' to the following prompts.")
+			           .setCancelable(true)
+			           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+			               public void onClick(DialogInterface dialog, int id)
+			               {
+
+			   	            Intent intent =
+				                    new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
+				            intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, 
+				                    myPackageName);
+				            store.putPosition("tab"+currentTab,listview.getFirstVisiblePosition());
+				            startActivity(intent);
+
+			               	}
+			           }) 
+			           .setNegativeButton("No", new DialogInterface.OnClickListener() {
+			               public void onClick(DialogInterface dialog, int id) 
+			               {
+			                    dialog.cancel();
+			               }
+			           }).show();		        	
+
 	        } 	
 		}		
 		

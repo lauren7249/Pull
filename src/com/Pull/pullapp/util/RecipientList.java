@@ -18,15 +18,14 @@
 package com.Pull.pullapp.util;
 
 
-import android.provider.Telephony.Mms;
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import android.telephony.PhoneNumberUtils;
 import android.text.Annotation;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
-
-import java.util.ArrayList;
-import java.util.Iterator;
 
 public class RecipientList {
     private final ArrayList<Recipient> mRecipients = new ArrayList<Recipient>();

@@ -1,7 +1,6 @@
 package com.Pull.pullapp.threads;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -14,13 +13,10 @@ import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
 import com.Pull.pullapp.util.SendUtils;
-import com.parse.FindCallback;
 import com.parse.FunctionCallback;
 import com.parse.ParseAnalytics;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
-import com.parse.ParseObject;
-import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
 public class ShareMessages extends Thread {

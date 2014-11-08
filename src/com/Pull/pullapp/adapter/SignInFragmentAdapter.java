@@ -5,7 +5,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
 import com.Pull.pullapp.R;
-import com.Pull.pullapp.R.drawable;
 import com.Pull.pullapp.fragment.SignInFragment;
 import com.viewpagerindicator.IconPagerAdapter;
 

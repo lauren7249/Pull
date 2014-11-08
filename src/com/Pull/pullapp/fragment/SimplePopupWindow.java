@@ -1,14 +1,13 @@
 package com.Pull.pullapp.fragment;
 
-import com.Pull.pullapp.R;
-import com.Pull.pullapp.R.layout;
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import com.Pull.pullapp.R;
 
 public class SimplePopupWindow extends BetterPopupWindow implements OnClickListener {
 	private String message;

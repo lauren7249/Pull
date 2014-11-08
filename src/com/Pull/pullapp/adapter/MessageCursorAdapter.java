@@ -13,7 +13,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.net.Uri;
 import android.provider.BaseColumns;
 import android.provider.Telephony;
 import android.provider.Telephony.TextBasedSmsColumns;

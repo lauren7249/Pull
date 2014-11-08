@@ -1,15 +1,12 @@
 package com.Pull.pullapp.adapter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import android.app.Activity;
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,8 +15,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.Pull.pullapp.R;
-import com.Pull.pullapp.util.Constants;
-import com.Pull.pullapp.util.ContentUtils;
 
 public class GraphAdapter extends ArrayAdapter<View> {
 

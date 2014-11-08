@@ -2,14 +2,12 @@ package com.Pull.pullapp;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.preference.Preference;
-import android.preference.PreferenceManager;
 import android.preference.Preference.OnPreferenceChangeListener;
-import android.provider.Telephony;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NavUtils;
 
 import com.Pull.pullapp.util.Constants;

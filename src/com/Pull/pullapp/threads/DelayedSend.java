@@ -4,16 +4,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.Pull.pullapp.util.Constants;
-import com.Pull.pullapp.util.SendUtils;
-import com.parse.ParseAnalytics;
-import com.parse.ParseUser;
-
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
+
+import com.Pull.pullapp.util.Constants;
+import com.Pull.pullapp.util.SendUtils;
+import com.parse.ParseAnalytics;
 
 public class DelayedSend extends Thread {
 

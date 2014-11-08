@@ -17,8 +17,6 @@
 
 package com.Pull.pullapp.util;
 
-import com.Pull.pullapp.R;
-
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
@@ -30,6 +28,8 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.ResourceCursorAdapter;
 import android.widget.TextView;
+
+import com.Pull.pullapp.R;
 
 /**
  * This adapter is used to filter contacts on both name and number.
