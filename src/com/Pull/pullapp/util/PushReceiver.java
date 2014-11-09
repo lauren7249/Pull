@@ -23,6 +23,7 @@ import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_DELIVERY_IN
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND;
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_READ_ORIG_IND;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -41,7 +42,6 @@ import com.android.mms.MmsConfig;
 import com.android.mms.transaction.NotificationTransaction;
 import com.android.mms.transaction.Transaction;
 import com.android.mms.transaction.TransactionBundle;
-import com.android.mms.transaction.TransactionService;
 
 import com.google.android.mms.ContentType;
 import com.google.android.mms.MmsException;
@@ -128,8 +128,6 @@ public class PushReceiver extends BroadcastReceiver {
                         }
 
                         if (!isDuplicateNotification(mContext, nInd)) {
-                        	Log.v(TAG,"saving pdu " + nInd.toString());
-
                             // Save the pdu. If we can start downloading the real pdu immediately,
                             // don't allow persist() to create a thread for the notificationInd
                             // because it causes UI jank.
@@ -143,8 +141,9 @@ public class PushReceiver extends BroadcastReceiver {
                             svc.putExtra(TransactionBundle.URI, uri.toString());
                             svc.putExtra(TransactionBundle.TRANSACTION_TYPE,
                                     Transaction.NOTIFICATION_TRANSACTION);
-                            mContext.startService(svc);
-                            
+                            ComponentName cn = mContext.startService(svc);
+                            Log.v(TAG,"pdu uri " + uri.toString());
+                            Log.v(TAG,"ComponentName " + cn.toShortString());
                         } else if (LOCAL_LOGV) {
                             Log.v(TAG, "Skip downloading duplicate message: "
                                     + new String(nInd.getContentLocation()));
