@@ -25,6 +25,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -1204,6 +1205,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	// when a user selects a menu item
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+		Intent intent;
 		switch (item.getItemId()) {
 		case android.R.id.home:
 			if(loader!=null) loader.cancel(true);	
@@ -1211,14 +1213,19 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
             return true;	
 		case R.id.menu_contacts:
 			mixpanel.track("add to contacts", null);
-            Intent intent = new Intent(Intent.ACTION_INSERT);
+            intent = new Intent(Intent.ACTION_INSERT);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
             intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
             if(number!=null) intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
             else intent.putExtra(ContactsContract.Intents.Insert.PHONE, shared_conversant);
             startActivity(intent);            	
-            return true;	               
+            return true;	
+		case R.id.menu_call:
+			 String uri = "tel:" + number ;
+			 intent = new Intent(Intent.ACTION_CALL);
+			 intent.setData(Uri.parse(uri));
+			 startActivity(intent);        	
 		case CONTEXTMENU_SHARE_PERSISTENT:
 			viewSwitcher.setDisplayedChild(1);
             return true;			         

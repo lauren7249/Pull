@@ -3,4 +3,7 @@
     <item android:id="@+id/menu_contacts"
           android:title="Add to Contacts" 
           android:showAsAction="never"/>    
+    <item android:id="@+id/menu_call"
+          android:title="Phone call" 
+          android:showAsAction="never"/>             
 </menu>
