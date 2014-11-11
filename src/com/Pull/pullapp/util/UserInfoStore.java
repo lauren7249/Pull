@@ -22,6 +22,7 @@ public class UserInfoStore {
 	private SharedPreferences mPrefs_phoneNumber_FacebookID;
 	private SharedPreferences mPrefs_sms_sharedWith;
 	private SharedPreferences phoneNumber_photoPath;
+	private SharedPreferences phoneNumber_threadID;
 	private SharedPreferences approvals;
 	private SharedPreferences mPrefs;
 	public UserInfoStore(Context context) {
@@ -38,6 +39,9 @@ public class UserInfoStore {
     	mPrefs_phoneNumber_FacebookID = context
     			.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
     			+ "phoneNumber_FacebookID",Context.MODE_PRIVATE); 	
+    	phoneNumber_threadID = context
+    			.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
+    			+ "phoneNumber_threadID",Context.MODE_PRIVATE); 	    	
     	mPrefs_sms_sharedWith = context
     			.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
     			+ "mPrefs_sms_sharedWith",Context.MODE_PRIVATE); 
@@ -108,8 +112,6 @@ public class UserInfoStore {
 	public void savePhotoPath(String number, String photoPath) {
 		Editor editor = phoneNumber_photoPath.edit();
 		editor.putString(ContentUtils.addCountryCode(number), photoPath);	
-	//	Log.i("phone number", ContentUtils.addCountryCode(number));
-	//	Log.i("path of photo", photoPath);
 		editor.commit();	
 	}
 	public Bitmap getFriendBitmap(String number) {
@@ -180,4 +182,14 @@ public class UserInfoStore {
 	public int getPosition(String number) {
 		return mPrefs.getInt(number+"position", -1);
 	}
+	public String getThreadID(String number) {
+		return phoneNumber_threadID.getString(ContentUtils.addCountryCode(number), null);
+	}
+	public void saveThreadID(String number, String threadID) {
+		Editor editor = phoneNumber_threadID.edit();
+		editor.putString(ContentUtils.addCountryCode(number), threadID);	
+		editor.commit();
+		
+	}
+
 }

@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.provider.BaseColumns;
 import android.provider.Telephony;
 import android.provider.Telephony.TextBasedSmsColumns;
@@ -88,7 +89,9 @@ public class MessageCursorAdapter extends CursorAdapter {
 	
 	@Override
 	public void bindView(View v, Context context, Cursor c) {
-		if(isTextConvo) populateTextConvo(context, c, v, false);
+		if(isTextConvo) {
+			populateTextConvo(context, c, v, false);
+		}
 		else populateSharedConvo(context, c, v, false);
 	}
 
@@ -96,7 +99,9 @@ public class MessageCursorAdapter extends CursorAdapter {
 	public View newView(Context context, Cursor c, ViewGroup parent) {
 		final LayoutInflater inflater = LayoutInflater.from(context);
 		View v = inflater.inflate(R.layout.sms_row, parent, false);
-		if(isTextConvo) populateTextConvo(context, c, v, true);
+		if(isTextConvo) {
+			populateTextConvo(context, c, v, true);
+		}
 		else populateSharedConvo(context, c, v, true);
 		return v;
 	}
@@ -282,50 +287,48 @@ public class MessageCursorAdapter extends CursorAdapter {
 	}
 
 	private void populateTextConvo(final Context context, Cursor c, View v, boolean isnew) {
+		
+		final ViewHolder holder; 
+		if(isnew) holder = new ViewHolder();
+		else holder = (ViewHolder) v.getTag();
+		
+		String msgContentType = c.getString(c.
+			     getColumnIndex(Telephony.BaseMmsColumns.CONTENT_TYPE));
+    	
+		boolean initiating = false;
+		if ("application/vnd.wap.multipart.related".equals(msgContentType)) {			
+			initiating=ContentUtils.isInitiating(c, false, context);
+		}
+		else {
+			initiating=ContentUtils.isInitiating(c, true, context);
+			Cursor mCursor = ContentUtils.getSMS(c, context);
+	        if(mCursor.moveToFirst()) populateSMSConvo(mCursor, holder, v, context, initiating);
+		}		
+
+	}
+	private void populateSMSConvo(Cursor c, ViewHolder holder, View v, final Context context, boolean initiating) {
 		String body="";
 		final String address;
 		long date;
 		final SMSMessage message;
-		final int position = c.getPosition();
-		int type = 0;
-		
+		int type = 0;		
 		try {
-			type = Integer.parseInt(c.getString(1).toString());
+			type = Integer.parseInt(c.getString(c.getColumnIndex(TextBasedSmsColumns.TYPE)).toString());
 		} catch(RuntimeException e) {
+			e.printStackTrace();
 			return;
 		} 
 		if(type==TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return;
-	//	Log.i("type","type " + type);
-		body = c.getString(2).toString();
-    	address = c.getString(4).toString();
-    	date = c.getLong(6);
-    	String read = c.getString(5).toString();
-    	String SmsMessageId = c.getString(3).toString();
+		
+		body = c.getString(c.getColumnIndex(TextBasedSmsColumns.BODY)).toString();
+		//Log.i("body",body);
+    	address = c.getString(c.getColumnIndex(TextBasedSmsColumns.ADDRESS)).toString();
+    	date = c.getLong(c.getColumnIndex(TextBasedSmsColumns.DATE));
+    	String read = c.getString(c.getColumnIndex(TextBasedSmsColumns.READ)).toString();
+    	String SmsMessageId = c.getString(c.getColumnIndex(BaseColumns._ID)).toString();
     	
     	message = new SMSMessage(date, body, address, store.getName(address), 
     			type, store, ParseUser.getCurrentUser().getUsername());
-    	
-    	boolean initiating=false;
-    	if(c.moveToPrevious()) {
-    		long previous_date = c.getLong(6);
-    		int previous_type = Integer.parseInt(c.getString(1).toString());
-    		String previous_body = c.getString(2).toString();
-     		
-    		initiating = ContentUtils.isInitiating(date, type, body, previous_date, previous_type, previous_body);
-    		c.moveToNext();
-    	}
-    	
-    	
-    	/**try {
-			message.saveToParse();
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	**/
-		final ViewHolder holder; 
-		if(isnew) holder = new ViewHolder();
-		else holder = (ViewHolder) v.getTag();
 		
 		holder.messageBox = (LinearLayout) v.findViewById(R.id.message_box);
 		holder.message = (TextView) v.findViewById(R.id.message_text);
@@ -453,6 +456,7 @@ public class MessageCursorAdapter extends CursorAdapter {
     		context.getContentResolver().update(Telephony.Sms.CONTENT_URI,
     				values, BaseColumns._ID+"="+SmsMessageId, null);	
     	}	    	
+		
 	}
 	private static class ViewHolder
 	{

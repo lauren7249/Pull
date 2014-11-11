@@ -432,7 +432,8 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	    	if(number==null) {
 				number = ContentUtils.getAddressFromID(mContext, recipientId);
 				store.setPhoneNumber(recipientId,number);
-	    	}				
+	    	}			
+	    	store.saveThreadID(number, threadID);
 			String name = store.getName(number);
 	    	if(name==null) {
 	    		name = ContentUtils.getContactDisplayNameByNumber(mContext, number);

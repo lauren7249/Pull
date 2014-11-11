@@ -207,6 +207,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
     private static final int NUM_PAGES = 2;
     private ViewPager mPager;
     private PagerAdapter mPagerAdapter;
+	private Cursor mms_cursor;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -317,10 +318,13 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			name =  getIntent().getStringExtra(Constants.EXTRA_NAME); 
 			status = getIntent().getStringExtra(Constants.EXTRA_STATUS); 
 			if(status==null)  status = "";
-			
-			thread_id = getIntent().getStringExtra(Constants.EXTRA_THREAD_ID); 
+			thread_id = store.getThreadID(number);
+			if(thread_id==null) {
+				thread_id = ContentUtils.getThreadIDFromNumber(mContext, number);
+				store.saveThreadID(number, thread_id);
+			}
 			Long scheduledFor = getIntent().getLongExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, 0);
-			
+			Log.i("THREAD ID",thread_id);
 			if(scheduledFor>0) sendDate = new Date(scheduledFor);
 			else sendDate = null;
 			
@@ -752,7 +756,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private void rePopulateMessages() {
 		Log.i("log","repopulate messages");
 		removeMessage();
-		messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
+		//messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
+		messages_cursor = ContentUtils.getMessageIDsCursor(mContext,thread_id);
 		messages_adapter.swapCursor(messages_cursor);
 		messages_adapter.notifyDataSetChanged();
 		merge_adapter.notifyDataSetChanged();
@@ -1064,7 +1069,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		hideInputs();
 		text.setText("");
 		
-    	if(!store.isFriend(shared_conversant) && !store.wasInvited(shared_conversant)) {
+    	if(!store.isFriend(shared_conversant) && !store.wasInvited(shared_conversant) && 
+    			false) {
     		
 			View addFriendView = View.inflate(mContext, R.layout.add_friend, null);
 			AlertDialog.Builder builder = new AlertDialog.Builder(activity);
@@ -1088,7 +1094,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	            	   mixpanel.track("user invited friend", null);
 	               	}
 	           }) 
-	           .show();		
+	           .show();	
     	} 
     	  			
 		long currentDate = new Date().getTime();

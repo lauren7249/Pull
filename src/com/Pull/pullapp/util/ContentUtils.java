@@ -251,7 +251,7 @@ public class ContentUtils {
 		public static Cursor getMessagesCursor(Context mContext,
 				String thread_id, String number) {
 			String querystring;
-			if(thread_id == null || true) {
+			if(thread_id == null) {
 				Log.i("thread id is null", number);
 				querystring = 
 				"REPLACE(REPLACE(REPLACE(REPLACE(" + TextBasedSmsColumns.ADDRESS + 
@@ -269,7 +269,7 @@ public class ContentUtils {
 			else {
 				Log.i("thread id is here", thread_id);
 				querystring = TextBasedSmsColumns.THREAD_ID + "=" + thread_id 
-			
+					+ " AND "
 					+ TextBasedSmsColumns.TYPE + " in (" + 
 			   				TextBasedSmsColumns.MESSAGE_TYPE_SENT 					
 			   				+  " , " + TextBasedSmsColumns.MESSAGE_TYPE_INBOX + ")";
@@ -283,7 +283,7 @@ public class ContentUtils {
 
 			Cursor messages_cursor = mContext.getContentResolver().query(Telephony.Sms.CONTENT_URI,
 					variables,querystring ,null,TextBasedSmsColumns.DATE);	      
-			Log.i("pending_messages_cursor size", " " + messages_cursor.getCount());
+			Log.i("messages_cursor size", " " + messages_cursor.getCount());
 	        return messages_cursor;
 		}		
 		
@@ -751,5 +751,56 @@ public class ContentUtils {
 			String where = TextBasedSmsColumns.THREAD_ID+"=?";
 			String[] args = new String[] { threadID };
 			mContext.getContentResolver().delete( Telephony.Sms.CONTENT_URI, where, args );
+		}
+
+		public static Cursor getMessageIDsCursor(Context mContext, String thread_id) {
+	        String[] variables = new String[]{Telephony.BaseMmsColumns.THREAD_ID, 
+	        		Telephony.BaseMmsColumns.CONTENT_TYPE, Telephony.BaseMmsColumns._ID,
+	        		Telephony.BaseMmsColumns.DATE};
+
+			Cursor messages_cursor = mContext.getContentResolver().query(Uri.parse("content://mms-sms/conversations/" + thread_id),
+					variables,null ,null,Telephony.BaseMmsColumns.DATE);	      
+			Log.i("getMessageIDsCursor size", " " + messages_cursor.getCount());
+	        return messages_cursor;
+		}
+
+		public static boolean isInitiating(Cursor parent, boolean isSMS, Context context) {
+			if(!isSMS) return true;
+			boolean initiating = false;
+	    	if(parent.moveToPrevious()) {
+				Cursor c = getSMS(parent, context);
+				if(!c.moveToFirst()) return initiating;
+				String body = c.getString(c.getColumnIndex(TextBasedSmsColumns.BODY)).toString();
+				//Log.i("body",body);
+		    	long date = c.getLong(c.getColumnIndex(TextBasedSmsColumns.DATE));			
+				int type = 0;		
+				try {
+					type = Integer.parseInt(c.getString(c.getColumnIndex(TextBasedSmsColumns.TYPE)).toString());
+				} catch(RuntimeException e) {
+					e.printStackTrace();
+					return initiating;
+				} 	 	    		
+	    		long previous_date = c.getLong(6);
+	    		int previous_type = Integer.parseInt(c.getString(1).toString());
+	    		String previous_body = c.getString(2).toString();
+	     		
+	    		initiating = ContentUtils.isInitiating(date, type, body, previous_date, previous_type, previous_body);
+	    		parent.moveToNext();
+	    	}
+	    	return initiating;
+		}
+
+		public static Cursor getSMS(Cursor parent, Context context) {
+		    Uri mUri = Telephony.Sms.CONTENT_URI;     
+			String msgID = parent.getString(parent.
+				     getColumnIndex(Telephony.BaseMmsColumns._ID));					    
+	        String[] variables = new String[]{"'sent' as category",
+	        		TextBasedSmsColumns.TYPE,TextBasedSmsColumns.BODY,
+	        		BaseColumns._ID, TextBasedSmsColumns.ADDRESS, TextBasedSmsColumns.READ,
+	        		TextBasedSmsColumns.DATE, TextBasedSmsColumns.THREAD_ID};		          
+          Cursor mCursor = context.getContentResolver().query(mUri, variables,
+        		  Telephony.BaseMmsColumns._ID + "=" + msgID, 
+            null, TextBasedSmsColumns.DATE);
+		return mCursor;
 		}				
 }

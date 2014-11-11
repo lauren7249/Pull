@@ -990,12 +990,6 @@ public class TransactionService extends Service implements Observer {
                     com.Pull.pullapp.util.TransactionSettings mysettings = 
                     		new com.Pull.pullapp.util.TransactionSettings(
                             context, mmsNetworkInfo.getExtraInfo());                    
-               /*     try {
-						ensureRouteToHost(mConnMgr, mysettings.getMmscUrl(),mysettings);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}*/
                     if (TextUtils.isEmpty(mysettings.getMmscUrl())) {
                         Log.v(TAG, "   empty MMSC url, bail");
                         mToastHandler.sendEmptyMessage(TOAST_NO_APN);
