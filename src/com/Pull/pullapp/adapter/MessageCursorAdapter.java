@@ -302,7 +302,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		else {
 			initiating=ContentUtils.isInitiating(c, true, context);
 			Cursor mCursor = ContentUtils.getSMS(c, context);
-	        if(mCursor.moveToFirst()) populateSMSConvo(mCursor, holder, v, context, initiating);
+	        if(mCursor!=null && mCursor.moveToFirst()) populateSMSConvo(mCursor, holder, v, context, initiating);
 		}		
 
 	}

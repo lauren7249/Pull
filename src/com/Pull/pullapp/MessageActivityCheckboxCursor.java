@@ -324,7 +324,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				store.saveThreadID(number, thread_id);
 			}
 			Long scheduledFor = getIntent().getLongExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, 0);
-			Log.i("THREAD ID",thread_id);
+	//		Log.i("THREAD ID",thread_id);
 			if(scheduledFor>0) sendDate = new Date(scheduledFor);
 			else sendDate = null;
 			
@@ -377,7 +377,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				String action = intent.getAction();					
 				if(action.equals(Constants.ACTION_SMS_INBOXED)) {
 					if(intent.getStringExtra(Constants.EXTRA_NUMBER).equals(number)) {
-						messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
+						//messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
+						messages_cursor = ContentUtils.getMessageIDsCursor(mContext,thread_id);
 						messages_adapter.swapCursor(messages_cursor);							
 						messages_adapter.notifyDataSetChanged();
 						merge_adapter.notifyDataSetChanged();
@@ -428,7 +429,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 							if(queue_adapter.delayedMessages.containsKey(scheduledOn) && scheduledOn>0) {
 								removeMessage();
 							}
-							messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
+							//messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
+							messages_cursor = ContentUtils.getMessageIDsCursor(mContext,thread_id);
 							messages_adapter.swapCursor(messages_cursor);							
 							messages_adapter.notifyDataSetChanged();
 							merge_adapter.notifyDataSetChanged();

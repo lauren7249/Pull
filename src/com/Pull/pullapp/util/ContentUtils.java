@@ -760,7 +760,7 @@ public class ContentUtils {
 
 			Cursor messages_cursor = mContext.getContentResolver().query(Uri.parse("content://mms-sms/conversations/" + thread_id),
 					variables,null ,null,Telephony.BaseMmsColumns.DATE);	      
-			Log.i("getMessageIDsCursor size", " " + messages_cursor.getCount());
+			//Log.i("getMessageIDsCursor size", " " + messages_cursor.getCount());
 	        return messages_cursor;
 		}
 
@@ -769,7 +769,7 @@ public class ContentUtils {
 			boolean initiating = false;
 	    	if(parent.moveToPrevious()) {
 				Cursor c = getSMS(parent, context);
-				if(!c.moveToFirst()) return initiating;
+				if(c==null || !c.moveToFirst()) return initiating;
 				String body = c.getString(c.getColumnIndex(TextBasedSmsColumns.BODY)).toString();
 				//Log.i("body",body);
 		    	long date = c.getLong(c.getColumnIndex(TextBasedSmsColumns.DATE));			
