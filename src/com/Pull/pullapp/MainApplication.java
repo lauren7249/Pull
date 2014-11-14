@@ -18,6 +18,7 @@ import android.util.Log;
 
 import com.Pull.pullapp.model.FacebookUser;
 import com.Pull.pullapp.model.Invite;
+import com.Pull.pullapp.model.MMSMessage;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.ShareEvent;
 import com.Pull.pullapp.model.ShareSuggestion;
@@ -63,6 +64,7 @@ public class MainApplication extends Application {
 		editor = prefs.edit();
 		
 		ParseObject.registerSubclass(SMSMessage.class);
+		ParseObject.registerSubclass(MMSMessage.class);
 		ParseObject.registerSubclass(FacebookUser.class);
 		ParseObject.registerSubclass(ShareSuggestion.class);
 		ParseObject.registerSubclass(Invite.class);

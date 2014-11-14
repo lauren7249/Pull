@@ -51,7 +51,8 @@ public class QueuedMessageAdapter extends BaseAdapter{
 	@SuppressLint("ResourceAsColor")
 	public View getView(final int position, View convertView, ViewGroup parent) {
 		final SMSMessage message = this.getItem(getCount() - position - 1);
-		if(message == null) Log.i("message is null","message is null " + getCount() + " " + position);
+		//if(message instanceof com.Pull.pullapp.model.MMSMessage) Log.i("message is mms","message is mms "); ;
+		//if(message == null) Log.i("message is null","message is null " + getCount() + " " + position);
 		final ViewHolder holder; 
 		if(convertView == null)
 		{
@@ -150,7 +151,7 @@ public class QueuedMessageAdapter extends BaseAdapter{
 	@Override
 	public long getItemId(int position) {
 		// TODO Auto-generated method stub
-		return 0;
+		return (long) getItem(position).hashCode();
 	}
 
  

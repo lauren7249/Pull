@@ -1,5 +1,6 @@
 package com.Pull.pullapp.util;
 
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -22,6 +23,8 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -287,7 +290,14 @@ public class ContentUtils {
 	        return messages_cursor;
 		}		
 		
-	   
+		public static Cursor getMMSCursor(Context mContext,String thread_id) {
+			String querystring = Telephony.BaseMmsColumns.THREAD_ID + "=" + thread_id ;
+			String[] vars = new String[]{ Telephony.BaseMmsColumns._ID, 
+					Telephony.BaseMmsColumns.DATE, Telephony.BaseMmsColumns.MESSAGE_BOX};
+			Cursor messages_cursor = mContext.getContentResolver().query(Telephony.Mms.CONTENT_URI,
+					vars,querystring ,null,Telephony.BaseMmsColumns.DATE);	   
+	        return messages_cursor;
+		}			   
 		
 		public static String saveToInternalStorage(Context mContext, Bitmap bitmapImage, String name){
 	        ContextWrapper cw = new ContextWrapper(mContext);
@@ -473,7 +483,6 @@ public class ContentUtils {
 
 		    // Decode bitmap with inSampleSize set
 		    options.inJustDecodeBounds = false;
-
 		    return BitmapFactory.decodeResource(res, resId, options);
 		}
 
@@ -487,7 +496,7 @@ public class ContentUtils {
      		float hours_elapsed = (float) (minutes_elapsed*0.016666666667);
      		//long hours_elapsed = (long)(date-previous_date)/(1000*60*60);
      		//long hours_elapsed = Long.valueOf((date-previous_date)/(1000*60*60));
-     		Log.i("hours elapsed ", ""+hours_elapsed);
+     		//Log.i("hours elapsed ", ""+hours_elapsed);
      		/*Log.i("DATE ", ""+date);
      		Log.i("previous_date ", ""+previous_date);*/
      		if(retexting && hours_elapsed > 0.167) initiating=true;
@@ -702,7 +711,7 @@ public class ContentUtils {
 						
 					}
 					
-					Log.i("ratio",series_names[1] + " " + lastRatio);					
+					//Log.i("ratio",series_names[1] + " " + lastRatio);					
 					graphView.addSeries(new GraphViewSeries(original_name,
 							new GraphViewSeriesStyle(Color.rgb(251, 76, 60), 3), 
 							treemapToGraphSeries(data.get(series_names[0]))));

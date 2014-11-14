@@ -1,6 +1,11 @@
 package com.Pull.pullapp.adapter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.json.JSONException;
@@ -13,7 +18,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.net.Uri;
 import android.provider.BaseColumns;
 import android.provider.Telephony;
 import android.provider.Telephony.TextBasedSmsColumns;
@@ -29,10 +33,13 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.Pull.pullapp.R;
 import com.Pull.pullapp.fragment.SimplePopupWindow;
+import com.Pull.pullapp.model.MMSMessage;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
@@ -45,6 +52,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 	
 	public boolean showCheckboxes;
 	public TreeSet<SMSMessage> check_hash;
+	private TreeMap<Long, MMSMessage> mms;
 	public HashMap<Long,Integer> delayedMessages;
 	private String other_person, other_person_name;
 	private Activity activity;
@@ -67,6 +75,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		this.activity = activity;
 		this.isTextConvo = true;
 		cu  = new ContentUtils();
+		mms = new TreeMap<Long, MMSMessage>();
    	    	
     }
 	public MessageCursorAdapter(Context context, Cursor cursor, Activity activity, 
@@ -87,11 +96,13 @@ public class MessageCursorAdapter extends CursorAdapter {
 		cu  = new ContentUtils();
     }
 	
+	public void insert(MMSMessage m) {
+	//	Log.i("m.getdate",""+m.getDate());
+		mms.put(m.getDate(), m);
+	}
 	@Override
 	public void bindView(View v, Context context, Cursor c) {
-		if(isTextConvo) {
-			populateTextConvo(context, c, v, false);
-		}
+		if(isTextConvo) populateTextConvo(context, c, v, false);
 		else populateSharedConvo(context, c, v, false);
 	}
 
@@ -99,9 +110,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 	public View newView(Context context, Cursor c, ViewGroup parent) {
 		final LayoutInflater inflater = LayoutInflater.from(context);
 		View v = inflater.inflate(R.layout.sms_row, parent, false);
-		if(isTextConvo) {
-			populateTextConvo(context, c, v, true);
-		}
+		if(isTextConvo) populateTextConvo(context, c, v, true);
 		else populateSharedConvo(context, c, v, true);
 		return v;
 	}
@@ -287,48 +296,48 @@ public class MessageCursorAdapter extends CursorAdapter {
 	}
 
 	private void populateTextConvo(final Context context, Cursor c, View v, boolean isnew) {
-		
-		final ViewHolder holder; 
-		if(isnew) holder = new ViewHolder();
-		else holder = (ViewHolder) v.getTag();
-		
-		String msgContentType = c.getString(c.
-			     getColumnIndex(Telephony.BaseMmsColumns.CONTENT_TYPE));
-    	
-		boolean initiating = false;
-		if ("application/vnd.wap.multipart.related".equals(msgContentType)) {			
-			initiating=ContentUtils.isInitiating(c, false, context);
-		}
-		else {
-			initiating=ContentUtils.isInitiating(c, true, context);
-			Cursor mCursor = ContentUtils.getSMS(c, context);
-	        if(mCursor!=null && mCursor.moveToFirst()) populateSMSConvo(mCursor, holder, v, context, initiating);
-		}		
-
-	}
-	private void populateSMSConvo(Cursor c, ViewHolder holder, View v, final Context context, boolean initiating) {
 		String body="";
 		final String address;
 		long date;
 		final SMSMessage message;
-		int type = 0;		
+		final int position = c.getPosition();
+		int type = 0;
+		
 		try {
-			type = Integer.parseInt(c.getString(c.getColumnIndex(TextBasedSmsColumns.TYPE)).toString());
+			type = Integer.parseInt(c.getString(1).toString());
 		} catch(RuntimeException e) {
-			e.printStackTrace();
 			return;
 		} 
 		if(type==TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return;
-		
-		body = c.getString(c.getColumnIndex(TextBasedSmsColumns.BODY)).toString();
-		//Log.i("body",body);
-    	address = c.getString(c.getColumnIndex(TextBasedSmsColumns.ADDRESS)).toString();
-    	date = c.getLong(c.getColumnIndex(TextBasedSmsColumns.DATE));
-    	String read = c.getString(c.getColumnIndex(TextBasedSmsColumns.READ)).toString();
-    	String SmsMessageId = c.getString(c.getColumnIndex(BaseColumns._ID)).toString();
-    	
+	//	
+		body = c.getString(2).toString();
+    	address = c.getString(4).toString();
+    	date = c.getLong(6);
+    	String read = c.getString(5).toString();
+    	String SmsMessageId = c.getString(3).toString();
+    	//Log.i("SmsMessageId","SMSDATE"+date);
     	message = new SMSMessage(date, body, address, store.getName(address), 
     			type, store, ParseUser.getCurrentUser().getUsername());
+    	
+    	boolean initiating=false;
+
+    	SortedMap<Long, MMSMessage> submms;
+    	
+    	if(c.moveToPrevious()) {
+    		long previous_date = c.getLong(6);
+    		int previous_type = Integer.parseInt(c.getString(1).toString());
+    		String previous_body = c.getString(2).toString();
+    		submms = mms.subMap(previous_date,date);
+	
+    		initiating = ContentUtils.isInitiating(date, type, body, previous_date, previous_type, previous_body);
+    		c.moveToNext();
+    	} else submms = mms.headMap(date);
+    	
+    	Object[] mms_array = submms.entrySet().toArray();
+    	
+		final ViewHolder holder; 
+		if(isnew) holder = new ViewHolder();
+		else holder = (ViewHolder) v.getTag();
 		
 		holder.messageBox = (LinearLayout) v.findViewById(R.id.message_box);
 		holder.message = (TextView) v.findViewById(R.id.message_text);
@@ -336,11 +345,16 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.edit = (Button) v.findViewById(R.id.edit_message_button);	
 		holder.their_pic = (CircularImageView) v.findViewById(R.id.contact_image);
 		holder.separator = (View) v.findViewById(R.id.separator);
-		
+		holder.mms_list = (ListView) v.findViewById(R.id.mms_list);
 		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);
 		
 		if(initiating) holder.separator.setVisibility(View.VISIBLE);
 		else  holder.separator.setVisibility(View.GONE);
+		
+		holder.mms_list.setVisibility(mms_array.length>0 ? View.VISIBLE : View.GONE);
+		MMSAdapter mms_adapter = new MMSAdapter(context,mms_array);
+		holder.mms_list.setAdapter(mms_adapter);
+		mms_adapter.notifyDataSetChanged();
 		
 		if(showCheckboxes) holder.addPPl.setVisibility(View.VISIBLE);
 		else  holder.addPPl.setVisibility(View.GONE);
@@ -456,10 +470,11 @@ public class MessageCursorAdapter extends CursorAdapter {
     		context.getContentResolver().update(Telephony.Sms.CONTENT_URI,
     				values, BaseColumns._ID+"="+SmsMessageId, null);	
     	}	    	
-		
 	}
-	private static class ViewHolder
+
+	public static class ViewHolder
 	{
+		public ListView mms_list;
 		public View separator;
 		public TextView my_initials;
 		public TextView their_initials;

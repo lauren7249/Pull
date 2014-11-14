@@ -2,6 +2,11 @@ package com.Pull.pullapp;
 
 import it.sephiroth.android.library.widget.HListView;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -24,12 +29,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.provider.ContactsContract;
+import android.provider.Telephony;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
@@ -72,6 +80,7 @@ import com.Pull.pullapp.fragment.CustomDateTimePicker;
 import com.Pull.pullapp.fragment.RecipientsPopupWindow;
 import com.Pull.pullapp.fragment.RecipientsPopupWindow.ApproverDialogListener;
 import com.Pull.pullapp.fragment.SimplePopupWindow;
+import com.Pull.pullapp.model.MMSMessage;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.ShareSuggestion;
 import com.Pull.pullapp.threads.DelayedSend;
@@ -120,7 +129,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private Context mContext;
 	private final Calendar calendar = Calendar.getInstance();
 	private Button pickDelay, send, share;
-	private GetOutboxMessages loader;
+	private GetOutboxMessages outbox_loader;
+	private GetMMSMessages mms_loader;
 	private boolean isPopulated;
 	private CustomDateTimePicker customDateTimePicker;
 	private Date sendDate;
@@ -207,7 +217,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
     private static final int NUM_PAGES = 2;
     private ViewPager mPager;
     private PagerAdapter mPagerAdapter;
-	private Cursor mms_cursor;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -377,11 +387,12 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				String action = intent.getAction();					
 				if(action.equals(Constants.ACTION_SMS_INBOXED)) {
 					if(intent.getStringExtra(Constants.EXTRA_NUMBER).equals(number)) {
+						messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
 						//messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
-						messages_cursor = ContentUtils.getMessageIDsCursor(mContext,thread_id);
 						messages_adapter.swapCursor(messages_cursor);							
 						messages_adapter.notifyDataSetChanged();
 						merge_adapter.notifyDataSetChanged();
+						
 						mListView.setSelection(mListView.getCount()-1);			
 						notificationManager.cancel(number.hashCode());							
 					}
@@ -429,8 +440,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 							if(queue_adapter.delayedMessages.containsKey(scheduledOn) && scheduledOn>0) {
 								removeMessage();
 							}
-							//messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
-							messages_cursor = ContentUtils.getMessageIDsCursor(mContext,thread_id);
+							messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
 							messages_adapter.swapCursor(messages_cursor);							
 							messages_adapter.notifyDataSetChanged();
 							merge_adapter.notifyDataSetChanged();
@@ -756,16 +766,20 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	     }
 	 }	
 	private void rePopulateMessages() {
-		Log.i("log","repopulate messages");
+		//Log.i("log","repopulate messages");
 		removeMessage();
-		//messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
-		messages_cursor = ContentUtils.getMessageIDsCursor(mContext,thread_id);
+		messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number);
+
 		messages_adapter.swapCursor(messages_cursor);
+
+		Log.i("merge_adapter","merge_adapter size "+merge_adapter.getCount());
+
 		messages_adapter.notifyDataSetChanged();
 		merge_adapter.notifyDataSetChanged();
+		
 		mListView.setStackFromBottom(true);
-		//mListView.setSelection(mListView.getCount()-1);	
-		//Log.i("mListView","getselection" + mListView.getSelectedItemPosition());
+		mListView.setAdapter(merge_adapter);	
+		Log.i("mListView","mListView size "+mListView.getCount());
 	}
 
 
@@ -778,14 +792,17 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		queue_adapter = new QueuedMessageAdapter(this,messages);
 		merge_adapter = new MergeAdapter();				
 		messages_adapter = new MessageCursorAdapter(mContext, messages_cursor, number, this);
-		loader = new GetOutboxMessages();
-		loader.execute(); 
+
+		outbox_loader = new GetOutboxMessages();
+		outbox_loader.execute(); 
+		mms_loader = new GetMMSMessages();
+		mms_loader.execute(); 		
 		isPopulated = true;
 		text.setHint("Text " + name);
 		title_view.setText(name);
 		merge_adapter.addAdapter(messages_adapter);
 		merge_adapter.addAdapter(queue_adapter);
-		mListView.setAdapter(merge_adapter);	
+		//mListView.setAdapter(merge_adapter);	
 		getSharedWithTab(number, name);
 		initials_view.setBackgroundResource(R.drawable.circle_pressed);
 		initials_view.setTypeface(null, Typeface.BOLD);	
@@ -1216,7 +1233,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		Intent intent;
 		switch (item.getItemId()) {
 		case android.R.id.home:
-			if(loader!=null) loader.cancel(true);	
+			if(outbox_loader!=null) outbox_loader.cancel(true);	
+			if(mms_loader!=null) mms_loader.cancel(true);	
             NavUtils.navigateUpFromSameTask(this);
             return true;	
 		case R.id.menu_contacts:
@@ -1368,8 +1386,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	public void removeMessage() {
 		queue_adapter.delayedMessages.clear();
 		messages.clear();
-		loader = new GetOutboxMessages();
-		loader.execute(); 
+		outbox_loader = new GetOutboxMessages();
+		outbox_loader.execute(); 
 		queue_adapter.notifyDataSetChanged();
 		merge_adapter.notifyDataSetChanged();
 	}	
@@ -1550,14 +1568,163 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			dh.close();
 	    }			
 
-  }		
+	}		
+	
+	
+	private class GetMMSMessages extends AsyncTask<Void,MMSMessage,Void> {
+		
+	  	Cursor mms_cursor;
+	  	MMSMessage m;
+	  	@Override
+		protected Void doInBackground(Void... params) {
+
+	        mms_cursor = ContentUtils.getMMSCursor(mContext, thread_id);
+
+	        if(mms_cursor.moveToFirst()) {
+	        	m = getNextMMSMessage(mms_cursor);
+	        	publishProgress(m);	
+	        	while(mms_cursor.moveToNext()) {
+	        		m = getNextMMSMessage(mms_cursor);
+	        		publishProgress(m);	
+	        		if (isCancelled()) break;
+	        	}	     
+	        }	  
+			return null;
+		}
+		@Override
+	    protected void onProgressUpdate(MMSMessage... t) {
+			messages_adapter.insert(t[0]);
+	    }				
+		
+		@Override
+	    protected void onPostExecute(Void result) {
+			super.onPostExecute(result);
+			mms_cursor.close();
+	    }			
+
+	}			
 	private void hideKeyboard(){
 		imm.hideSoftInputFromWindow(text.getWindowToken(), 0);	
 		mButtonsBar.setVisibility(View.GONE);
 		inputtingEmoji = false;
 		keyboardShowing = false;
 	}	
-		
+
+
+
+
+	public MMSMessage getNextMMSMessage(Cursor mCursor) {
+		String mmsId = mCursor.getString(mCursor.getColumnIndexOrThrow(Telephony.BaseMmsColumns._ID));
+		long date = 1000 * mCursor.getLong(mCursor.getColumnIndexOrThrow(Telephony.BaseMmsColumns.DATE));
+		int m_type = mCursor.getInt(mCursor.getColumnIndex(Telephony.BaseMmsColumns.MESSAGE_BOX));
+		String address = getAddressNumber(Integer.parseInt(mmsId));
+		MMSMessage m = new MMSMessage(date, "", address, store.getName(address), m_type, 
+				store, ParseUser.getCurrentUser().getUsername());
+		//Log.i("m_type","m_type"+m_type);
+		String selectionPart = "mid=" + mmsId;
+		Uri uri = Uri.parse("content://mms/part");
+		Cursor cursor = mContext.getContentResolver().query(uri, null,
+		    selectionPart, null, null);
+		if (cursor.moveToFirst()) {
+		    do {
+		        String partId = cursor.getString(cursor.getColumnIndex("_id"));
+		        String type = cursor.getString(cursor.getColumnIndex("ct"));
+		        if ("text/plain".equals(type)) {
+		            String data = cursor.getString(cursor.getColumnIndex("_data"));
+		            String body;
+		            if (data != null) {
+		                // implementation of this method below
+		                body = getMmsText(partId);
+		            } else {
+		                body = cursor.getString(cursor.getColumnIndex("text"));
+		            }
+		           // Log.i("body",body);
+		            m.setMessage(body);
+		        }
+		        else if ("image/jpeg".equals(type) || "image/bmp".equals(type) ||
+		                "image/gif".equals(type) || "image/jpg".equals(type) ||
+		                "image/png".equals(type)) {
+		            Bitmap bitmap = getMmsImage(partId);
+		            m.addImage(bitmap);
+		        }		        
+		    } while (cursor.moveToNext());
+		}
+
+		return m;
+	}
+
+
+	private String getAddressNumber(int id) {
+	    String selectionAdd = new String("msg_id=" + id);
+	    String uriStr = MessageFormat.format("content://mms/{0}/addr", id);
+	    Uri uriAddress = Uri.parse(uriStr);
+	    Cursor cAdd = mContext.getContentResolver().query(uriAddress, null,
+	        selectionAdd, null, null);
+	    String name = null;
+	    if (cAdd.moveToFirst()) {
+	        do {
+	            String number = cAdd.getString(cAdd.getColumnIndex("address"));
+	            if (number != null) {
+	                try {
+	                    Long.parseLong(number.replace("-", ""));
+	                    name = number;
+	                } catch (NumberFormatException nfe) {
+	                    if (name == null) {
+	                        name = number;
+	                    }
+	                }
+	            }
+	        } while (cAdd.moveToNext());
+	    }
+	    if (cAdd != null) {
+	        cAdd.close();
+	    }
+	    return name;
+	}	
+	private Bitmap getMmsImage(String _id) {
+	    Uri partURI = Uri.parse("content://mms/part/" + _id);
+	    InputStream is = null;
+	    Bitmap bitmap = null;
+	    try {
+	        is = mContext.getContentResolver().openInputStream(partURI);
+	        bitmap = BitmapFactory.decodeStream(is);
+	        Log.i("got bitmap",bitmap.toString());
+	    } catch (IOException e) {}
+	    finally {
+	        if (is != null) {
+	            try {
+	                is.close();
+	            } catch (IOException e) {}
+	        }
+	    }
+	    return bitmap;
+	}	
+	private String getMmsText(String id) {
+	    Uri partURI = Uri.parse("content://mms/part/" + id);
+	    InputStream is = null;
+	    StringBuilder sb = new StringBuilder();
+	    try {
+	        is = mContext.getContentResolver().openInputStream(partURI);
+	        if (is != null) {
+	            InputStreamReader isr = new InputStreamReader(is, "UTF-8");
+	            BufferedReader reader = new BufferedReader(isr);
+	            String temp = reader.readLine();
+	            while (temp != null) {
+	                sb.append(temp);
+	                temp = reader.readLine();
+	            }
+	        }
+	    } catch (IOException e) {}
+	    finally {
+	        if (is != null) {
+	            try {
+	                is.close();
+	            } catch (IOException e) {}
+	        }
+	    }
+	    return sb.toString();
+	}	
+
 	@Override
 	protected void onDestroy() {
 		mixpanel.flush();
