@@ -321,7 +321,7 @@ public class MessageCursorAdapter extends CursorAdapter {
     	
     	boolean initiating=false;
 
-    	SortedMap<Long, MMSMessage> submms;
+    	SortedMap<Long, MMSMessage> submms, submms2;
     	
     	if(c.moveToPrevious()) {
     		long previous_date = c.getLong(6);
@@ -333,7 +333,14 @@ public class MessageCursorAdapter extends CursorAdapter {
     		c.moveToNext();
     	} else submms = mms.headMap(date);
     	
-    	Object[] mms_array = submms.entrySet().toArray();
+    	Object[] mms_array = null, mms_array2 = null;
+    	mms_array = submms.entrySet().toArray();
+    	
+    	if(!c.moveToNext()) {
+    		submms2 = mms.tailMap(date);
+    		mms_array2 = submms2.entrySet().toArray();
+    	}
+    	
     	
 		final ViewHolder holder; 
 		if(isnew) holder = new ViewHolder();
@@ -346,15 +353,24 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.their_pic = (CircularImageView) v.findViewById(R.id.contact_image);
 		holder.separator = (View) v.findViewById(R.id.separator);
 		holder.mms_list = (ListView) v.findViewById(R.id.mms_list);
+		holder.mms_list2 = (ListView) v.findViewById(R.id.mms_list2);
 		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);
 		
 		if(initiating) holder.separator.setVisibility(View.VISIBLE);
 		else  holder.separator.setVisibility(View.GONE);
 		
 		holder.mms_list.setVisibility(mms_array.length>0 ? View.VISIBLE : View.GONE);
-		MMSAdapter mms_adapter = new MMSAdapter(context,mms_array);
-		holder.mms_list.setAdapter(mms_adapter);
-		mms_adapter.notifyDataSetChanged();
+		holder.mms_list2.setVisibility(mms_array2!=null && mms_array2.length>0 ? View.VISIBLE : View.GONE);
+		
+		if(mms_array.length>0) {
+			MMSAdapter mms_adapter = new MMSAdapter(context,mms_array);
+			holder.mms_list.setAdapter(mms_adapter);
+		}
+		if(mms_array2!=null && mms_array2.length>0) {
+			MMSAdapter mms_adapter2 = new MMSAdapter(context,mms_array2);
+			holder.mms_list2.setAdapter(mms_adapter2);
+		}
+
 		
 		if(showCheckboxes) holder.addPPl.setVisibility(View.VISIBLE);
 		else  holder.addPPl.setVisibility(View.GONE);
@@ -474,6 +490,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 
 	public static class ViewHolder
 	{
+		public ListView mms_list2;
 		public ListView mms_list;
 		public View separator;
 		public TextView my_initials;

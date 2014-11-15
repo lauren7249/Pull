@@ -22,6 +22,9 @@ import static android.provider.Telephony.Sms.Intents.WAP_PUSH_RECEIVED_ACTION;
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_DELIVERY_IND;
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND;
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_READ_ORIG_IND;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentResolver;
@@ -36,8 +39,11 @@ import android.os.AsyncTask;
 import android.os.PowerManager;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Inbox;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import com.Pull.pullapp.MessageActivityCheckboxCursor;
+import com.Pull.pullapp.R;
 import com.android.mms.MmsConfig;
 import com.android.mms.transaction.NotificationTransaction;
 import com.android.mms.transaction.Transaction;
@@ -75,7 +81,7 @@ public class PushReceiver extends BroadcastReceiver {
             byte[] pushData = intent.getByteArrayExtra("data");
             PduParser parser = new PduParser(pushData);
             GenericPdu pdu = parser.parse();
-
+     
             if (null == pdu) {
                 Log.e(TAG, "Invalid PUSH data");
                 return null;
@@ -84,6 +90,7 @@ public class PushReceiver extends BroadcastReceiver {
             PduPersister p = PduPersister.getPduPersister(mContext);
             ContentResolver cr = mContext.getContentResolver();
             int type = pdu.getMessageType();
+            
             long threadId = -1;
 
             try {
@@ -144,6 +151,36 @@ public class PushReceiver extends BroadcastReceiver {
                             ComponentName cn = mContext.startService(svc);
                             Log.v(TAG,"pdu uri " + uri.toString());
                             Log.v(TAG,"ComponentName " + cn.toShortString());
+                            
+        					NotificationManager mNotificationManager = (NotificationManager) mContext
+        							.getSystemService(Context.NOTIFICATION_SERVICE);
+        					int icon;
+        					String sender = pdu.getFrom().getString();
+        					Log.v(TAG,"sender " + sender);
+        					UserInfoStore store = new UserInfoStore(mContext);
+        					String name = store.getName(sender);
+        					icon = R.drawable.ic_launcher_gray;
+        					NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
+        							mContext).setSmallIcon(icon).setContentTitle(name)
+        							.setContentText("MMS")
+        							.setPriority(NotificationCompat.PRIORITY_LOW)
+        							.setOnlyAlertOnce(true);
+        					Intent ni = new Intent(mContext, MessageActivityCheckboxCursor.class);
+        					//ni.putExtra(Constants.EXTRA_THREAD_ID,threadID);
+        					ni.putExtra(Constants.EXTRA_NAME,name);
+        			        ni.putExtra(Constants.EXTRA_NUMBER,sender);
+        					ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        					//ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        					ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        					PendingIntent pi = PendingIntent.getActivity(mContext, 0,
+        							ni, PendingIntent.FLAG_CANCEL_CURRENT);
+        					mBuilder.setContentIntent(pi);
+        					mBuilder.setAutoCancel(true);
+        					Notification notification = mBuilder.build();
+        					notification.defaults|= Notification.DEFAULT_SOUND;
+        					notification.defaults|= Notification.DEFAULT_LIGHTS;
+        					notification.defaults|= Notification.DEFAULT_VIBRATE;		
+        					mNotificationManager.notify(sender.hashCode(),notification);                            
                         } else if (LOCAL_LOGV) {
                             Log.v(TAG, "Skip downloading duplicate message: "
                                     + new String(nInd.getContentLocation()));

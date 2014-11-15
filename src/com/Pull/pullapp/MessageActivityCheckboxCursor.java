@@ -1687,8 +1687,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	    Bitmap bitmap = null;
 	    try {
 	        is = mContext.getContentResolver().openInputStream(partURI);
-	        bitmap = BitmapFactory.decodeStream(is);
-	        Log.i("got bitmap",bitmap.toString());
+	        final BitmapFactory.Options options = new BitmapFactory.Options();
+	        options.inSampleSize = 8;
+	        bitmap = BitmapFactory.decodeStream(is,null, options);
 	    } catch (IOException e) {}
 	    finally {
 	        if (is != null) {
