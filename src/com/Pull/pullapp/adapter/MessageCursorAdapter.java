@@ -336,7 +336,7 @@ public class MessageCursorAdapter extends CursorAdapter {
     	Object[] mms_array = null, mms_array2 = null;
     	mms_array = submms.entrySet().toArray();
     	
-    	if(!c.moveToNext()) {
+    	if(c.isLast()) {
     		submms2 = mms.tailMap(date);
     		mms_array2 = submms2.entrySet().toArray();
     	}
@@ -365,10 +365,12 @@ public class MessageCursorAdapter extends CursorAdapter {
 		if(mms_array.length>0) {
 			MMSAdapter mms_adapter = new MMSAdapter(context,mms_array);
 			holder.mms_list.setAdapter(mms_adapter);
+			notifyDataSetChanged();
 		}
 		if(mms_array2!=null && mms_array2.length>0) {
 			MMSAdapter mms_adapter2 = new MMSAdapter(context,mms_array2);
 			holder.mms_list2.setAdapter(mms_adapter2);
+			notifyDataSetChanged();
 		}
 
 		
