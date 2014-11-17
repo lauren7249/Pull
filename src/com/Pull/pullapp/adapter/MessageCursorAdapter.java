@@ -1,9 +1,9 @@
 package com.Pull.pullapp.adapter;
 
-import java.util.ArrayList;
+import it.sephiroth.android.library.widget.HListView;
+
 import java.util.HashMap;
-import java.util.Map.Entry;
-import java.util.Set;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -33,8 +33,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-import android.widget.ListAdapter;
-import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.Pull.pullapp.R;
@@ -88,8 +87,8 @@ public class MessageCursorAdapter extends CursorAdapter {
     	this.conversant_name = store.getName(conversant);
     	this.other_person = other_person;
     	this.other_person_name = person_shared;
-    	Log.i("other_person",other_person);
-    	Log.i("other_person_name",other_person_name);
+    	//Log.i("other_person",other_person);
+    	//Log.i("other_person_name",other_person_name);
 		this.activity = activity;
 		this.isTextConvo = false;
 		this.isMine = isMine;
@@ -352,27 +351,24 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.edit = (Button) v.findViewById(R.id.edit_message_button);	
 		holder.their_pic = (CircularImageView) v.findViewById(R.id.contact_image);
 		holder.separator = (View) v.findViewById(R.id.separator);
-		holder.mms_list = (ListView) v.findViewById(R.id.mms_list);
-		holder.mms_list2 = (ListView) v.findViewById(R.id.mms_list2);
+		holder.mms_space = (LinearLayout) v.findViewById(R.id.mms_space);
+		holder.mms_space2 = (LinearLayout) v.findViewById(R.id.mms_space2);
 		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);
 		
 		if(initiating) holder.separator.setVisibility(View.VISIBLE);
 		else  holder.separator.setVisibility(View.GONE);
 		
-		holder.mms_list.setVisibility(mms_array.length>0 ? View.VISIBLE : View.GONE);
-		holder.mms_list2.setVisibility(mms_array2!=null && mms_array2.length>0 ? View.VISIBLE : View.GONE);
+		holder.mms_space.setVisibility(mms_array.length>0 ? View.VISIBLE : View.GONE);
+		holder.mms_space2.setVisibility(mms_array2!=null && mms_array2.length>0 ? View.VISIBLE : View.GONE);
 		
+		holder.mms_space.removeAllViews();
+		holder.mms_space2.removeAllViews();
 		if(mms_array.length>0) {
-			MMSAdapter mms_adapter = new MMSAdapter(context,mms_array);
-			holder.mms_list.setAdapter(mms_adapter);
-			notifyDataSetChanged();
+			addMMSViews(mms_array,holder.mms_space);
 		}
 		if(mms_array2!=null && mms_array2.length>0) {
-			MMSAdapter mms_adapter2 = new MMSAdapter(context,mms_array2);
-			holder.mms_list2.setAdapter(mms_adapter2);
-			notifyDataSetChanged();
+			addMMSViews(mms_array2,holder.mms_space2);
 		}
-
 		
 		if(showCheckboxes) holder.addPPl.setVisibility(View.VISIBLE);
 		else  holder.addPPl.setVisibility(View.GONE);
@@ -490,10 +486,72 @@ public class MessageCursorAdapter extends CursorAdapter {
     	}	    	
 	}
 
+	private void addMMSViews(Object[] mms_array, LinearLayout mms_space) {
+		LinearLayout parent = new LinearLayout(mContext);
+		parent.setOrientation(LinearLayout.VERTICAL);
+		for(Object o : mms_array) {
+			final MMSViewHolder holder = new MMSViewHolder();
+			Map.Entry<Long,MMSMessage> entry = (Map.Entry<Long, MMSMessage>) o;
+			MMSMessage m = entry.getValue();
+			View mmsView = LayoutInflater.from(mContext).inflate(R.layout.mms_row, null);
+			holder.messageBox = (LinearLayout) mmsView.findViewById(R.id.mms_message_box);
+			holder.message = (TextView) mmsView.findViewById(R.id.mms_message_text);
+			holder.time = (TextView) mmsView.findViewById(R.id.mms_message_time);
+			holder.pictures_list = (HListView) mmsView.findViewById(R.id.pictures_list);		
+			holder.message.setText(m.getMessage());
+			holder.pictures_list.setAdapter(new PicturesAdapter(mContext,R.layout.picture_item, m.getImages()));
+			LayoutParams lp = (LayoutParams) holder.messageBox.getLayoutParams();
+
+			CharSequence relativeTime;
+			if(System.currentTimeMillis()-m.getDate()>DateUtils.MINUTE_IN_MILLIS){
+				relativeTime = DateUtils.getRelativeDateTimeString(mContext, m.getDate(), 
+						DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS, 0);
+			}else{
+				relativeTime = "Just Now";
+			}
+			//Log.i("picture",relativeTime.toString());
+			holder.time.setText(relativeTime);
+			if(m.isSentByMe()) {
+				mmsView.setBackgroundResource(R.drawable.outgoing);
+				holder.message.setTextColor(mContext.getResources().getColor(R.color.lightGreen));
+				holder.time.setTextColor(mContext.getResources().getColor(R.color.lightGreen));
+				holder.message.setPadding(50, 0, 10, 0);
+				holder.time.setPadding(50, 0, 10, 0);
+				lp.gravity = Gravity.LEFT;
+				holder.message.setGravity(Gravity.RIGHT);
+				holder.time.setGravity(Gravity.RIGHT);				
+			}else {
+				mmsView.setBackgroundResource(R.drawable.incoming);  
+				holder.message.setTextColor(Color.WHITE);
+				holder.time.setTextColor(Color.WHITE);					
+				holder.message.setPadding(10, 0, 50, 0);
+				holder.time.setPadding(10, 0, 50, 0);
+				lp.gravity = Gravity.RIGHT;
+				holder.message.setGravity(Gravity.LEFT);
+				holder.time.setGravity(Gravity.LEFT);					
+			}
+			mmsView.setTag(holder);
+			holder.messageBox.setLayoutParams(lp);		
+			
+			parent.addView(mmsView);
+		}
+	//	Log.i("child views", "has child views "+parent.getChildCount());
+		mms_space.addView(parent);
+		//notifyDataSetChanged();
+		
+	}
+	private static class MMSViewHolder
+	{
+
+		public HListView pictures_list;
+		public TextView time;
+		TextView message;
+		LinearLayout messageBox;
+	}
 	public static class ViewHolder
 	{
-		public ListView mms_list2;
-		public ListView mms_list;
+		public LinearLayout mms_space2;
+		public LinearLayout mms_space;
 		public View separator;
 		public TextView my_initials;
 		public TextView their_initials;

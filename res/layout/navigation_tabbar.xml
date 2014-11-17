@@ -28,5 +28,14 @@
             android:layout_weight="1"
             android:visibility="gone"
             android:text="FRIENDS' SHARED TEXTS" />
-
+		<ImageView 
+			android:id="@id/menu_button"
+			android:layout_width="40dp"
+			android:layout_height="40dp"
+			android:layout_alignParentRight="true"
+			android:layout_centerVertical="true"
+			android:gravity="right"   
+			android:layout_gravity="right"   
+			android:src="@drawable/hamburger_menu"
+			android:visibility="visible"/>	   
     </RadioGroup>

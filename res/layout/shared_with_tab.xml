@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
    	<LinearLayout 
    	    xmlns:android="http://schemas.android.com/apk/res/android"
-       android:layout_width="match_parent"
+       android:layout_width="wrap_content"
        android:layout_height="wrap_content"		
        android:orientation="vertical"	  
        android:gravity="center|right"      
-       android:paddingTop="10dp"
+       android:paddingTop="7dp"
        android:layout_gravity="left|center"
           >
 		<TextView
@@ -26,36 +26,36 @@
 	          >		
 		    <com.mikhaellopez.circularimageview.CircularImageView
 		            android:id="@+id/original_person_image"
-			        android:layout_width="50dp"
-			        android:layout_height="50dp"
-			        android:layout_margin="5dp"
+			        android:layout_width="35dp"
+			        android:layout_height="35dp"
+			        android:layout_margin="3dp"
 			        android:visibility="gone" /> 
 			<TextView 
 				android:id="@+id/original_person_initials"
 				android:gravity="center"
-				android:layout_width="50dp"
-				android:layout_height="50dp"
-				android:layout_margin="5dp"
+				android:layout_width="35dp"
+				android:layout_height="35dp"
+				android:layout_margin="3dp"
 				android:background="@drawable/circle"
-				android:textSize="16dp"
+				android:textSize="12dp"
 				android:text="TT"
 				android:textColor="#235c66"
 				android:visibility="visible"/>					
 			<ImageView 
 				android:id="@+id/graph_button"
 				android:gravity="center"
-				android:layout_width="50dp"
-				android:layout_margin="5dp"
-				android:layout_height="50dp"
+				android:layout_width="35dp"
+				android:layout_margin="3dp"
+				android:layout_height="35dp"
 				android:contentDescription="graph button"
 				android:background="@drawable/graph"
 				android:visibility="visible"/>						 	          
 			<ImageView 
 				android:id="@+id/add_person"
 				android:gravity="center"
-				android:layout_width="50dp"
-				android:layout_margin="5dp"
-				android:layout_height="50dp"
+				android:layout_width="35dp"
+				android:layout_margin="3dp"
+				android:layout_height="35dp"
 				android:background="@drawable/add"
 				android:visibility="visible"/>		            
 	 
@@ -63,10 +63,9 @@
 			<it.sephiroth.android.library.widget.HListView
 			    android:id="@+id/shared_with_list"
 			    android:layout_width="match_parent"
-			    android:layout_height="50dp"
-			    android:layout_margin="5dp"
+			    android:layout_height="wrap_content"
 			    android:divider="#00000000" />						            
-	
+
 		</LinearLayout>    	
 		   
 	</LinearLayout>  	

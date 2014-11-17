@@ -217,6 +217,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
     private static final int NUM_PAGES = 2;
     private ViewPager mPager;
     private PagerAdapter mPagerAdapter;
+	private ImageView menu_button;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -288,7 +289,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		viewSwitcher = (ViewSwitcher) this.findViewById(R.id.viewSwitcher);
 		graphViewSwitcher = (ViewSwitcher) this.findViewById(R.id.big_viewSwitcher);
 		topViewSwitcher = (ViewSwitcher) this.findViewById(R.id.top_viewSwitcher);
-		header_title = (TextView) this.findViewById(R.id.header_title);
 		text = (EditText) this.findViewById(R.id.text);
 		mTextIndicatorButton = (ImageButton) findViewById(R.id.textIndicatorButton);
 		title_view = (TextView) findViewById(R.id.name);
@@ -320,7 +320,17 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			}
 			
 		}) ;	
-		
+		 
+		menu_button = (ImageView) findViewById(R.id.menu_button);
+		menu_button.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				activity.openOptionsMenu();
+				
+			}
+			
+		});
 		approver = "";
 		if(getIntent() != null && !isPopulated) {
 
@@ -1217,12 +1227,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
-		//actionbar menu
 		mixpanel.track("message activity create options", null);
 		getSupportMenuInflater().inflate(R.menu.thread_menu, menu);
-		/*menu.add(0, CONTEXTMENU_CONTACTITEM, 0, "Add to Contacts");
-		//menu.add(1, CONTEXTMENU_SHARE_PERSISTENT, 0, "Share Conversation");
-		menu.add(2, CONTEXTMENU_SHARE_SECTION, 0, "Share Specific Messages");*/
 		return true;
 	}	
 	
@@ -1594,12 +1600,15 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		@Override
 	    protected void onProgressUpdate(MMSMessage... t) {
 			messages_adapter.insert(t[0]);
+			messages_adapter.notifyDataSetChanged();
 	    }				
 		
 		@Override
 	    protected void onPostExecute(Void result) {
 			super.onPostExecute(result);
 			mms_cursor.close();
+			messages_adapter.notifyDataSetChanged();
+			mListView.setSelection(messages_adapter.getCount()-1);
 	    }			
 
 	}			

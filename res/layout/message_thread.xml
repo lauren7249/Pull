@@ -212,50 +212,9 @@
 		        />		
 
 	</ViewSwitcher>
-   	<LinearLayout 
+   	<include 
        android:layout_width="match_parent"
-       android:layout_height="wrap_content"		
-       android:orientation="horizontal"	  
+		layout="@layout/message_thread_top_bar"
        android:id="@id/top_bar"
-       android:gravity="center|left"      
-     	 android:layout_gravity="center|left"
-          >		
-		<ImageView 
-			android:id="@+id/home_button"
-			android:layout_width="50dp"
-			android:layout_height="50dp"
-			android:layout_margin="5dp"
-			android:gravity="center|left"   
-			android:layout_gravity="center|left"   
-			android:paddingTop="10dp"
-			android:src="@drawable/ic_launcher"
-			android:visibility="visible"/>		
-		<TextView 
-			android:id="@+id/header_title"
-			android:layout_width="wrap_content"
-			android:layout_height="50dp"
-			android:gravity="center"   
-			android:layout_gravity="center"   
-			android:padding="10dp"
-			android:textSize="14dp"
-			android:visibility="gone"/>				
-	    <ViewSwitcher
-	        android:id="@+id/top_viewSwitcher"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:measureAllChildren="false" >	
-		    <include android:id="@+id/shared_with" 
-		        android:gravity="center|left"     
-		        layout="@layout/shared_with_tab"
-		        android:visibility="visible"
-		       android:layout_gravity="center|left"
-		        />			    
-		    <include
-		        layout="@layout/recipients_editor"
-		        android:gravity="center|left"     
-		        android:layout_gravity="center|left"
-		        android:visibility="visible"
-		        />			       
-		</ViewSwitcher>
-	</LinearLayout>	 
+          />		 
 </RelativeLayout>

@@ -18,9 +18,11 @@ import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.View.OnClickListener;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioGroup;
@@ -53,10 +55,6 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	private Cursor threads_cursor;
 	private static int currentTab;
 	private DatabaseHandler dbHandler;
-    private RecipientsEditor mConfidantesEditor;
-	private RecipientsAdapter mRecipientsAdapter;
-    private LinearLayout mBox;
-	private RecipientsEditor mConversantsEditor;	
 	private String[] recipients;
 	private String[] conversants;
 	private String conversant;
@@ -77,14 +75,16 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	private SharedPreferences sharedPrefs;
 	private Editor editor;
 	private MenuItem mSettings;
-	private BroadcastReceiver mBroadcastReceiver;	
+	private BroadcastReceiver mBroadcastReceiver;
+	private ImageView menu_button;
+	private AllThreadsListActivity activity;	
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 
 	    setContentView(R.layout.threads_listactivity);
-	    
+	    activity = this;
 		showcaseView = new ShowcaseView.Builder(this)
         .setTarget(new ViewTarget(findViewById(R.id.my_conversation_tab)))
 			    .setContentTitle("Your text messages")
@@ -100,11 +100,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	    
 	    ParseAnalytics.trackAppOpened(getIntent());
 	    dbHandler = new DatabaseHandler(mContext);
-	    hint = (Button) findViewById(R.id.hint);   
-	    hint.setVisibility(View.GONE);
-	    setDefault = (Button) findViewById(R.id.set_message_default);   
-	    setDefault.setVisibility(View.GONE);
-	    
+
 	    listview = getListView();
 	    registerForContextMenu(listview);
         sharedPrefs = PreferenceManager
@@ -129,14 +125,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 
 			}
 		});
-	    
-	    mBox = (LinearLayout)findViewById(R.id.confidantes_box);
-		mRecipientsAdapter = new RecipientsAdapter(this);
-		mConfidantesEditor = (RecipientsEditor)findViewById(R.id.confidantes_editor);
-		mConfidantesEditor.setAdapter(mRecipientsAdapter);
-		mConversantsEditor = (RecipientsEditor)findViewById(R.id.recipient_editor);
-		mConversantsEditor.setAdapter(mRecipientsAdapter);    	
-		
+
 		mixpanel = MixpanelAPI.getInstance(getBaseContext(), Constants.MIXEDPANEL_TOKEN);
 		mixpanel.identify(ParseInstallation.getCurrentInstallation().getObjectId());
 		
@@ -176,6 +165,16 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	        } 	
 		}		
 		
+		menu_button = (ImageView) findViewById(R.id.menu_button);
+		menu_button.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				activity.openOptionsMenu();
+				
+			}
+			
+		});		
 		mBroadcastReceiver = 
 		new BroadcastReceiver() {
 			@Override
@@ -326,18 +325,12 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 			threads_cursor = dbHandler.getSharedConversationCursor(columns);
 		    adapter = new ThreadItemsCursorAdapter(mContext, threads_cursor, currentTab, this);
 		    setListAdapter(adapter);  	
-		    mBox.setVisibility(View.GONE);
-		   // hint.setVisibility(View.VISIBLE);
-		    setDefault.setVisibility(View.GONE);
 		    return;
 		case R.id.my_conversation_tab: 
 			mixpanel.track("My texts tab clicked ", null);
 		    threads_cursor = ContentUtils.getThreadsCursor(mContext);
 		    adapter = new ThreadItemsCursorAdapter(mContext, threads_cursor, currentTab, this);
 		    setListAdapter(adapter); 
-		    mBox.setVisibility(View.GONE);
-		    hint.setVisibility(View.GONE);
-
 		    return;
 		default: 
 			
@@ -362,7 +355,6 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		    		//Log.i("position","position " + listview.getFirstVisiblePosition());		            
 		            return true;
 				default: 
-					mBox.setVisibility(View.VISIBLE);
 			}
 
 			return true;	
@@ -387,12 +379,6 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 			return false;
 		}
 	}	
-	
-	public void showShareBox(View v) {
-		mBox.setVisibility(View.VISIBLE);
-		hint.setVisibility(View.GONE);
-		
-	}
 
 	public void launchSettings(View v) {
 		//Log.i("launchSettings",myPackageName);
@@ -490,56 +476,6 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 		context.startActivity(intent);	
 		
 	}
-
-	public void startShare(View v) {			
-		mixpanel.track("startshare clicked from threadslist", null);
-		if(mConversantsEditor.constructContactsFromInput(false).getNumbers().length==0) {
-			Toast.makeText(mContext, "No converstions selected", Toast.LENGTH_LONG).show();
-			return;
-		}
-		conversants = mConversantsEditor.constructContactsFromInput(false).getToNumbers();
-		
-		if(conversants.length == 0) {
-			Toast.makeText(mContext, "No converstions selected", Toast.LENGTH_LONG).show();
-			return;
-		}		
-		if(conversants.length > 1) {
-			Toast.makeText(mContext, "Select only one conversation", Toast.LENGTH_LONG).show();
-			return;
-		}			
-		if(mConfidantesEditor.constructContactsFromInput(false).getNumbers().length==0) {
-			Toast.makeText(mContext, "No valid recipients selected", Toast.LENGTH_LONG).show();
-			return;
-		}
-		recipients = mConfidantesEditor.constructContactsFromInput(false).getToNumbers();
-		
-		if(recipients.length == 0) {
-			Toast.makeText(mContext, "No recipients selected", Toast.LENGTH_LONG).show();
-			return;
-		}		
-		if(recipients.length > 1) {
-			Toast.makeText(mContext, "Select only one person to share with", Toast.LENGTH_LONG).show();
-			return;
-		}			
-				
-		mBox.setVisibility(View.GONE);
-		conversant = conversants[0];
-		recipient = recipients[0];
-		
-		final String shared_from_thread = ContentUtils.
-				getThreadIDFromNumber(mContext, conversant);
-		final String shared_from_name = ContentUtils.
-				getContactDisplayNameByNumber(mContext, conversant);
-		Intent ni = new Intent(mContext, MessageActivityCheckboxCursor.class);
-		ni.putExtra(Constants.EXTRA_THREAD_ID,shared_from_thread);
-		ni.putExtra(Constants.EXTRA_NAME,shared_from_name);
-		ni.putExtra(Constants.EXTRA_READ,true);
-		ni.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(conversant));	
-		ni.putExtra(Constants.EXTRA_SHARE_TO_NUMBER,PhoneNumberUtils.stripSeparators(recipient));	
-		startActivity(ni);
-	
-
-	}	
     
 	 // make the menu work
 	@Override

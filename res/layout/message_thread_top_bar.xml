@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+       android:layout_height="50dp"		
+       android:layout_width="match_parent"
+       android:orientation="horizontal"	  >
+		<ImageView 
+			android:id="@+id/home_button"
+			android:layout_width="35dp"
+			android:layout_height="35dp"
+			android:layout_margin="3dp"
+			android:gravity="center|left"   
+			
+			android:layout_gravity="center|left"   
+			android:paddingTop="10dp"
+			android:src="@drawable/home"
+			android:visibility="visible"/>		
+		
+	    <ViewSwitcher
+	        android:id="@+id/top_viewSwitcher"
+	        android:layout_toRightOf="@id/home_button"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_toLeftOf="@+id/menu_button"
+	        android:measureAllChildren="true" >	
+		    <include android:id="@+id/shared_with" 
+		        android:gravity="center|left"     
+		        layout="@layout/shared_with_tab"
+		        android:visibility="visible"
+		        android:layout_gravity="center|left"
+		        />			    
+		    <include
+		        layout="@layout/recipients_editor"
+		        android:gravity="center|left"     
+		        android:layout_gravity="center|left"
+		        android:visibility="visible"
+		        />			       
+		</ViewSwitcher>
+		<ImageView 
+			android:id="@id/menu_button"
+			android:layout_width="30dp"
+			android:layout_height="match_parent"
+			android:layout_alignParentRight="true"
+			android:layout_centerVertical="true"
+			android:gravity="right"   
+			android:layout_gravity="right"   
+			android:src="@drawable/hamburger_menu"
+			android:visibility="visible"/>	  
+
+</RelativeLayout>
