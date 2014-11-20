@@ -21,6 +21,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -84,6 +85,7 @@ import com.Pull.pullapp.model.MMSMessage;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.ShareSuggestion;
 import com.Pull.pullapp.threads.DelayedSend;
+import com.Pull.pullapp.threads.SendMMS;
 import com.Pull.pullapp.threads.ShareMessages;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
@@ -94,12 +96,17 @@ import com.Pull.pullapp.util.RecipientsAdapter;
 import com.Pull.pullapp.util.RecipientsEditor;
 import com.Pull.pullapp.util.SendUtils;
 import com.Pull.pullapp.util.SwipeDetector;
+import com.Pull.pullapp.util.TransactionService;
+import com.Pull.pullapp.util.TransactionSettings;
 import com.Pull.pullapp.util.UserInfoStore;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.commonsware.cwac.merge.MergeAdapter;
 import com.github.amlcurran.showcaseview.ShowcaseView;
+import com.klinker.android.send_message.Message;
+import com.klinker.android.send_message.Settings;
+import com.klinker.android.send_message.Transaction;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.FindCallback;
@@ -218,6 +225,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
     private ViewPager mPager;
     private PagerAdapter mPagerAdapter;
 	private ImageView menu_button;
+	private boolean isGroupMessage;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -1313,19 +1321,14 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 		if(number == null) {
 			recipients = mRecipientEditor.constructContactsFromInput(false).getToNumbers();
-			if(recipients.length > 1) {
-				popup = new SimplePopupWindow(v);
-				popup.showLikeQuickAction();
-				popup.setMessage("Only 1 recipient at a time");					
-				return;
-			}
-			else if(recipients.length == 0) {
+			if(recipients.length == 0) {
 				popup = new SimplePopupWindow(v);
 				popup.showLikeQuickAction();
 				popup.setMessage("Type someone to send to!");
 				return;
 			}
-
+			if(recipients.length>1) isGroupMessage = true;
+			
 			number = ContentUtils.addCountryCode(recipients[0]);	
 		}			
       
@@ -1339,10 +1342,14 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
         	intent.putExtra(Constants.EXTRA_NAME, name);
         	setIntent(intent);
         }
- 
-        new DelayedSend(mContext, number, newMessage, sendDate, new Date().getTime(), approver).start();
-        
-    	
+        //sendMMS();
+        if(!isGroupMessage) 
+        	new DelayedSend(mContext, number, newMessage, sendDate, new Date().getTime(), approver).start();
+        else {
+        	//new DelayedSend(mContext, recipients, newMessage, sendDate, new Date().getTime(), approver).start();
+        	new SendMMS(mContext, recipients, newMessage, new Date().getTime(), new Date().getTime(), true).run();
+
+        }
 		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.pendinh_indicator));
 		mTextIndicatorButton.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -1361,7 +1368,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
     	
 		
 	}
-	
+
+
 	public void pickTime(View v) {
 		customDateTimePicker.showDialog();		
 	}
@@ -1372,7 +1380,47 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		
 		//wn.showLikePopDownMenu();
 	}
+	public static void sendmms(Context context, String[] recipients,
+			String message, long launchedOn, long scheduledFor, boolean AddtoSent) {
+		try {
+			Intent myIntent = new Intent(Constants.ACTION_MMS_DELIVERED);
+			myIntent.putExtra(Constants.EXTRA_RECIPIENTS, recipients);
+			myIntent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
+			myIntent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);
+			myIntent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, scheduledFor);
+			
+			Settings sendSettings = new Settings();
+	        TransactionSettings transactionSettings = new TransactionSettings(
+	        		context, null);
+			sendSettings.setMmsc(transactionSettings.getMmscUrl());
+			sendSettings.setProxy(transactionSettings.getProxyAddress());
+			sendSettings.setPort(Integer.toString(transactionSettings.getProxyPort()));
+			sendSettings.setGroup(true);
+			sendSettings.setDeliveryReports(false);
+			sendSettings.setSplit(false);
+			sendSettings.setSplitCounter(false);
+			sendSettings.setStripUnicode(false);
+			sendSettings.setSignature("");
+			sendSettings.setSendLongAsMms(true);
+			sendSettings.setSendLongAsMmsAfter(3);
+			sendSettings.setRnrSe(null);
+			Transaction sendTransaction = new Transaction(context, sendSettings);
+			Message mMessage = new Message();
+			mMessage.setAddresses(recipients);
+			Log.i("recipients","recipeitns" + recipients.length);
+			mMessage.setText(message);
+			//Message mMessage = new Message("hola", "16507966210");
+			mMessage.setType(Message.TYPE_SMSMMS);  // could also be Message.TYPE_VOICE	
+			sendTransaction.sendNewMessage(mMessage, 0);	       
+	    	PendingIntent sentPI = PendingIntent
+	    			.getBroadcast(context, (int)launchedOn, myIntent, PendingIntent.FLAG_UPDATE_CURRENT);			
+
+		} catch (Exception e) {
+	        e.printStackTrace();
+	        //Log.e(TAG, "undefined Error: MMS sending failed ... please REPORT to ISSUE Tracker");
+	    }
 		
+	}			
 	private void addNewMessage(SMSMessage m, boolean onTop)
 	{
 		if(messages.contains(m)) return;

@@ -18,6 +18,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import android.content.Intent;
+
 public class Constants {
 	
 	public static final String PICTURE_BUCKET = "pull-lauren-julia-hackday1";
@@ -156,6 +158,10 @@ public class Constants {
 	public static final String GRAPH_VOLUME_ME = "How much you write";
 	public static final String GRAPH_VOLUME_RATIO = "he/she's volume relative to you";
 	public static final String ACTION_ORIGINAL_TAB_CLICKED = PACKAGE_NAME + ".util.ACTION_ORIGINAL_TAB_CLICKED";
+	public static final String EXTRA_RECIPIENTS = PACKAGE_NAME + "EXTRA_RECIPIENTS";
+	public static final String ACTION_MMS_OUTBOXED = PACKAGE_NAME + ".util.ACTION_MMS_OUTBOXED";
+	public static final String ACTION_MMS_UNOUTBOXED = PACKAGE_NAME + ".util.ACTION_MMS_UNOUTBOXED";
+	public static final String ACTION_MMS_DELIVERED =  PACKAGE_NAME + ".util.ACTION_MMS_DELIVERED";
 	
 	
 	

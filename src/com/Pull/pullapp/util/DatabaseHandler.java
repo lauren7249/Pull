@@ -1,6 +1,7 @@
 
 package com.Pull.pullapp.util;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -19,7 +20,7 @@ import com.Pull.pullapp.model.SMSMessage;
 public class DatabaseHandler extends SQLiteOpenHelper {
 	// All Static variables
     // Database Version
-    private static final int DATABASE_VERSION = 9;
+    private static final int DATABASE_VERSION = 10;
  
     // Database Name
     public static final String DATABASE_NAME = "pullDB";
@@ -193,7 +194,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     
     public int addToOutbox(String recipient, String message,
 			long timeScheduled, long scheduledFor, String approver) {
-    	Log.i("inserting row ", "to outbox  for addres " + recipient);
+    	//Log.i("inserting row ", "to outbox  for addres " + recipient);
 	    ContentValues outboxSms = new ContentValues();
 	    outboxSms.put(TextBasedSmsColumns.DATE_SENT, timeScheduled);
 	    outboxSms.put(TextBasedSmsColumns.DATE, scheduledFor);
@@ -310,6 +311,22 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 new String[] { number, Integer.toString(TextBasedSmsColumns.MESSAGE_TYPE_SENT)}, 
                 null, null, KEY_DATE + " desc", null);   
 		return cursor;
+	}
+
+	public int addToOutbox(String[] recipients, String message,
+			long timeScheduled, long scheduledFor, String approver) {
+		Log.i("recipients as list",Arrays.asList(recipients).toString());
+	    ContentValues outboxSms = new ContentValues();
+	    outboxSms.put(TextBasedSmsColumns.DATE_SENT, timeScheduled);
+	    outboxSms.put(TextBasedSmsColumns.DATE, scheduledFor);
+	    outboxSms.put(TextBasedSmsColumns.BODY, message);
+	    outboxSms.put(TextBasedSmsColumns.ADDRESS, Arrays.asList(recipients).toString());
+	    outboxSms.put(KEY_APPROVER, approver);
+        // Inserting Row
+        db.insert(TABLE_OUTBOX, null, outboxSms);
+        int count = this.getOutboxCount();
+        return count;
+		
 	}
 
 

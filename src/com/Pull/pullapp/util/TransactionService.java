@@ -160,11 +160,11 @@ public class TransactionService extends Service implements Observer {
             String str = null;
 
             if (msg.what == TOAST_MSG_QUEUED) {
-                str = getString(R.string.message_queued);
+                str = "messaged queued";
             } else if (msg.what == TOAST_DOWNLOAD_LATER) {
-                str = getString(R.string.download_later);
+                str = "download later";
             } else if (msg.what == TOAST_NO_APN) {
-                str = getString(R.string.no_apn);
+                str = "no apn";
             }
 
             if (str != null) {

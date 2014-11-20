@@ -191,5 +191,12 @@ public class UserInfoStore {
 		editor.commit();
 		
 	}
+	public String[] getNames(String[] recipients) {
+		String[] names = new String[recipients.length];
+		for(int i=0; i<recipients.length; i++) {
+			names[i] = getName(recipients[i]);
+		}
+		return names;
+	}
 
 }

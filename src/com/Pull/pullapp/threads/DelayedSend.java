@@ -17,6 +17,7 @@ public class DelayedSend extends Thread {
 
     private Context parent;
     private String message, recipient, threadID;
+    private String[] recipients;
     private long sendOn, launchedOn;
 	private String approver;
 	private boolean isDelayed;
@@ -42,15 +43,43 @@ public class DelayedSend extends Thread {
         ParseAnalytics.trackEvent("SMS Sent", dimensions);    
     }
     
-    public void setThreadID(String threadID) {
+    public DelayedSend(Context parent, String[] recipients,
+			String message, Date sendOn, long launchedOn, String approver) {
+        this.parent = parent;
+        this.recipients = recipients;
+        this.message = message;
+    	Map dimensions = new HashMap();
+        if(sendOn!=null){
+        	this.sendOn = sendOn.getTime();
+        	this.isDelayed = true;
+        	dimensions.put("delayed", true);
+        }else{
+        	this.sendOn = new Date().getTime() + (6)*1000;
+        	this.isDelayed = false;
+        	dimensions.put("delayed", false);
+        }
+        
+        this.launchedOn = launchedOn;
+        this.approver = approver;
+        ParseAnalytics.trackEvent("GroupmessageSent", dimensions);  
+	}
+
+	public void setThreadID(String threadID) {
     	this.threadID = threadID;
     }
     @Override
     public void run() {
-    	SendUtils.addMessageToOutbox(parent, recipient, message, launchedOn, sendOn, approver);
+    	
         AlarmManager am = (AlarmManager) parent.getSystemService(Context.ALARM_SERVICE);   
         Intent intent = new Intent(Constants.ACTION_SEND_DELAYED_TEXT);
-        intent.putExtra(Constants.EXTRA_RECIPIENT, recipient);
+        if(recipient!=null) {
+        	SendUtils.addMessageToOutbox(parent, recipient, message, launchedOn, sendOn, approver);
+        	intent.putExtra(Constants.EXTRA_RECIPIENT, recipient);
+        }
+        else {
+        	SendUtils.addMessageToOutbox(parent, recipients, message, launchedOn, sendOn, approver);
+        	intent.putExtra(Constants.EXTRA_RECIPIENTS, recipients);
+        }
         intent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
         intent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);
         intent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, sendOn);

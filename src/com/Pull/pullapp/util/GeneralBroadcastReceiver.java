@@ -27,10 +27,12 @@ import com.Pull.pullapp.FriendsActivity;
 import com.Pull.pullapp.MainApplication;
 import com.Pull.pullapp.MessageActivityCheckboxCursor;
 import com.Pull.pullapp.R;
+import com.Pull.pullapp.model.MMSMessage;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.threads.AlarmScheduler;
 import com.Pull.pullapp.threads.DailyShareSuggestion;
 import com.Pull.pullapp.threads.DownloadFriendPhoto;
+import com.Pull.pullapp.threads.SendMMS;
 import com.parse.FindCallback;
 import com.parse.ParseACL;
 import com.parse.ParseException;
@@ -109,32 +111,58 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         }              
         if (action.equals(Constants.ACTION_SEND_DELAYED_TEXT)) {
             String recipient = intent.getStringExtra(Constants.EXTRA_RECIPIENT);
+            String[] recipients = intent.getStringArrayExtra(Constants.EXTRA_RECIPIENTS);
             String message = intent.getStringExtra(Constants.EXTRA_MESSAGE_BODY);
             String approver = intent.getStringExtra(Constants.EXTRA_APPROVER);
             boolean isDelayed = intent.getBooleanExtra(Constants.EXTRA_IS_DELAYED, false);
-            Log.i("new message",message);
+           // Log.i("new message",message);
             long launchedOn = intent.getLongExtra(Constants.EXTRA_TIME_LAUNCHED,0);
             long scheduledFor = intent.getLongExtra(Constants.EXTRA_TIME_SCHEDULED_FOR,0);
-			SMSMessage m = new SMSMessage(launchedOn, 
-					message, recipient, 
-					store.getName(recipient), TextBasedSmsColumns.MESSAGE_TYPE_SENT, store, 
-					ParseUser.getCurrentUser().getUsername());		
-			m.schedule(scheduledFor);
-			m.isDelayed = isDelayed;
-			m.launchedOn = launchedOn;
-			//dont send if the user canceled (removed from outbox) or received a message since launching
-            if(!messagedAfterLaunch(context,recipient,launchedOn) &&  
-            		SendUtils.removeFromOutbox(context, message, recipient, launchedOn, 
-            				scheduledFor, false, approver)>0
-            		&& !disapproved(recipient,message,scheduledFor,approver, mContext)) 
-            {
-            	SendUtils.sendsms(context, recipient, message, launchedOn, scheduledFor, true);
-				m.setType(TextBasedSmsColumns.MESSAGE_TYPE_SENT);      	
-            }
-            else {
-            	intent.setAction(Constants.ACTION_SMS_UNOUTBOXED);
-                mContext.sendBroadcast(intent);	     
-                m.setType(TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);                      
+            SMSMessage m;
+            if(recipient!=null) {
+				m = new SMSMessage(launchedOn, 
+						message, recipient, 
+						store.getName(recipient), TextBasedSmsColumns.MESSAGE_TYPE_SENT, store, 
+						ParseUser.getCurrentUser().getUsername());		
+				m.schedule(scheduledFor);
+				m.isDelayed = isDelayed;
+				m.launchedOn = launchedOn;
+				//dont send if the user canceled (removed from outbox) or received a message since launching
+	            if(!messagedAfterLaunch(context,recipient,launchedOn) &&  
+	            		SendUtils.removeFromOutbox(context, message, recipient, launchedOn, 
+	            				scheduledFor, false, approver)>0
+	            		&& !disapproved(recipient,message,scheduledFor,approver, mContext)) 
+	            {
+	            	SendUtils.sendsms(context, recipient, message, launchedOn, scheduledFor, true);
+					m.setType(TextBasedSmsColumns.MESSAGE_TYPE_SENT);      	
+	            }
+	            else {
+	            	intent.setAction(Constants.ACTION_SMS_UNOUTBOXED);
+	                mContext.sendBroadcast(intent);	     
+	                m.setType(TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);                      
+	            }
+            } else {
+				m = new MMSMessage(launchedOn, 
+						message, recipients, 
+						store.getNames(recipients), TextBasedSmsColumns.MESSAGE_TYPE_SENT, store, 
+						ParseUser.getCurrentUser().getUsername());		
+				m.schedule(scheduledFor);
+				m.isDelayed = isDelayed;
+				m.launchedOn = launchedOn;
+				//dont send if the user canceled (removed from outbox) or received a message since launching
+	            if(!messagedAfterLaunch(context,recipients,launchedOn) &&  
+	            		SendUtils.removeFromOutbox(context, message, recipients, launchedOn, 
+	            				scheduledFor, false, approver)>0
+	            		&& !disapproved(recipients,message,scheduledFor,approver, mContext)) 
+	            {
+	            	new SendMMS(context, recipients, message, launchedOn, scheduledFor, true).run();
+					m.setType(TextBasedSmsColumns.MESSAGE_TYPE_SENT);      	
+	            }
+	            else {
+	            	intent.setAction(Constants.ACTION_SMS_UNOUTBOXED);
+	                mContext.sendBroadcast(intent);	     
+	                m.setType(TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);                      
+	            }         	
             }
 			try {
 				m.saveToParse();
@@ -222,6 +250,41 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
         
     }
    
+
+	private boolean disapproved(String[] recipients, String message,
+			long scheduledFor, String approver, Context context) {
+		if(approver==null || approver.length()==0) return false;
+		//Log.i("approver",approver);
+		//UserInfoStore store = new UserInfoStore(context);
+		//if(!store.wasApproved(recipients,message,scheduledFor,approver)) return true;
+		return false;
+	}
+
+
+	private boolean messagedAfterLaunch(Context context, String[] recipients,
+			long launchTime) {
+		//TODO: FIX THIS
+       /* Uri SMS_URI = Uri.parse("content://sms/inbox");
+        String[] COLUMNS = new String[] {TextBasedSmsColumns.DATE,TextBasedSmsColumns.ADDRESS};
+        String WHERE = TextBasedSmsColumns.ADDRESS + "='" + ContentUtils.addCountryCode(tmgr,address) + "' and " +
+        		TextBasedSmsColumns.TYPE + "=" + TextBasedSmsColumns.MESSAGE_TYPE_INBOX; 	
+        Cursor cursor = context.getContentResolver().query(SMS_URI, COLUMNS,
+                WHERE + " AND " + TextBasedSmsColumns.DATE + "> " + launchTime, null, 
+                TextBasedSmsColumns.DATE + " DESC");
+        if(cursor.moveToFirst()) {
+        	if(Constants.DEBUG){
+	        	long date = cursor.getLong(cursor.getColumnIndex(TextBasedSmsColumns.DATE));
+	        	String sender = cursor.getString(cursor.getColumnIndex(TextBasedSmsColumns.ADDRESS));
+	        	Log.i("messagedAfterLaunch", "LAST text was received on " + 
+	        			date + " from "+ ContentUtils.addCountryCode(sender));
+	        	Log.i("messagedAfterLaunch", "delayed send was launched: " + 
+	        			launchTime + " to "+ ContentUtils.addCountryCode(address));
+        	}
+        	return true;
+        }*/
+        return false;
+	}
+
 
 	private boolean disapproved(String recipient, String message,
 			long scheduledFor, String approver, Context context) {

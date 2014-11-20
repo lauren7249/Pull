@@ -39,7 +39,7 @@ public class RecipientList {
     public int countInvalidRecipients() { return mInvalidRecipients.size(); }
     
     public void add(Recipient r) {
-        if ((null != r) && Recipient.isValid(r.number)) {
+        if ((null != r) && Recipient.isValid(r.number) && !mRecipients.contains(r)) {
             mRecipients.add(r.filter());
         } else {
             mInvalidRecipients.add(r);
@@ -49,7 +49,33 @@ public class RecipientList {
     public Iterator<Recipient> iterator() { return mRecipients.iterator(); }
 
     public static class Recipient {
-        public long person_id = -1;
+        @Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result
+					+ ((number == null) ? 0 : number.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Recipient other = (Recipient) obj;
+			if (number == null) {
+				if (other.number != null)
+					return false;
+			} else if (!number.equals(other.number))
+				return false;
+			return true;
+		}
+
+		public long person_id = -1;
         public String name;
         public CharSequence label;
         public String number;           // often filtered from 800-892-1212 to 8008921212
@@ -197,41 +223,6 @@ public class RecipientList {
         }
     }
 
-    /*public static RecipientList from(String address, Context context) {
-        RecipientList list = new RecipientList();
-
-        if (!TextUtils.isEmpty(address)) {
-            String[] phoneNumbers = address.split(MessageSender.RECIPIENTS_SEPARATOR);
-            for (String number : phoneNumbers) {
-                Recipient recipient = new Recipient();
-                if (number.startsWith("%bcc%")) {
-                    recipient.bcc = true;
-                    number = number.substring(5);
-                }
-                CallerInfo ci = CallerInfo.getCallerInfo(context, number);
-                if (TextUtils.isEmpty(ci.name)) {
-                    recipient.person_id = -1;
-                    if (MessageUtils.isLocalNumber(ci.phoneNumber)) {
-                        recipient.name = "Me";
-                    } else {
-                        recipient.name = ci.phoneNumber;
-                    }
-                } else {
-                    recipient.person_id = ci.person_id;
-                    recipient.name = ci.name;
-                }
-                recipient.label = ci.phoneLabel;
-                recipient.number = (ci.phoneNumber == null) ? "" : ci.phoneNumber;
-                
-                recipient.nameAndNumber = Recipient.buildNameAndNumber(recipient.name,
-                        recipient.number);
-
-                list.add(recipient.filter());
-            }
-        }
-        return list;
-    }*/
-
     public String[] getToNumbers() {
         ArrayList<String> numbers = new ArrayList<String>();
         int count = mRecipients.size();
@@ -284,23 +275,6 @@ public class RecipientList {
         }
         return numbers.toArray(new String[numbers.size()]);
     }
-
-    /*public String serialize() {
-        StringBuilder sb = new StringBuilder();
-        int count = mRecipients.size();
-        for (int i = 0 ; i < count ; i++) {
-            if (i != 0) {
-                sb.append(MessageSender.RECIPIENTS_SEPARATOR);
-            }
-
-            Recipient recipient = mRecipients.get(i);
-            if (recipient.bcc) {
-                sb.append("%bcc%");
-            }
-            sb.append(recipient.number);
-        }
-        return sb.toString();
-    }*/
 
     public boolean hasInvalidRecipient() {
         return !mInvalidRecipients.isEmpty();

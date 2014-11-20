@@ -195,7 +195,7 @@ public class RecipientsEditor extends MultiAutoCompleteTextView {
             int start = 0;
             int i = 0;
             while (i < len + 1) {
-                if ((i == len) || (sp.charAt(i) == ',')) {
+                if ((i == len) || (sp.charAt(i) == ' ')) {
                     if (i > start) {
                         Recipient r = getRecipientAt(sp, start, i);
 

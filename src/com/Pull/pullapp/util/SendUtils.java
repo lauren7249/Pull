@@ -24,6 +24,9 @@ import android.widget.Toast;
 
 import com.Pull.pullapp.model.Invite;
 import com.Pull.pullapp.model.SMSMessage;
+import com.klinker.android.send_message.Message;
+import com.klinker.android.send_message.Settings;
+import com.klinker.android.send_message.Transaction;
 import com.parse.FunctionCallback;
 import com.parse.ParseACL;
 import com.parse.ParseCloud;
@@ -251,7 +254,44 @@ public class SendUtils  {
 		SendUtils.sendsms(mContext, shared_confidante,text, 
 				System.currentTimeMillis(), System.currentTimeMillis(), false);        
 		
-	}	
+	}
+
+
+	public static void addMessageToOutbox(Context context, String[] recipients,
+			String message, long timeScheduled, long scheduledFor, String approver) {
+		DatabaseHandler db = new DatabaseHandler(context);
+		db.addToOutbox(recipients, message, timeScheduled, scheduledFor, approver);
+		db.close();
+	    Intent intent = new Intent(Constants.ACTION_MMS_OUTBOXED);
+	    intent.putExtra(Constants.EXTRA_RECIPIENTS, recipients);
+	    intent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
+	    intent.putExtra(Constants.EXTRA_TIME_LAUNCHED, timeScheduled);
+	    intent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, scheduledFor);
+	    intent.putExtra(Constants.EXTRA_APPROVER, approver);
+	    context.sendBroadcast(intent);	
+		
+	}
+
+
+	public static int removeFromOutbox(Context context, String body,
+			String[] recipients, long launchedOn, long scheduledFor,
+			boolean clearFromScreen, String approver) {
+		DatabaseHandler db = new DatabaseHandler(context);
+		int rowsdeleted = db.deleteFromOutbox(launchedOn);
+		db.close();
+		//Log.i("rows deleted ", " " + rowsdeleted);
+		if(rowsdeleted>0 && clearFromScreen) {
+		    Intent intent = new Intent(Constants.ACTION_MMS_UNOUTBOXED);
+		    intent.putExtra(Constants.EXTRA_RECIPIENTS, recipients);
+		    intent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);
+		    intent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, scheduledFor);
+		    intent.putExtra(Constants.EXTRA_MESSAGE_BODY, body);
+		    intent.putExtra(Constants.EXTRA_APPROVER, approver);
+	        context.sendBroadcast(intent);		
+		}
+		return rowsdeleted;
+	}
+
 
 
 }

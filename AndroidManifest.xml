@@ -27,6 +27,7 @@
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 	<uses-permission android:name="android.permission.SEND_RESPOND_VIA_MESSAGE" />
+	
 	<uses-permission android:name="android.permission.WRITE_APN_SETTINGS" />
     <uses-permission android:name="android.permission.BROADCAST_WAP_PUSH"
          tools:ignore="ProtectedPermissions"/>
@@ -162,6 +163,7 @@
             </intent-filter>
         </service>
         <service android:enabled="true" android:name="com.Pull.pullapp.util.TransactionService"/>
+        <service android:name="com.android.mms.transaction.TransactionService"/>
         <activity android:name="SharedConversationActivity">
             <meta-data
 		        android:name="android.support.PARENT_ACTIVITY"
