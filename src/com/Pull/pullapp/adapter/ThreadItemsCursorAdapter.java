@@ -31,7 +31,7 @@ import com.Pull.pullapp.util.UserInfoStore;
 import com.mikhaellopez.circularimageview.CircularImageView;
 public class ThreadItemsCursorAdapter extends CursorAdapter {
 	
-	public HashMap<Integer,String> recipientID_hash;
+	public HashMap<Integer,String[]> recipientID_hash;
 	private int cursorType;
 	private Context mContext;
 	protected Activity activity;
@@ -49,7 +49,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	super(context, cursor);
     	mContext = context;  	
     	this.store = new UserInfoStore(context);
-    	recipientID_hash = new HashMap<Integer,String>();
+    	recipientID_hash = new HashMap<Integer,String[]>();
     	this.cursorType = cursorType;
     	activity = a;
     	dh = new DatabaseHandler(mContext);
@@ -101,16 +101,19 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 		holder.graphButton = (ImageView) v.findViewById(R.id.graph_button);
 		holder.addPerson = (ImageView) v.findViewById(R.id.add_person);
 		
-		String name="", snippet="", recipientId="";
-		final String number;
-		boolean read = true;        
-
+		String[] recipientIds;
+		boolean read = true, isGroupMessage = false;        
+		String snippet, number = null;
+		String names = null, name = null;
+		
         final int position= threads.getPosition();
 
     	read = (!threads.getString(1).equals("0"));	 
-    	recipientId = threads.getString(2);
+    	recipientIds = threads.getString(2).split(" ");
     	snippet = threads.getString(4);		
-
+    	
+    	if(recipientIds.length>1) isGroupMessage = true;
+    	
     	if(snippet!=null) {
         	if(snippet.length()>45) snippet = snippet.substring(0,45).trim() + "...";
         	snippet = snippet.replace("\n", "").replace("\r", "");    		
@@ -118,28 +121,29 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 	    	holder.snippet_view.setVisibility(View.VISIBLE);
     	}
     	
-    	recipientID_hash.put(position, recipientId);
+    	recipientID_hash.put(position, recipientIds);
     	
     	holder.initials_view.setTypeface(null, Typeface.BOLD);	
     	holder.initials_view.setBackgroundResource(R.drawable.circle);
-    	if(store.getPhoneNumber(recipientId)==null) {
-			number = ContentUtils.addCountryCode(ContentUtils.getAddressFromID(context, recipientId));
-			store.setPhoneNumber(recipientId, number);
-    	}		
-    	else number = store.getPhoneNumber(recipientId);
-    	
-    	//if(number==null || number.length()==0) return;
-    	name = store.getName(number);
-    	if(name==null || name.length() == 0 || ContentUtils.addCountryCode(name).equals(ContentUtils.addCountryCode(number))) {
-    		name = ContentUtils.getContactDisplayNameByNumber(context, number);
-    		store.setName(number, name);
-    	}	
-    	
-    	final String friend_name = name;
-    	final String friend_number = number;
+    	for(String recipientId : recipientIds) {
+	    	if(store.getPhoneNumber(recipientId)==null) {
+	    		number = ContentUtils.addCountryCode(ContentUtils.getAddressFromID(context, recipientId));
+				store.setPhoneNumber(recipientId, number);
+	    	}		
+	    	else number = store.getPhoneNumber(recipientId);
+	    	//if(number==null || number.length()==0) return;
+	    	name = store.getName(number);
+	    	if(name==null || name.length() == 0 || ContentUtils.addCountryCode(name).equals(ContentUtils.addCountryCode(number))) {
+	    		name = ContentUtils.getContactDisplayNameByNumber(context, number);
+	    		store.setName(number, name);
+	    	}		
+	    	if(names == null) names = name;
+	    	else names = names + ", " + name;
+    	}
+
     	holder.shared_with.setVisibility(View.VISIBLE);
     	
-		holder.name_view.setText(store.getName(number));
+		holder.name_view.setText(names);
 		if(!read) {
 			holder.read_indicator.setVisibility(View.VISIBLE);
 		} else {
@@ -148,60 +152,69 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 
     	holder.other_pic_mine.setVisibility(View.GONE);
 		holder.other_pic.setVisibility(View.GONE);
-
-    	if(!store.isFriend(number)) {
+		
+		if(isGroupMessage) {
     		holder.image_view.setVisibility(View.GONE);
     		holder.initials_view.setVisibility(View.VISIBLE);
-    		holder.initials_view.setText(ContentUtils.getInitials(name, number));    		
-    		holder.initials_view.setOnClickListener(new OnClickListener(){
-	
-    			@Override
-    			public void onClick(View v) {
-    				holder.initials_view.setBackgroundResource(R.drawable.circle_pressed);
-    				Intent broadcastIntent = new Intent();
-    				broadcastIntent.setAction(Constants.ACTION_ORIGINAL_TAB_CLICKED);
-    				broadcastIntent.putExtra(Constants.EXTRA_NAME, friend_name);
-    				broadcastIntent.putExtra(Constants.EXTRA_NUMBER, friend_number);
-    				mContext.sendBroadcast(broadcastIntent);	
-    			}
-    		});
-    	} else if(isBindView && store.getPhotoPath(number)!=null) {
-    		holder.initials_view.setVisibility(View.GONE);
-    		holder.image_view.setVisibility(View.VISIBLE);
-    		cu.loadBitmap(mContext, store.getPhotoPath(number),holder.image_view, 0);        		
-    	}
-  
-    	shared_with_cursor = dh.getSharedWithCursor(number);
-		sharedWithListView = (HListView) v.findViewById(R.id.shared_with_list);
-		sharedWithAdapter = new SharedWithCursorAdapter(mContext,shared_with_cursor,activity);
-		sharedWithListView.setAdapter(sharedWithAdapter);
+    		holder.initials_view.setText(Integer.toString(recipientIds.length));    			
+		}
+		else if(!isGroupMessage) {
+			final String friend_name = name;
+			final String friend_number = number;
+	    	if(!store.isFriend(number)) {
+	    		holder.image_view.setVisibility(View.GONE);
+	    		holder.initials_view.setVisibility(View.VISIBLE);
+	    		holder.initials_view.setText(ContentUtils.getInitials(names, number));    		
+	    		holder.initials_view.setOnClickListener(new OnClickListener(){
 		
-		holder.graphButton.setOnClickListener(new OnClickListener(){
-
-			@Override
-			public void onClick(View v) {
-				holder.graphButton.setBackgroundResource(R.drawable.graph_pressed);
-				Intent broadcastIntent = new Intent();
-				broadcastIntent.setAction(Constants.ACTION_GRAPH_TAB_CLICKED);
-				broadcastIntent.putExtra(Constants.EXTRA_NAME, friend_name);
-				broadcastIntent.putExtra(Constants.EXTRA_NUMBER, friend_number);
-				mContext.sendBroadcast(broadcastIntent);	
-			}
+	    			@Override
+	    			public void onClick(View v) {
+	    				holder.initials_view.setBackgroundResource(R.drawable.circle_pressed);
+	    				Intent broadcastIntent = new Intent();
+	    				broadcastIntent.setAction(Constants.ACTION_ORIGINAL_TAB_CLICKED);
+	    				broadcastIntent.putExtra(Constants.EXTRA_NAMES, new String[]{friend_name});
+	    				broadcastIntent.putExtra(Constants.EXTRA_NUMBERS, new String[] {friend_number});
+	    				mContext.sendBroadcast(broadcastIntent);	
+	    			}
+	    		});
+	    	} else if(isBindView && store.getPhotoPath(number)!=null) {
+	    		holder.initials_view.setVisibility(View.GONE);
+	    		holder.image_view.setVisibility(View.VISIBLE);
+	    		cu.loadBitmap(mContext, store.getPhotoPath(number),holder.image_view, 0);        		
+	    	}
+	  
+	    	shared_with_cursor = dh.getSharedWithCursor(number);
+			sharedWithListView = (HListView) v.findViewById(R.id.shared_with_list);
+			sharedWithAdapter = new SharedWithCursorAdapter(mContext,shared_with_cursor,activity);
+			sharedWithListView.setAdapter(sharedWithAdapter);
 			
-		});
-		holder.addPerson.setOnClickListener(new OnClickListener(){
-
-			@Override
-			public void onClick(View v) {
-				holder.addPerson.setBackgroundResource(R.drawable.add_pressed);
-				Intent broadcastIntent = new Intent();
-				broadcastIntent.setAction(Constants.ACTION_ADDPPL_TAB_CLICKED);
-				broadcastIntent.putExtra(Constants.EXTRA_NAME, friend_name);
-				broadcastIntent.putExtra(Constants.EXTRA_NUMBER, friend_number);
-				mContext.sendBroadcast(broadcastIntent);	
-			}
-			
-		});		
+			holder.graphButton.setOnClickListener(new OnClickListener(){
+	
+				@Override
+				public void onClick(View v) {
+					holder.graphButton.setBackgroundResource(R.drawable.graph_pressed);
+					Intent broadcastIntent = new Intent();
+					broadcastIntent.setAction(Constants.ACTION_GRAPH_TAB_CLICKED);
+					broadcastIntent.putExtra(Constants.EXTRA_NAMES, new String[]{friend_name});
+					broadcastIntent.putExtra(Constants.EXTRA_NUMBERS, new String[] {friend_number});
+					mContext.sendBroadcast(broadcastIntent);	
+				}
+				
+			});
+			holder.addPerson.setOnClickListener(new OnClickListener(){
+	
+				@Override
+				public void onClick(View v) {
+					holder.addPerson.setBackgroundResource(R.drawable.add_pressed);
+					Intent broadcastIntent = new Intent();
+					broadcastIntent.setAction(Constants.ACTION_ADDPPL_TAB_CLICKED);
+					broadcastIntent.putExtra(Constants.EXTRA_NAMES, new String[]{friend_name});
+					broadcastIntent.putExtra(Constants.EXTRA_NUMBERS, new String[] {friend_number});
+					mContext.sendBroadcast(broadcastIntent);	
+				}
+				
+			});		
+		}
     	v.setTag(holder);
 	}
 

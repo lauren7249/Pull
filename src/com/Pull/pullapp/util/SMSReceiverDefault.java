@@ -13,10 +13,12 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.Telephony;
+import android.provider.Telephony.Sms;
 import android.provider.Telephony.Sms.Intents;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.app.NotificationCompat;
@@ -82,12 +84,8 @@ public class SMSReceiverDefault extends BroadcastReceiver {
 					dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
 					String name = ContentUtils.getContactDisplayNameByNumber(context, sender);
-					String threadID = ContentUtils.getThreadIDFromNumber(context, sender);
-					if(threadID == null || threadID.length()==0) {
-						threadID = ContentUtils.getNextThreadID(context,sender);
-						Log.i("thread id",threadID);
-					}
-					pushMessage(context,message,sender,threadID,date);		
+
+					String threadID = pushMessage(context,message,sender,date);		
 					SMSMessage m = new SMSMessage(date, message, sender, 
 							name, TextBasedSmsColumns.MESSAGE_TYPE_INBOX, store, 
 							ParseUser.getCurrentUser().getUsername());
@@ -108,9 +106,9 @@ public class SMSReceiverDefault extends BroadcastReceiver {
 							.setPriority(NotificationCompat.PRIORITY_LOW)
 							.setOnlyAlertOnce(true);
 					Intent ni = new Intent(context, MessageActivityCheckboxCursor.class);
-					//ni.putExtra(Constants.EXTRA_THREAD_ID,threadID);
-					ni.putExtra(Constants.EXTRA_NAME,name);
-			        ni.putExtra(Constants.EXTRA_NUMBER,sender);
+					ni.putExtra(Constants.EXTRA_THREAD_ID,threadID);
+					ni.putExtra(Constants.EXTRA_NAMES,new String[]{name});
+			        ni.putExtra(Constants.EXTRA_NUMBERS,new String[] {sender});
 					ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 					//ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 					ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -128,21 +126,26 @@ public class SMSReceiverDefault extends BroadcastReceiver {
 			return;
 		}
 	}
-	public static void pushMessage(Context context, String message, String number, String thread_id, long date) {
- 
+	public static String pushMessage(Context context, String message, String number, long date) {
+		String thread_id;
 		ContentValues values = new ContentValues(7);
 		values.put("address", number);
 		values.put("read", false);
 		values.put("subject", "");
 		values.put("body", message);
-		values.put("thread_id", thread_id);
 		values.put("date", date);
 		Uri uri = Uri.parse("content://sms/inbox");
-		context.getContentResolver().insert(uri, values);		
+		Uri row = context.getContentResolver().insert(uri, values);		
+		Cursor c = context.getContentResolver().query(row, new String[]{Sms.Inbox.THREAD_ID}, 
+				null, null, null);
+		if(c.moveToFirst()) {
+			thread_id = c.getString(0);
+		} else thread_id= null;
 	    Intent intent = new Intent(Constants.ACTION_SMS_INBOXED);
-	    intent.putExtra(Constants.EXTRA_NUMBER, number);
+	    intent.putExtra(Constants.EXTRA_NUMBERS, new String[]{number});
+	    intent.putExtra(Constants.EXTRA_THREAD_ID,thread_id);
 	    context.sendBroadcast(intent);	
-
+	    return thread_id;
 	}	
 
 }

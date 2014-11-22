@@ -1,4 +1,6 @@
 package com.Pull.pullapp;
+import java.util.Arrays;
+
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -180,9 +182,10 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				String action = intent.getAction();		
-				String number = intent.getStringExtra(Constants.EXTRA_NUMBER); 
-				String name = intent.getStringExtra(Constants.EXTRA_NAME); 
-				openConvo(context,number,name,action);
+				String[] numbers = intent.getStringArrayExtra(Constants.EXTRA_NUMBERS); 
+				String[] names = intent.getStringArrayExtra(Constants.EXTRA_NAMES); 
+				String thread_id = intent.getStringExtra(Constants.EXTRA_THREAD_ID);
+				openConvo(context,thread_id,numbers,names,action);
 				
 			}
 		}	;	
@@ -291,9 +294,10 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
   		case R.id.my_conversation_tab: 
 			String threadID = threads.getString(threads
 				      .getColumnIndex(ThreadsColumns._ID));	
-			String recipientId = threads.getString(threads
-				      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS));	
-			String number = store.getPhoneNumber(recipientId);  			
+			String recipientIds = threads.getString(threads
+				      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS));
+			String[] recipients = recipientIds.split(" ");
+			String[] numbers = store.getPhoneNumbers(recipients);  			
   			if(item.getTitle().equals("Delete Thread")) {
   				ContentUtils.deleteConversation(mContext,threadID);
   				threads_cursor = ContentUtils.getThreadsCursor(mContext);
@@ -305,7 +309,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 	            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 	            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 	            intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
-	            intent.putExtra(ContactsContract.Intents.Insert.PHONE, number);
+	            intent.putExtra(ContactsContract.Intents.Insert.PHONE, numbers[0]);
 	            store.putPosition("tab"+currentTab,listview.getFirstVisiblePosition());
 	            startActivity(intent);     
 	    		
@@ -411,21 +415,27 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 				      .getColumnIndex(ThreadsColumns._ID));	
 	  		boolean read = (!threads.getString(threads
 		  		      .getColumnIndex(ThreadsColumns.READ)).equals("0"));    	
-			String recipientId = threads.getString(threads
-				      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS));		
+			String[] recipientIds = threads.getString(threads
+				      .getColumnIndex(ThreadsColumns.RECIPIENT_IDS)).split(" ");		
 			threads.close();
-			String number = store.getPhoneNumber(recipientId);
-	    	if(number==null) {
-				number = ContentUtils.getAddressFromID(mContext, recipientId);
-				store.setPhoneNumber(recipientId,number);
-	    	}			
-	    	store.saveThreadID(number, threadID);
-			String name = store.getName(number);
-	    	if(name==null) {
-	    		name = ContentUtils.getContactDisplayNameByNumber(mContext, number);
-	    		store.setName(number, name);
-	    	}				
-	    	openConvo(mContext,number,name,"");
+			for(String recipientId : recipientIds) {
+				String number = store.getPhoneNumber(recipientId);
+		    	if(number==null) {
+					number = PhoneNumberUtils.stripSeparators(
+							ContentUtils.getAddressFromID(mContext, recipientId));
+					store.setPhoneNumber(recipientId,number);
+		    	}			
+		    //	store.saveThreadID(number, threadID);
+				String name = store.getName(number);
+		    	if(name==null) {
+		    		name = ContentUtils.getContactDisplayNameByNumber(mContext, number);
+		    		store.setName(number, name);
+		    	}		
+			}
+			String[] numbers = store.getPhoneNumbers(recipientIds);
+			String[] names = store.getNames(numbers);
+
+	    	openConvo(mContext,threadID,numbers,names,"");
 	        return;
 		default:
 		//	Log.i("long id ", "long id " + id);
@@ -447,18 +457,29 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 
     }   
     
-	public static void openConvo(Context context, String number, String name, String action) {
+	private void openConvo(Context context, String threadID,
+			String[] numbers, String[] names, String action) {
     	Intent intent = new Intent(context, MessageActivityCheckboxCursor.class);
     	intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(Constants.EXTRA_NAME,name);
-        intent.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(number));
+        intent.putExtra(Constants.EXTRA_NAMES,names);
+        intent.putExtra(Constants.EXTRA_NUMBERS,numbers);
+        intent.putExtra(Constants.EXTRA_THREAD_ID,threadID);
         intent.putExtra(Constants.EXTRA_STATUS,action);
         Log.i("position","position " + listview.getFirstVisiblePosition());
         store.putPosition("tab"+currentTab,listview.getFirstVisiblePosition());
-        
         context.startActivity(intent);   
 		
-		
+	}
+
+	public static void openConvo(Context context, String number, String name, String action) {
+    	Intent intent = new Intent(context, MessageActivityCheckboxCursor.class);
+    	intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(Constants.EXTRA_NAMES, new String[]{name});
+        intent.putExtra(Constants.EXTRA_NUMBERS,new String[] {PhoneNumberUtils.stripSeparators(number)});
+        intent.putExtra(Constants.EXTRA_STATUS,action);
+        Log.i("position","position " + listview.getFirstVisiblePosition());
+        store.putPosition("tab"+currentTab,listview.getFirstVisiblePosition());
+        context.startActivity(intent);   
 	}
 
 	public static void openSharedConvo(Context context, String convoID, String sender, String clueless_persons_number,

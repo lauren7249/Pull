@@ -104,9 +104,10 @@ public class DailyShareSuggestion extends Thread {
 					ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);		
 					ni.putExtra(Constants.EXTRA_SHARE_SUGGESTION_ID,shID);
 					ni.putExtra(Constants.EXTRA_THREAD_ID,shared_from_thread);
-					ni.putExtra(Constants.EXTRA_NAME,shared_from_name);
+					ni.putExtra(Constants.EXTRA_NAMES,new String[] {shared_from_name});
 					ni.putExtra(Constants.EXTRA_READ,true);
-					ni.putExtra(Constants.EXTRA_NUMBER,PhoneNumberUtils.stripSeparators(share_convo_number));	
+					ni.putExtra(Constants.EXTRA_NUMBERS,
+							new String[] {PhoneNumberUtils.stripSeparators(share_convo_number)});	
 					ni.putExtra(Constants.EXTRA_SHARE_TO_NUMBER,PhoneNumberUtils.stripSeparators(best_friend_number));	
 					PendingIntent pi = PendingIntent.getActivity(mContext, 0,
 							ni, PendingIntent.FLAG_CANCEL_CURRENT);

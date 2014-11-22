@@ -156,7 +156,8 @@ public class PushReceiver extends BroadcastReceiver {
         							.getSystemService(Context.NOTIFICATION_SERVICE);
         					int icon;
         					String sender = pdu.getFrom().getString();
-        					Log.v(TAG,"sender " + sender);
+        				
+        					//Log.v(TAG,"sender " + sender);
         					UserInfoStore store = new UserInfoStore(mContext);
         					String name = store.getName(sender);
         					icon = R.drawable.ic_launcher_gray;
@@ -167,8 +168,8 @@ public class PushReceiver extends BroadcastReceiver {
         							.setOnlyAlertOnce(true);
         					Intent ni = new Intent(mContext, MessageActivityCheckboxCursor.class);
         					//ni.putExtra(Constants.EXTRA_THREAD_ID,threadID);
-        					ni.putExtra(Constants.EXTRA_NAME,name);
-        			        ni.putExtra(Constants.EXTRA_NUMBER,sender);
+        					ni.putExtra(Constants.EXTRA_THREAD_ID,threadId);
+        			       // ni.putExtra(Constants.EXTRA_NUMBER,sender);
         					ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         					//ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
         					ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -226,7 +227,7 @@ public class PushReceiver extends BroadcastReceiver {
         }
     }
 
-    private static long findThreadId(Context context, GenericPdu pdu, int type) {
+    public static long findThreadId(Context context, GenericPdu pdu, int type) {
         String messageId;
 
         if (type == MESSAGE_TYPE_DELIVERY_IND) {

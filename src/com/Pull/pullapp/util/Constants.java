@@ -162,7 +162,8 @@ public class Constants {
 	public static final String ACTION_MMS_OUTBOXED = PACKAGE_NAME + ".util.ACTION_MMS_OUTBOXED";
 	public static final String ACTION_MMS_UNOUTBOXED = PACKAGE_NAME + ".util.ACTION_MMS_UNOUTBOXED";
 	public static final String ACTION_MMS_DELIVERED =  PACKAGE_NAME + ".util.ACTION_MMS_DELIVERED";
-	
+	public static final String EXTRA_NAMES = PACKAGE_NAME + "EXTRA_NAMES";
+	public static final String EXTRA_NUMBERS = PACKAGE_NAME + "EXTRA_NUMBERS";
 	
 	
 

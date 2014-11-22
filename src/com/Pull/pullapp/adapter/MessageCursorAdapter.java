@@ -53,7 +53,6 @@ public class MessageCursorAdapter extends CursorAdapter {
 	public TreeSet<SMSMessage> check_hash;
 	private TreeMap<Long, MMSMessage> mms;
 	public HashMap<Long,Integer> delayedMessages;
-	private String other_person, other_person_name;
 	private Activity activity;
 	private UserInfoStore store;
 	private boolean isTextConvo;
@@ -62,15 +61,19 @@ public class MessageCursorAdapter extends CursorAdapter {
 	private SimplePopupWindow popup;
 	private boolean isMine;
 	private String conversant_name;
+	private String[] other_people;
+	private String[] other_person_names;
+	private String other_person;
+	private String other_person_name;
     @SuppressWarnings("deprecation")
-	public MessageCursorAdapter(Context context, Cursor cursor, String number, 
+	public MessageCursorAdapter(Context context, Cursor cursor, String[] numbers, 
 			Activity activity) {
     	super(context, cursor, FLAG_REGISTER_CONTENT_OBSERVER);
     	check_hash = new TreeSet<SMSMessage>();
     	delayedMessages = new HashMap<Long,Integer>();
     	store = new UserInfoStore(context);
-    	other_person = ContentUtils.addCountryCode(number);
-    	other_person_name = store.getName(other_person);
+    	other_people = numbers;
+    	other_person_names = store.getNames(other_people);
 		this.activity = activity;
 		this.isTextConvo = true;
 		cu  = new ContentUtils();

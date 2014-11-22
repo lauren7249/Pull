@@ -114,8 +114,9 @@ public class ContentUtils {
 				  new String[]{ThreadsColumns._ID, ThreadsColumns.READ, 
 					  ThreadsColumns.RECIPIENT_IDS, ThreadsColumns.DATE,
 					  ThreadsColumns.SNIPPET},
-					  ThreadsColumns._ID+" is not null and replace("+ 
-					  ThreadsColumns.RECIPIENT_IDS + ",' ','')=" + ThreadsColumns.RECIPIENT_IDS,
+					  ThreadsColumns._ID+" is not null " 
+					  /*+ "and replace("+ 
+					  ThreadsColumns.RECIPIENT_IDS + ",' ','')=" + ThreadsColumns.RECIPIENT_IDS*/,
 					  null,ThreadsColumns.DATE+" DESC");		  
 		 // ContentQueryMap map = new ContentQueryMap(c, ThreadsColumns._ID, true, null);
 		  return c;

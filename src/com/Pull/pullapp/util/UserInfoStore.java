@@ -198,5 +198,12 @@ public class UserInfoStore {
 		}
 		return names;
 	}
+	public String[] getPhoneNumbers(String[] recipients) {
+		String[] numbers = new String[recipients.length];
+		for(int i=0; i<recipients.length; i++) {
+			numbers[i] = getPhoneNumber(recipients[i]);
+		}
+		return numbers;
+	}
 
 }
