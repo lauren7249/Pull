@@ -333,8 +333,10 @@ public class MessageCursorAdapter extends CursorAdapter {
 	
     		initiating = ContentUtils.isInitiating(date, type, body, previous_date, previous_type, previous_body);
     		c.moveToNext();
-    	} else submms = mms.headMap(date);
-    	
+    	} else if(date>0)  submms = mms.headMap(date);
+    	else {
+    		submms = mms;
+    	}
     	Object[] mms_array = null, mms_array2 = null;
     	mms_array = submms.entrySet().toArray();
     	
@@ -347,16 +349,12 @@ public class MessageCursorAdapter extends CursorAdapter {
 		final ViewHolder holder; 
 		if(isnew) holder = new ViewHolder();
 		else holder = (ViewHolder) v.getTag();
+		v.setTag(holder);
 		
-		holder.messageBox = (LinearLayout) v.findViewById(R.id.message_box);
-		holder.message = (TextView) v.findViewById(R.id.message_text);
-		holder.time = (TextView) v.findViewById(R.id.message_time);
-		holder.edit = (Button) v.findViewById(R.id.edit_message_button);	
-		holder.their_pic = (CircularImageView) v.findViewById(R.id.contact_image);
+		holder.main_sms_box = (LinearLayout) v.findViewById(R.id.main_sms_box);
 		holder.separator = (View) v.findViewById(R.id.separator);
 		holder.mms_space = (LinearLayout) v.findViewById(R.id.mms_space);
-		holder.mms_space2 = (LinearLayout) v.findViewById(R.id.mms_space2);
-		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);
+		holder.mms_space2 = (LinearLayout) v.findViewById(R.id.mms_space2);	
 		
 		if(initiating) holder.separator.setVisibility(View.VISIBLE);
 		else  holder.separator.setVisibility(View.GONE);
@@ -373,6 +371,18 @@ public class MessageCursorAdapter extends CursorAdapter {
 			addMMSViews(mms_array2,holder.mms_space2);
 		}
 		
+		if(type == -1) {
+			holder.main_sms_box.setVisibility(View.GONE);
+			Log.i("cursoradapter","setting main sms box to invisible");
+			return;
+		}
+		
+		holder.messageBox = (LinearLayout) v.findViewById(R.id.message_box);
+		holder.message = (TextView) v.findViewById(R.id.message_text);
+		holder.time = (TextView) v.findViewById(R.id.message_time);
+		holder.edit = (Button) v.findViewById(R.id.edit_message_button);	
+		holder.their_pic = (CircularImageView) v.findViewById(R.id.contact_image);	
+		holder.addPPl = (ImageView) v.findViewById(R.id.add_ppl);		
 		if(showCheckboxes) holder.addPPl.setVisibility(View.VISIBLE);
 		else  holder.addPPl.setVisibility(View.GONE);
 		
@@ -435,7 +445,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 			}
         }
 		
-		v.setTag(holder);		
+				
 		holder.message.setText(message.getMessage());
 		if(showCheckboxes) holder.messageBox.setOnClickListener(new OnClickListener() {
 			@Override
@@ -492,7 +502,9 @@ public class MessageCursorAdapter extends CursorAdapter {
 	private void addMMSViews(Object[] mms_array, LinearLayout mms_space) {
 		LinearLayout parent = new LinearLayout(mContext);
 		parent.setOrientation(LinearLayout.VERTICAL);
-		for(Object o : mms_array) {
+		mms_space.addView(parent);
+		for(int i=mms_array.length-1; i>=0; i--) {
+			Object o = mms_array[i];
 			final MMSViewHolder holder = new MMSViewHolder();
 			Map.Entry<Long,MMSMessage> entry = (Map.Entry<Long, MMSMessage>) o;
 			MMSMessage m = entry.getValue();
@@ -535,11 +547,11 @@ public class MessageCursorAdapter extends CursorAdapter {
 			}
 			mmsView.setTag(holder);
 			holder.messageBox.setLayoutParams(lp);		
-			
-			parent.addView(mmsView);
+			parent.addView(mmsView,0);
 		}
 	//	Log.i("child views", "has child views "+parent.getChildCount());
-		mms_space.addView(parent);
+		
+		
 		//notifyDataSetChanged();
 		
 	}
@@ -553,6 +565,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 	}
 	public static class ViewHolder
 	{
+		public LinearLayout main_sms_box;
 		public LinearLayout mms_space2;
 		public LinearLayout mms_space;
 		public View separator;

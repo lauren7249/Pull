@@ -291,7 +291,5 @@ public class SendUtils  {
 		}
 		return rowsdeleted;
 	}
-
-
-
+	
 }

@@ -434,7 +434,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 			}
 			String[] numbers = store.getPhoneNumbers(recipientIds);
 			String[] names = store.getNames(numbers);
-
+			Log.i("numbers allthredslist",numbers.length+"");
 	    	openConvo(mContext,threadID,numbers,names,"");
 	        return;
 		default:

@@ -23,8 +23,8 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.res.Resources;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
+import android.database.MatrixCursor;
+import android.database.MergeCursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -253,7 +253,7 @@ public class ContentUtils {
 			return "phoneNumber"+addCountryCode(recipient);
 		}
 		public static Cursor getMessagesCursor(Context mContext,
-				String thread_id, String number) {
+				String thread_id, String number, boolean isGroupMessage) {
 			String querystring;
 			if(thread_id == null) {
 				Log.i("thread id is null", number);
@@ -286,7 +286,13 @@ public class ContentUtils {
 	        		TextBasedSmsColumns.DATE, TextBasedSmsColumns.THREAD_ID};
 
 			Cursor messages_cursor = mContext.getContentResolver().query(Telephony.Sms.CONTENT_URI,
-					variables,querystring ,null,TextBasedSmsColumns.DATE);	      
+					variables,querystring ,null,TextBasedSmsColumns.DATE);	   
+			if(messages_cursor.getCount()==0 && isGroupMessage) {
+				MatrixCursor matrixCursor = new MatrixCursor(variables);
+				matrixCursor.addRow(new Object[] {"sent","-1","","-1","","-1","-1",thread_id});	
+				MergeCursor mergeCursor = new MergeCursor(new Cursor[] { matrixCursor, messages_cursor });
+				return mergeCursor;
+			}
 			Log.i("messages_cursor size", " " + messages_cursor.getCount());
 	        return messages_cursor;
 		}		
@@ -812,5 +818,7 @@ public class ContentUtils {
         		  Telephony.BaseMmsColumns._ID + "=" + msgID, 
             null, TextBasedSmsColumns.DATE);
 		return mCursor;
-		}				
+		}		
+		
+		
 }
