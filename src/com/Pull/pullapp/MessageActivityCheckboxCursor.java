@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import android.provider.Telephony.Threads;
+
 import org.json.JSONException;
 
 import android.app.Activity;
@@ -40,6 +42,7 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
+import android.provider.Telephony.MmsSms;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
@@ -362,6 +365,18 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			clueless_persons_number = getIntent().getStringExtra(Constants.EXTRA_CLUELESS_PERSONS_NUMBER);
 			shared_convo_type = getIntent().getIntExtra(Constants.EXTRA_SHARED_CONVO_TYPE,-1);
 			
+			if(numbers == null && thread_id!=null) {
+				Uri uri=Uri.parse("content://mms-sms/conversations?simple=true");
+				String selection="_id=? and recipient_ids is not null and recipient_ids is not ''";
+				Cursor cursor = mContext.getContentResolver().query(uri, null, 
+						selection, new String[]{thread_id}, null);
+				if(cursor.moveToNext()) {
+                	String[] recipientIds = cursor.getString(cursor.getColumnIndex(Threads.RECIPIENT_IDS)).split(" ");
+                	Log.i("recipient ids", cursor.getString(cursor.getColumnIndex(Threads.RECIPIENT_IDS)));
+                	numbers = store.getPhoneNumbers(recipientIds);
+                	names = store.getNames(numbers);
+				}				
+			}
 			//TODO: FIX THIS
 			if(numbers!=null && numbers.length>1) {
 				name = Arrays.asList(names).toString().substring(1).replace("]", "");
@@ -374,7 +389,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			    text.clearFocus();				
 				notificationManager.cancel(thread_id.hashCode());				
 			}
-			else if(thread_id!=null && numbers.length==1) {
+			else if(thread_id!=null && numbers!=null && numbers.length==1) {
 				number =  ContentUtils.addCountryCode(numbers[0]); 
 				name =  names[0];				
 				title_view.setText(name);

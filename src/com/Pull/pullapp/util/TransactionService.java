@@ -21,7 +21,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ContentUris;
@@ -29,6 +33,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.database.sqlite.SqliteWrapper;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -40,11 +45,14 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.MmsSms;
+import android.provider.Telephony.Threads;
 import android.provider.Telephony.MmsSms.PendingMessages;
+import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.Pull.pullapp.MessageActivityCheckboxCursor;
 import com.Pull.pullapp.R;
 import com.android.mms.transaction.NotificationTransaction;
 import com.android.mms.transaction.Observable;
@@ -475,12 +483,49 @@ public class TransactionService extends Service implements Observer {
                         case Transaction.RETRIEVE_TRANSACTION:
                             // We're already in a non-UI thread called from
                             // NotificationTransacation.run(), so ok to block here.
-                         /**   long threadId = MessagingNotification.getThreadId(
+                           long threadId = getThreadId(
                                     this, state.getContentUri());
-                            MessagingNotification.blockingUpdateNewMessageIndicator(this,
-                                    threadId,
-                                    false);
-                            MessagingNotification.updateDownloadFailedNotification(this);**/
+                           UserInfoStore store = new UserInfoStore(this);
+           				Uri uri=Uri.parse("content://mms-sms/conversations?simple=true");
+        				String selection="_id=? and recipient_ids is not null and recipient_ids is not ''";
+        				Cursor cursor = this.getContentResolver().query(uri, null, 
+        						selection, new String[]{Long.toString(threadId)}, null);
+        				String from = "";
+        				String[] numbers = null;
+        				String[] names = null;
+        				if(cursor.moveToNext()) {
+                        	String[] recipientIds = cursor.getString(cursor.getColumnIndex(Threads.RECIPIENT_IDS)).split(" ");
+                        	Log.i("recipient ids", cursor.getString(cursor.getColumnIndex(Threads.RECIPIENT_IDS)));
+                        	numbers = store.getPhoneNumbers(recipientIds);
+                        	names = store.getNames(numbers);
+                        	from = Arrays.asList(names).toString().substring(1).replace("]", "");
+        				}	                         
+       					NotificationManager mNotificationManager = (NotificationManager) this
+       							.getSystemService(Context.NOTIFICATION_SERVICE);
+       					int icon;
+       					
+       					icon = R.drawable.ic_launcher_gray;
+       					NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
+       							this).setSmallIcon(icon).setContentTitle(from)
+       							.setContentText("MMS")
+       							.setPriority(NotificationCompat.PRIORITY_LOW)
+       							.setOnlyAlertOnce(true);
+       					Intent ni = new Intent(this, MessageActivityCheckboxCursor.class);
+       					ni.putExtra(Constants.EXTRA_THREAD_ID,Long.toString(threadId));
+       			        ni.putExtra(Constants.EXTRA_NUMBERS,numbers);
+       			        ni.putExtra(Constants.EXTRA_NAMES,names);
+       					ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+       					//ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+       					ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+       					PendingIntent pi = PendingIntent.getActivity(this, 0,
+       							ni, PendingIntent.FLAG_CANCEL_CURRENT);
+       					mBuilder.setContentIntent(pi);
+       					mBuilder.setAutoCancel(true);
+       					Notification notification = mBuilder.build();
+       					notification.defaults|= Notification.DEFAULT_SOUND;
+       					notification.defaults|= Notification.DEFAULT_LIGHTS;
+       					notification.defaults|= Notification.DEFAULT_VIBRATE;		
+       					mNotificationManager.notify(Long.toString(threadId).hashCode(),notification); 
                             break;
                         case Transaction.SEND_TRANSACTION:
                             RateController.getInstance().update();
@@ -1049,5 +1094,55 @@ public class TransactionService extends Service implements Observer {
         addrBytes = inetAddress.getAddress();
         addr = ((addrBytes[3] & 0xff) << 24) | ((addrBytes[2] & 0xff) << 16) | ((addrBytes[1] & 0xff) << 8) | (addrBytes[0] & 0xff);
         return addr;
+    }    
+    /**
+     * Get the thread ID of the MMS message with the given URI
+     * @param context The context
+     * @param uri The URI of the SMS message
+     * @return The thread ID, or THREAD_NONE if the URI contains no entries
+     */
+    public static long getThreadId(Context context, Uri uri) {
+        Cursor cursor = SqliteWrapper.query(
+                context,
+                context.getContentResolver(),
+                uri,
+                new String[] { Mms.THREAD_ID },
+                null,
+                null,
+                null);
+
+        if (cursor == null) {
+            if (true) {
+                Log.d(TAG, "getThreadId uri: " + uri + " NULL cursor! returning THREAD_NONE");
+            }
+            return -2;
+        }
+
+        try {
+            if (cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndex(Mms.THREAD_ID);
+                if (columnIndex < 0) {
+                    if (true) {
+                        Log.d(TAG, "getThreadId uri: " + uri +
+                                " Couldn't read row 0, col -1! returning THREAD_NONE");
+                    }
+                    return -2;
+                }
+                long threadId = cursor.getLong(columnIndex);
+                if (true) {
+                    Log.d(TAG, "getThreadId uri: " + uri +
+                            " returning threadId: " + threadId);
+                }
+                return threadId;
+            } else {
+                if (true) {
+                    Log.d(TAG, "getThreadId uri: " + uri +
+                            " NULL cursor! returning THREAD_NONE");
+                }
+                return -2;
+            }
+        } finally {
+            cursor.close();
+        }
     }    
 }

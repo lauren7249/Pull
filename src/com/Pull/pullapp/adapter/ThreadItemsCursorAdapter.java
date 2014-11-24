@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Typeface;
 import android.provider.Telephony.TextBasedSmsColumns;
+import android.provider.Telephony.ThreadsColumns;
 import android.support.v4.widget.CursorAdapter;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -111,7 +112,9 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
     	read = (!threads.getString(1).equals("0"));	 
     	recipientIds = threads.getString(2).split(" ");
     	snippet = threads.getString(4);		
-    	
+        final String threadID = threads.getString(threads
+			      .getColumnIndex(ThreadsColumns._ID));	
+        
     	if(recipientIds.length>1) isGroupMessage = true;
     	
     	if(snippet!=null) {
@@ -174,6 +177,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 	    				broadcastIntent.setAction(Constants.ACTION_ORIGINAL_TAB_CLICKED);
 	    				broadcastIntent.putExtra(Constants.EXTRA_NAMES, new String[]{friend_name});
 	    				broadcastIntent.putExtra(Constants.EXTRA_NUMBERS, new String[] {friend_number});
+	    				broadcastIntent.putExtra(Constants.EXTRA_THREAD_ID,threadID);
 	    				mContext.sendBroadcast(broadcastIntent);	
 	    			}
 	    		});
@@ -197,6 +201,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 					broadcastIntent.setAction(Constants.ACTION_GRAPH_TAB_CLICKED);
 					broadcastIntent.putExtra(Constants.EXTRA_NAMES, new String[]{friend_name});
 					broadcastIntent.putExtra(Constants.EXTRA_NUMBERS, new String[] {friend_number});
+					broadcastIntent.putExtra(Constants.EXTRA_THREAD_ID,threadID);
 					mContext.sendBroadcast(broadcastIntent);	
 				}
 				
@@ -210,6 +215,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 					broadcastIntent.setAction(Constants.ACTION_ADDPPL_TAB_CLICKED);
 					broadcastIntent.putExtra(Constants.EXTRA_NAMES, new String[]{friend_name});
 					broadcastIntent.putExtra(Constants.EXTRA_NUMBERS, new String[] {friend_number});
+					broadcastIntent.putExtra(Constants.EXTRA_THREAD_ID,threadID);
 					mContext.sendBroadcast(broadcastIntent);	
 				}
 				

@@ -22,6 +22,9 @@ import static android.provider.Telephony.Sms.Intents.WAP_PUSH_RECEIVED_ACTION;
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_DELIVERY_IND;
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND;
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_READ_ORIG_IND;
+
+import java.io.UnsupportedEncodingException;
+
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -48,10 +51,11 @@ import com.android.mms.MmsConfig;
 import com.android.mms.transaction.NotificationTransaction;
 import com.android.mms.transaction.Transaction;
 import com.android.mms.transaction.TransactionBundle;
-
 import com.google.android.mms.ContentType;
 import com.google.android.mms.MmsException;
+import com.google.android.mms.pdu_alt.CharacterSets;
 import com.google.android.mms.pdu_alt.DeliveryInd;
+import com.google.android.mms.pdu_alt.EncodedStringValue;
 import com.google.android.mms.pdu_alt.GenericPdu;
 import com.google.android.mms.pdu_alt.NotificationInd;
 import com.google.android.mms.pdu_alt.PduHeaders;
@@ -81,7 +85,7 @@ public class PushReceiver extends BroadcastReceiver {
             byte[] pushData = intent.getByteArrayExtra("data");
             PduParser parser = new PduParser(pushData);
             GenericPdu pdu = parser.parse();
-     
+
             if (null == pdu) {
                 Log.e(TAG, "Invalid PUSH data");
                 return null;
@@ -90,6 +94,7 @@ public class PushReceiver extends BroadcastReceiver {
             PduPersister p = PduPersister.getPduPersister(mContext);
             ContentResolver cr = mContext.getContentResolver();
             int type = pdu.getMessageType();
+            
             
             long threadId = -1;
 
@@ -118,7 +123,7 @@ public class PushReceiver extends BroadcastReceiver {
                     }
                     case MESSAGE_TYPE_NOTIFICATION_IND: {
                         NotificationInd nInd = (NotificationInd) pdu;
-                    	
+
                         if (MmsConfig.getTransIdEnabled()) {
                             byte [] contentLocation = nInd.getContentLocation();
                             Log.v(TAG,"MmsConfig.getTransIdEnabled() " + MmsConfig.getTransIdEnabled());
@@ -142,7 +147,6 @@ public class PushReceiver extends BroadcastReceiver {
                                     !NotificationTransaction.allowAutoDownload(mContext),
                                     true,
                                     null);
-
                             // Start service to finish the notification transaction.
                             Intent svc = new Intent(mContext, TransactionService.class);
                             svc.putExtra(TransactionBundle.URI, uri.toString());
@@ -150,38 +154,8 @@ public class PushReceiver extends BroadcastReceiver {
                                     Transaction.NOTIFICATION_TRANSACTION);
                             ComponentName cn = mContext.startService(svc);
                             Log.v(TAG,"pdu uri " + uri.toString());
-                            Log.v(TAG,"ComponentName " + cn.toShortString());
-                            
-        					NotificationManager mNotificationManager = (NotificationManager) mContext
-        							.getSystemService(Context.NOTIFICATION_SERVICE);
-        					int icon;
-        					String sender = pdu.getFrom().getString();
-        				
-        					//Log.v(TAG,"sender " + sender);
-        					UserInfoStore store = new UserInfoStore(mContext);
-        					String name = store.getName(sender);
-        					icon = R.drawable.ic_launcher_gray;
-        					NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
-        							mContext).setSmallIcon(icon).setContentTitle(name)
-        							.setContentText("MMS")
-        							.setPriority(NotificationCompat.PRIORITY_LOW)
-        							.setOnlyAlertOnce(true);
-        					Intent ni = new Intent(mContext, MessageActivityCheckboxCursor.class);
-        					//ni.putExtra(Constants.EXTRA_THREAD_ID,threadID);
-        					ni.putExtra(Constants.EXTRA_THREAD_ID,threadId);
-        			       // ni.putExtra(Constants.EXTRA_NUMBER,sender);
-        					ni.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        					//ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        					ni.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        					PendingIntent pi = PendingIntent.getActivity(mContext, 0,
-        							ni, PendingIntent.FLAG_CANCEL_CURRENT);
-        					mBuilder.setContentIntent(pi);
-        					mBuilder.setAutoCancel(true);
-        					Notification notification = mBuilder.build();
-        					notification.defaults|= Notification.DEFAULT_SOUND;
-        					notification.defaults|= Notification.DEFAULT_LIGHTS;
-        					notification.defaults|= Notification.DEFAULT_VIBRATE;		
-        					mNotificationManager.notify(sender.hashCode(),notification);                            
+                            Log.v(TAG,"ComponentName " + cn.toShortString());                            
+                     
                         } else if (LOCAL_LOGV) {
                             Log.v(TAG, "Skip downloading duplicate message: "
                                     + new String(nInd.getContentLocation()));
@@ -195,7 +169,7 @@ public class PushReceiver extends BroadcastReceiver {
                 Log.e(TAG, "Failed to save the data from PUSH: type=" + type, e);
             } catch (RuntimeException e) {
                 Log.e(TAG, "Unexpected RuntimeException.", e);
-            }
+            } 
 
             if (LOCAL_LOGV) {
                 Log.v(TAG, "PUSH Intent processed.");
@@ -234,7 +208,11 @@ public class PushReceiver extends BroadcastReceiver {
             messageId = new String(((DeliveryInd) pdu).getMessageId());
         } else {
             messageId = new String(((ReadOrigInd) pdu).getMessageId());
-        }
+        } 
+
+        return findThreadId(context, messageId);
+    }
+    public static long findThreadId(Context context, String messageId) {
 
         StringBuilder sb = new StringBuilder('(');
         sb.append(Mms.MESSAGE_ID);
@@ -262,7 +240,6 @@ public class PushReceiver extends BroadcastReceiver {
 
         return -1;
     }
-
     private static boolean isDuplicateNotification(
             Context context, NotificationInd nInd) {
         byte[] rawLocation = nInd.getContentLocation();
