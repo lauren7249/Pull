@@ -229,8 +229,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
     private ViewPager mPager;
     private PagerAdapter mPagerAdapter;
 	private ImageView menu_button;
-	private boolean isGroupMessage;
+	private boolean hasMMS;
 	private String[] names;
+	private boolean isGroupMessage;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -381,6 +382,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			if(numbers!=null && numbers.length>1) {
 				name = Arrays.asList(names).toString().substring(1).replace("]", "");
 				Log.i("threadid",thread_id);
+				hasMMS = true;
 				isGroupMessage = true;
 				title_view.setText(name);
 				setupComposeBox();
@@ -807,7 +809,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private void rePopulateMessages() {
 		//Log.i("log","repopulate messages");
 		removeMessage();
-		messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number, isGroupMessage);
+		messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number, hasMMS);
 
 		messages_adapter.swapCursor(messages_cursor);
 
@@ -1327,7 +1329,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 	public void sendMessage(View v)
 	{
-
+		boolean isMMS = false;
+		if(isGroupMessage) isMMS = true;
 		newMessage = text.getText().toString().trim(); 
 		text.setText("");	
 		hideInputs();
@@ -1349,8 +1352,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				popup.setMessage("Type someone to send to!");
 				return;
 			}
-			if(numbers.length>1) isGroupMessage = true;
-			else isGroupMessage = false;
+			if(numbers.length>1) isMMS = true;
 			number = ContentUtils.addCountryCode(numbers[0]);	
 		}			
       
@@ -1366,8 +1368,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
         	intent.putExtra(Constants.EXTRA_NAMES, names);
         	setIntent(intent);
         }
-        //sendMMS();
-        if(!isGroupMessage) 
+        
+		//sendMMS();
+        if(!isMMS) 
         	new DelayedSend(mContext, number, newMessage, sendDate, new Date().getTime(), approver).start();
         else {
         	//new DelayedSend(mContext, numbers, newMessage, sendDate, new Date().getTime(), approver).start();
@@ -1618,6 +1621,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	        mms_cursor = ContentUtils.getMMSCursor(mContext, thread_id);
 
 	        if(mms_cursor.moveToFirst()) {
+	        	hasMMS = true;
 	        	m = getNextMMSMessage(mms_cursor);
 	        	publishProgress(m);	
 	        	while(mms_cursor.moveToNext()) {
