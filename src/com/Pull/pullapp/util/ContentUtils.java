@@ -302,7 +302,7 @@ public class ContentUtils {
 			String[] vars = new String[]{ Telephony.BaseMmsColumns._ID, 
 					Telephony.BaseMmsColumns.DATE, Telephony.BaseMmsColumns.MESSAGE_BOX};
 			Cursor messages_cursor = mContext.getContentResolver().query(Telephony.Mms.CONTENT_URI,
-					vars,querystring ,null,Telephony.BaseMmsColumns.DATE);	   
+					vars,querystring ,null,Telephony.BaseMmsColumns.DATE + " desc");	   
 	        return messages_cursor;
 		}			   
 		

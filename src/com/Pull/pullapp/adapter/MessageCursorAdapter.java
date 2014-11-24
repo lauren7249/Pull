@@ -340,7 +340,7 @@ public class MessageCursorAdapter extends CursorAdapter {
     	Object[] mms_array = null, mms_array2 = null;
     	mms_array = submms.entrySet().toArray();
     	
-    	if(c.isLast()) {
+    	if(c.isLast() && date>0) {
     		submms2 = mms.tailMap(date);
     		mms_array2 = submms2.entrySet().toArray();
     	}
@@ -365,15 +365,17 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.mms_space.removeAllViews();
 		holder.mms_space2.removeAllViews();
 		if(mms_array.length>0) {
+			Log.i("mms array","lenb"+mms_array.length);
 			addMMSViews(mms_array,holder.mms_space);
 		}
 		if(mms_array2!=null && mms_array2.length>0) {
+			Log.i("mms array2","lenb"+mms_array2.length);
 			addMMSViews(mms_array2,holder.mms_space2);
 		}
 		
 		if(type == -1) {
 			holder.main_sms_box.setVisibility(View.GONE);
-			Log.i("cursoradapter","setting main sms box to invisible");
+			//Log.i("cursoradapter","setting main sms box to invisible");
 			return;
 		}
 		
@@ -502,8 +504,8 @@ public class MessageCursorAdapter extends CursorAdapter {
 	private void addMMSViews(Object[] mms_array, LinearLayout mms_space) {
 		LinearLayout parent = new LinearLayout(mContext);
 		parent.setOrientation(LinearLayout.VERTICAL);
-		mms_space.addView(parent);
-		for(int i=mms_array.length-1; i>=0; i--) {
+		
+		for(int i=0; i<mms_array.length; i++) {
 			Object o = mms_array[i];
 			final MMSViewHolder holder = new MMSViewHolder();
 			Map.Entry<Long,MMSMessage> entry = (Map.Entry<Long, MMSMessage>) o;
@@ -547,8 +549,10 @@ public class MessageCursorAdapter extends CursorAdapter {
 			}
 			mmsView.setTag(holder);
 			holder.messageBox.setLayoutParams(lp);		
-			parent.addView(mmsView,0);
+			parent.addView(mmsView);
+			//return;
 		}
+		mms_space.addView(parent);
 	//	Log.i("child views", "has child views "+parent.getChildCount());
 		
 		
