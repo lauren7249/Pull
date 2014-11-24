@@ -16,8 +16,6 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import android.provider.Telephony.Threads;
-
 import org.json.JSONException;
 
 import android.app.Activity;
@@ -27,6 +25,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -40,10 +39,13 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
-import android.provider.Telephony.MmsSms;
 import android.provider.Telephony.TextBasedSmsColumns;
+import android.provider.Telephony.Threads;
+import android.provider.Telephony.ThreadsColumns;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -100,7 +102,6 @@ import com.Pull.pullapp.util.RecipientsAdapter;
 import com.Pull.pullapp.util.RecipientsEditor;
 import com.Pull.pullapp.util.SendUtils;
 import com.Pull.pullapp.util.SwipeDetector;
-import com.Pull.pullapp.util.TransactionService;
 import com.Pull.pullapp.util.TransactionSettings;
 import com.Pull.pullapp.util.UserInfoStore;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
@@ -768,7 +769,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				} else if(status.equals(Constants.ACTION_ADDPPL_TAB_CLICKED)) {
 					shareTabSelected(number,name);	
 				}		
-			}
+			} 
+			notificationManager.cancel(thread_id.hashCode());		
 		} else if(clueless_persons_name!=null && shared_sender!=null){
 			//rePopulateSharedMessages(shared_convoID);
 		}
@@ -1662,9 +1664,15 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		long date = 1000 * mCursor.getLong(mCursor.getColumnIndexOrThrow(Telephony.BaseMmsColumns.DATE));
 		int m_type = mCursor.getInt(mCursor.getColumnIndex(Telephony.BaseMmsColumns.MESSAGE_BOX));
 		String address = getAddressNumber(Integer.parseInt(mmsId));
+		String read = mCursor.getString(mCursor.getColumnIndex(Telephony.BaseMmsColumns.READ));
+    	if(!mmsId.equals("") && read.equals("0")) {
+        	ContentValues values = new ContentValues();
+    		values.put(Telephony.BaseMmsColumns.READ,true);
+    		mContext.getContentResolver().update(Telephony.Mms.CONTENT_URI,
+    				values, Telephony.BaseMmsColumns._ID+"="+mmsId, null);	
+    	}			
 		MMSMessage m = new MMSMessage(date, "", address, store.getName(address), m_type, 
 				store, ParseUser.getCurrentUser().getUsername());
-		//Log.i("m_type","m_type"+m_type);
 		String selectionPart = "mid=" + mmsId;
 		Uri uri = Uri.parse("content://mms/part");
 		Cursor cursor = mContext.getContentResolver().query(uri, null,

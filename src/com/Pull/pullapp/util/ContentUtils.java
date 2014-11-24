@@ -300,7 +300,8 @@ public class ContentUtils {
 		public static Cursor getMMSCursor(Context mContext,String thread_id) {
 			String querystring = Telephony.BaseMmsColumns.THREAD_ID + "=" + thread_id ;
 			String[] vars = new String[]{ Telephony.BaseMmsColumns._ID, 
-					Telephony.BaseMmsColumns.DATE, Telephony.BaseMmsColumns.MESSAGE_BOX};
+					Telephony.BaseMmsColumns.DATE, Telephony.BaseMmsColumns.MESSAGE_BOX,
+					Telephony.BaseMmsColumns.READ};
 			Cursor messages_cursor = mContext.getContentResolver().query(Telephony.Mms.CONTENT_URI,
 					vars,querystring ,null,Telephony.BaseMmsColumns.DATE + " desc");	   
 	        return messages_cursor;
