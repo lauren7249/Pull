@@ -549,7 +549,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 				} 
 				else if(action.equals(Constants.ACTION_MMS_OUTBOXED)) {
-					if(!intent_thread_id.equals(thread_id)) return;					
+					if(intent_thread_id!=null && !intent_thread_id.equals(thread_id)) return;					
 					addDelayedMessage(scheduledOn);
 					MMSMessage m = new MMSMessage(scheduledOn, intent_message, numbers, names,
 							TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX, store, ParseUser.getCurrentUser().getUsername());
@@ -881,6 +881,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 		messages_adapter.notifyDataSetChanged();
 		merge_adapter.notifyDataSetChanged();
+
+		mms_loader = new GetMMSMessages();
+		mms_loader.execute(); 
 		
 		mListView.setStackFromBottom(true);
 		mListView.setTranscriptMode(ListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
@@ -1688,6 +1691,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 	        if(mms_cursor!=null && mms_cursor.moveToFirst()) {
 	        	hasMMS = true;
+	        	messages_adapter.clearMMS();
 	        	m = getNextMMSMessage(mms_cursor);
 	        	publishProgress(m);	
 	        	while(mms_cursor.moveToNext()) {

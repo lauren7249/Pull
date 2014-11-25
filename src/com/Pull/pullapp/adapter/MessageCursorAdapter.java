@@ -599,5 +599,9 @@ public class MessageCursorAdapter extends CursorAdapter {
 			e.printStackTrace();
 		}
 	}
+	public void clearMMS() {
+		mms.clear();
+		
+	}
 
 }
