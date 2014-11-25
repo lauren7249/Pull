@@ -1700,6 +1700,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		}
 		@Override
 	    protected void onProgressUpdate(MMSMessage... t) {
+			if(t[0]==null) return;
 			messages_adapter.insert(t[0]);
 			messages_adapter.notifyDataSetChanged();
 	    }				
@@ -1729,6 +1730,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		long date = 1000 * mCursor.getLong(mCursor.getColumnIndexOrThrow(Telephony.BaseMmsColumns.DATE));
 		int m_type = mCursor.getInt(mCursor.getColumnIndex(Telephony.BaseMmsColumns.MESSAGE_BOX));
 		String address = getAddressNumber(Integer.parseInt(mmsId));
+		if(address==null || mmsId == null) return null;
 		String read = mCursor.getString(mCursor.getColumnIndex(Telephony.BaseMmsColumns.READ));
     	if(!mmsId.equals("") && read.equals("0")) {
         	ContentValues values = new ContentValues();
