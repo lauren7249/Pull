@@ -127,7 +127,8 @@ import com.rockerhieu.emojicon.EmojiconsFragment;
 import com.rockerhieu.emojicon.emoji.Emojicon;
 
 public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
-	implements ApproverDialogListener, View.OnClickListener, EmojiconGridFragment.OnEmojiconClickedListener,
+	implements ApproverDialogListener, View.OnClickListener, 
+	EmojiconGridFragment.OnEmojiconClickedListener,
 	EmojiconsFragment.OnEmojiconBackspaceClickedListener, 
 	EmojiconsFragment.OnEmojiconTabClickedListener {
 	
@@ -423,7 +424,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				String action = intent.getAction();					
+				String action = intent.getAction();			
+				Log.i("action","Message activity broadcastreeiver " + action);
 				if(action.equals(Constants.ACTION_SMS_INBOXED)) {
 					if(intent.getStringArrayExtra(Constants.EXTRA_NUMBERS)[0].equals(numbers[0])) {
 						messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, numbers[0], false);
@@ -436,7 +438,17 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 						notificationManager.cancel(number.hashCode());							
 					}
 					return;
-				}				
+				}	
+				if(action.equals(Constants.ACTION_MMS_INBOXED)) {
+					if(intent.getStringExtra(Constants.EXTRA_THREAD_ID)!=null &&
+							intent.getStringExtra(Constants.EXTRA_THREAD_ID).equals(thread_id)) {
+						mms_loader = new GetMMSMessages();
+						mms_loader.execute(); 	
+						//mListView.setSelection(mListView.getCount()-1);			
+						notificationManager.cancel(thread_id.hashCode());							
+					}
+					return;
+				}					
 				if(action.equals(Constants.ACTION_DATABASE_UPDATE) && shared_convoID!=null){
 				//	Log.i("convoid from broadcastreceiver in messageactivity",
 							//intent.getStringExtra(Constants.EXTRA_SHARED_CONVERSATION_ID));
@@ -462,12 +474,14 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 					tab_counter = intent.getIntExtra(Constants.EXTRA_TAB_POSITION,0) + 3; 				
 					shareTabClicked();
 					return;
-				}						
+				}			
 				String intent_number = intent.getStringExtra(Constants.EXTRA_RECIPIENT);
-				if(number==null) return;
-				if(intent_number==null) return;
-				if(!intent_number.equals(number)) return;
-
+				String intent_thread_id = intent.getStringExtra(Constants.EXTRA_THREAD_ID);
+				if(thread_id!=null && intent_thread_id!=null && !intent_thread_id.equals(thread_id)) {	
+					if(number==null) return;					
+					if(intent_number==null) return;
+					if(!intent_number.equals(number)) return;
+				}
 				Long scheduledOn = intent.getLongExtra(Constants.EXTRA_TIME_LAUNCHED, 0);
 				Long scheduledFor = intent.getLongExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, 0);
 				String intent_message = intent.getStringExtra(Constants.EXTRA_MESSAGE_BODY);
@@ -491,7 +505,17 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 							break;
 						}
 					}
-				} else if(action.equals(Constants.ACTION_SMS_OUTBOXED)) {
+				} else if(action.equals(Constants.ACTION_MMS_DELIVERED)) {
+
+					if(queue_adapter.delayedMessages.containsKey(scheduledOn) && scheduledOn>0) {
+						removeMessage();
+					}
+					//Log.i("mms got delivered","mms got delivered");
+					mms_loader = new GetMMSMessages();
+					mms_loader.execute(); 						
+							
+				}
+				else if(action.equals(Constants.ACTION_SMS_OUTBOXED)) {
 					
 					addDelayedMessage(scheduledOn);
 					SMSMessage m = new SMSMessage(scheduledOn, intent_message, intent_number, name,
@@ -523,7 +547,42 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 						  }.start();						
 					}
 
-				} else if(action.equals(Constants.ACTION_SMS_UNOUTBOXED)) {
+				} 
+				else if(action.equals(Constants.ACTION_MMS_OUTBOXED)) {
+					if(!intent_thread_id.equals(thread_id)) return;					
+					addDelayedMessage(scheduledOn);
+					MMSMessage m = new MMSMessage(scheduledOn, intent_message, numbers, names,
+							TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX, store, ParseUser.getCurrentUser().getUsername());
+					
+					m.schedule(scheduledFor);
+					m.launchedOn = scheduledOn;
+					m.setApprover(intent_approver);
+					addNewMessage(m, false);
+					try {
+						m.saveToParse();
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					if(!m.isDelayed) {
+						new CountDownTimer(scheduledFor-scheduledOn,1000) {
+
+						     public void onTick(long millisUntilFinished) {
+						    	 if(millisUntilFinished<=60000) {
+							         queue_adapter.notifyDataSetChanged();
+							         merge_adapter.notifyDataSetChanged();
+						    	 }
+						     }
+
+						     public void onFinish() {
+						         queue_adapter.notifyDataSetChanged();
+						         merge_adapter.notifyDataSetChanged();						        
+						     }
+						  }.start();						
+					}
+
+				}
+				else if(action.equals(Constants.ACTION_SMS_UNOUTBOXED)) {
 					mixpanel.track("sms canceled", null);
 					//Log.i("sms canceled", "sms canceled");
 					if(scheduledFor-scheduledOn <= 6000) 
@@ -625,7 +684,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
         			mButtonsBar.setVisibility(View.VISIBLE);
         			text.setLines(3);    			
         			imm.toggleSoftInput(0, InputMethodManager.SHOW_FORCED);
-        			Log.i("has focus and keyboard is not showing","has focus and keyboard is not showing");
+        			//Log.i("has focus and keyboard is not showing","has focus and keyboard is not showing");
     			}
     			keyboardShowing = true;
 			}
@@ -749,12 +808,15 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(Constants.ACTION_SMS_OUTBOXED);
+		intentFilter.addAction(Constants.ACTION_MMS_OUTBOXED);
 		intentFilter.addAction(Constants.ACTION_SMS_UNOUTBOXED);
-		intentFilter.addAction(Constants.ACTION_SMS_DELIVERED);		
+		intentFilter.addAction(Constants.ACTION_SMS_DELIVERED);	
+		intentFilter.addAction(Constants.ACTION_MMS_DELIVERED);		
 		intentFilter.addAction(Constants.ACTION_SHARE_COMPLETE);	
 		intentFilter.addAction(Constants.ACTION_SHARE_STATE_CHANGED);	
 		intentFilter.addAction(Constants.ACTION_DATABASE_UPDATE);
 		intentFilter.addAction(Constants.ACTION_SMS_INBOXED);
+		intentFilter.addAction(Constants.ACTION_MMS_INBOXED);
 		intentFilter.addAction(Constants.ACTION_SHARE_TAB_CLICKED);
 		registerReceiver(mBroadcastReceiver, intentFilter);	
 		hideInputs();
@@ -827,7 +889,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	}
 
 	private void populateMessages(){
-		Log.i("log","populate messages");
+		//Log.i("log","populate messages");
 		isMine = true;
 		messages = new ArrayList<SMSMessage>();
 		queue_adapter = new QueuedMessageAdapter(this,messages);
@@ -865,7 +927,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 				@Override
 				public void onClick(View v) {
-					Log.i("ORIG NUM",original_number);
+					//Log.i("ORIG NUM",original_number);
 					selectOriginalPerson(original_number, original_name);
 						
 				}
@@ -1196,7 +1258,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		hideKeyboard();	
 		emojiArea.setVisibility(View.GONE);
 		mButtonsBar.setVisibility(View.GONE);	
-		Log.i("hide inputs","hide inputs");
+		//Log.i("hide inputs","hide inputs");
 		inputtingEmoji = false;
     	keyboardShowing = false;		
 	}
@@ -1375,8 +1437,10 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
         if(!isMMS) 
         	new DelayedSend(mContext, number, newMessage, sendDate, new Date().getTime(), approver).start();
         else {
-        	//new DelayedSend(mContext, numbers, newMessage, sendDate, new Date().getTime(), approver).start();
-        	new SendMMS(mContext, numbers, newMessage, new Date().getTime(), new Date().getTime(), true).run();
+        	DelayedSend d = new DelayedSend(mContext, numbers, newMessage, sendDate, new Date().getTime(), approver);
+        	d.setThreadID(thread_id);
+        	d.start();
+        	//new SendMMS(mContext, numbers, newMessage, new Date().getTime(), new Date().getTime(), true).run();
 
         }
 		mTextIndicatorButton.setBackground(getResources().getDrawable(R.drawable.pendinh_indicator));
@@ -1622,7 +1686,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 	        mms_cursor = ContentUtils.getMMSCursor(mContext, thread_id);
 
-	        if(mms_cursor.moveToFirst()) {
+	        if(mms_cursor!=null && mms_cursor.moveToFirst()) {
 	        	hasMMS = true;
 	        	m = getNextMMSMessage(mms_cursor);
 	        	publishProgress(m);	
@@ -1645,6 +1709,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			super.onPostExecute(result);
 			mms_cursor.close();
 			messages_adapter.notifyDataSetChanged();
+			mListView.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
 			//mListView.setSelection(messages_adapter.getCount()-1);
 	    }			
 
@@ -1683,7 +1748,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		        String type = cursor.getString(cursor.getColumnIndex("ct"));
 		        if ("text/plain".equals(type)) {
 		            String data = cursor.getString(cursor.getColumnIndex("_data"));
-		            String body;
+		            String body = "";
 		            if (data != null) {
 		                // implementation of this method below
 		                body = getMmsText(partId);
@@ -1691,13 +1756,13 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		                body = cursor.getString(cursor.getColumnIndex("text"));
 		            }
 		           // Log.i("body",body);
-		            m.setMessage(body);
+		           if(body!=null) m.setMessage(body);
 		        }
 		        else if ("image/jpeg".equals(type) || "image/bmp".equals(type) ||
 		                "image/gif".equals(type) || "image/jpg".equals(type) ||
 		                "image/png".equals(type)) {
 		            Bitmap bitmap = getMmsImage(partId);
-		            m.addImage(bitmap);
+		            if(bitmap!=null) m.addImage(bitmap);
 		        }		        
 		    } while (cursor.moveToNext());
 		}
@@ -1707,13 +1772,14 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 
 	private String getAddressNumber(int id) {
+	//Log.i("getaddressnumber id",""+id);
 	    String selectionAdd = new String("msg_id=" + id);
 	    String uriStr = MessageFormat.format("content://mms/{0}/addr", id);
 	    Uri uriAddress = Uri.parse(uriStr);
 	    Cursor cAdd = mContext.getContentResolver().query(uriAddress, null,
 	        selectionAdd, null, null);
 	    String name = null;
-	    if (cAdd.moveToFirst()) {
+	    if (cAdd!=null && cAdd.moveToFirst()) {
 	        do {
 	            String number = cAdd.getString(cAdd.getColumnIndex("address"));
 	            if (number != null) {
@@ -1863,46 +1929,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		EmojiconsFragment.input(text, emojicon);
 		
 	}
-	public static void sendmms(Context context, String[] recipients,
-			String message, long launchedOn, long scheduledFor, boolean AddtoSent) {
-		try {
-			Intent myIntent = new Intent(Constants.ACTION_MMS_DELIVERED);
-			myIntent.putExtra(Constants.EXTRA_RECIPIENTS, recipients);
-			myIntent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
-			myIntent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);
-			myIntent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, scheduledFor);
-			
-			Settings sendSettings = new Settings();
-	        TransactionSettings transactionSettings = new TransactionSettings(
-	        		context, null);
-			sendSettings.setMmsc(transactionSettings.getMmscUrl());
-			sendSettings.setProxy(transactionSettings.getProxyAddress());
-			sendSettings.setPort(Integer.toString(transactionSettings.getProxyPort()));
-			sendSettings.setGroup(true);
-			sendSettings.setDeliveryReports(false);
-			sendSettings.setSplit(false);
-			sendSettings.setSplitCounter(false);
-			sendSettings.setStripUnicode(false);
-			sendSettings.setSignature("");
-			sendSettings.setSendLongAsMms(true);
-			sendSettings.setSendLongAsMmsAfter(3);
-			sendSettings.setRnrSe(null);
-			Transaction sendTransaction = new Transaction(context, sendSettings);
-			Message mMessage = new Message();
-			mMessage.setAddresses(recipients);
-			Log.i("numbers","recipeitns" + recipients.length);
-			mMessage.setText(message);
-			//Message mMessage = new Message("hola", "16507966210");
-			mMessage.setType(Message.TYPE_SMSMMS);  // could also be Message.TYPE_VOICE	
-			sendTransaction.sendNewMessage(mMessage, 0);	       
-	    	PendingIntent sentPI = PendingIntent
-	    			.getBroadcast(context, (int)launchedOn, myIntent, PendingIntent.FLAG_UPDATE_CURRENT);			
 
-		} catch (Exception e) {
-	        e.printStackTrace();
-	        //Log.e(TAG, "undefined Error: MMS sending failed ... please REPORT to ISSUE Tracker");
-	    }		
-	}
 	@Override
 	public void onEmojiconTabClicked() {
 		mixpanel.track("emojicon tab clicked", null);

@@ -287,7 +287,7 @@ public class ContentUtils {
 
 			Cursor messages_cursor = mContext.getContentResolver().query(Telephony.Sms.CONTENT_URI,
 					variables,querystring ,null,TextBasedSmsColumns.DATE);	   
-			if(messages_cursor.getCount()==0 && isGroupMessage) {
+			if(messages_cursor!=null && messages_cursor.getCount()==0 && isGroupMessage) {
 				MatrixCursor matrixCursor = new MatrixCursor(variables);
 				matrixCursor.addRow(new Object[] {"sent","-1","","-1","","-1","-1",thread_id});	
 				MergeCursor mergeCursor = new MergeCursor(new Cursor[] { matrixCursor, messages_cursor });

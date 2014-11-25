@@ -8,6 +8,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.SendUtils;
@@ -71,14 +72,18 @@ public class DelayedSend extends Thread {
     public void run() {
     	
         AlarmManager am = (AlarmManager) parent.getSystemService(Context.ALARM_SERVICE);   
-        Intent intent = new Intent(Constants.ACTION_SEND_DELAYED_TEXT);
+        Intent intent;
         if(recipient!=null) {
         	SendUtils.addMessageToOutbox(parent, recipient, message, launchedOn, sendOn, approver);
+        	intent  = new Intent(Constants.ACTION_SEND_DELAYED_TEXT);
         	intent.putExtra(Constants.EXTRA_RECIPIENT, recipient);
         }
         else {
-        	SendUtils.addMessageToOutbox(parent, recipients, message, launchedOn, sendOn, approver);
-        	intent.putExtra(Constants.EXTRA_RECIPIENTS, recipients);
+        	SendUtils.addMessageToOutbox(parent, recipients, message, launchedOn, sendOn, approver, threadID);
+        	intent  = new Intent(Constants.ACTION_SEND_DELAYED_TEXT);
+        	intent.putExtra(Constants.EXTRA_RECIPIENTS, recipients);  
+        	intent.putExtra(Constants.EXTRA_THREAD_ID, threadID);  
+        	Log.i("delayed send running for multiple recipients","delayed send running for multiple");
         }
         intent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
         intent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);

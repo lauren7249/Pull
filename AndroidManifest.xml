@@ -162,6 +162,7 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </service>
+        <service android:enabled="true" android:name="com.Pull.pullapp.threads.DelayedMMSService"/>
         <service android:enabled="true" android:name="com.Pull.pullapp.util.TransactionService"/>
         <service android:name="com.android.mms.transaction.TransactionService"/>
         <activity android:name="SharedConversationActivity">

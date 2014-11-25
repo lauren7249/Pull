@@ -31,6 +31,7 @@ import com.Pull.pullapp.model.MMSMessage;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.threads.AlarmScheduler;
 import com.Pull.pullapp.threads.DailyShareSuggestion;
+import com.Pull.pullapp.threads.DelayedMMSService;
 import com.Pull.pullapp.threads.DownloadFriendPhoto;
 import com.Pull.pullapp.threads.SendMMS;
 import com.parse.FindCallback;
@@ -113,6 +114,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
             String recipient = intent.getStringExtra(Constants.EXTRA_RECIPIENT);
             String[] recipients = intent.getStringArrayExtra(Constants.EXTRA_RECIPIENTS);
             String message = intent.getStringExtra(Constants.EXTRA_MESSAGE_BODY);
+            String thread_id = intent.getStringExtra(Constants.EXTRA_THREAD_ID);
             String approver = intent.getStringExtra(Constants.EXTRA_APPROVER);
             boolean isDelayed = intent.getBooleanExtra(Constants.EXTRA_IS_DELAYED, false);
            // Log.i("new message",message);
@@ -155,7 +157,14 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	            				scheduledFor, false, approver)>0
 	            		&& !disapproved(recipients,message,scheduledFor,approver, mContext)) 
 	            {
-	            	new SendMMS(context, recipients, message, launchedOn, scheduledFor, true).run();
+	            	Intent serviceIntent = new Intent(mContext,DelayedMMSService.class);
+	            	serviceIntent.putExtra(Constants.EXTRA_RECIPIENTS, recipients);
+	            	serviceIntent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
+	            	serviceIntent.putExtra(Constants.EXTRA_THREAD_ID, thread_id);
+	            	serviceIntent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);            	
+	            	mContext.startService(serviceIntent);	            
+	            	Log.i("launching delayed mmsservice","launching delayed mmsservice");
+	            	//new SendMMS(context, recipients, message, launchedOn, scheduledFor, true).run();
 					m.setType(TextBasedSmsColumns.MESSAGE_TYPE_SENT);      	
 	            }
 	            else {

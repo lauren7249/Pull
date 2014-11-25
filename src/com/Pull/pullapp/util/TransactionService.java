@@ -525,7 +525,10 @@ public class TransactionService extends Service implements Observer {
        					notification.defaults|= Notification.DEFAULT_SOUND;
        					notification.defaults|= Notification.DEFAULT_LIGHTS;
        					notification.defaults|= Notification.DEFAULT_VIBRATE;		
-       					mNotificationManager.notify(Long.toString(threadId).hashCode(),notification); 
+       					mNotificationManager.notify(Long.toString(threadId).hashCode(),notification);
+       				    Intent inboxed = new Intent(Constants.ACTION_MMS_INBOXED);
+       				    inboxed.putExtra(Constants.EXTRA_THREAD_ID,Long.toString(threadId));
+       				    this.sendBroadcast(inboxed);	       					
                             break;
                         case Transaction.SEND_TRANSACTION:
                             RateController.getInstance().update();

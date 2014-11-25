@@ -80,7 +80,47 @@ public class SendUtils  {
 	        Log.e(TAG, "undefined Error: SMS sending failed ... please REPORT to ISSUE Tracker");
 	    }
 	}
-	
+	public static void sendmms(Context context, String[] recipients,
+			String message, long launchedOn, long scheduledFor, boolean AddtoSent, String thread_id) {
+		try {			
+			Settings sendSettings = new Settings();
+	        TransactionSettings transactionSettings = new TransactionSettings(
+	        		context, null);
+			sendSettings.setMmsc(transactionSettings.getMmscUrl());
+			sendSettings.setProxy(transactionSettings.getProxyAddress());
+			sendSettings.setPort(Integer.toString(transactionSettings.getProxyPort()));
+			sendSettings.setGroup(true);
+			sendSettings.setDeliveryReports(false);
+			sendSettings.setSplit(false);
+			sendSettings.setSplitCounter(false);
+			sendSettings.setStripUnicode(false);
+			sendSettings.setSignature("");
+			sendSettings.setSendLongAsMms(true);
+			sendSettings.setSendLongAsMmsAfter(3);
+			sendSettings.setRnrSe(null);
+			Transaction sendTransaction = new Transaction(context, sendSettings);
+			Message mMessage = new Message();
+			mMessage.setAddresses(recipients);
+			Log.i("numbers","recipeitns" + recipients.length);
+			mMessage.setText(message);
+			//Message mMessage = new Message("hola", "16507966210");
+			mMessage.setType(Message.TYPE_SMSMMS);  // could also be Message.TYPE_VOICE	
+			sendTransaction.sendNewMessage(mMessage, 0);	       
+			
+			Intent myIntent = new Intent(Constants.ACTION_MMS_DELIVERED);
+			myIntent.putExtra(Constants.EXTRA_RECIPIENTS, recipients);
+			myIntent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
+			myIntent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);
+			myIntent.putExtra(Constants.EXTRA_THREAD_ID, thread_id);
+			myIntent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, scheduledFor);
+	    	PendingIntent sentPI = PendingIntent
+	    			.getBroadcast(context, (int)launchedOn, myIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+	    	context.sendBroadcast(myIntent);
+		} catch (Exception e) {
+	        e.printStackTrace();
+	        //Log.e(TAG, "undefined Error: MMS sending failed ... please REPORT to ISSUE Tracker");
+	    }		
+	}	
 	
 	// This function add's the sent sms to the SMS sent folder
 	private static void addMessageToSent(Context context, String phoneNumber, String message, long date) {
@@ -115,7 +155,9 @@ public class SendUtils  {
 		Log.i("rows deleted ", " " + rowsdeleted);
 		if(rowsdeleted>0 && clearFromScreen) {
 		    Intent intent = new Intent(Constants.ACTION_SMS_UNOUTBOXED);
-		    intent.putExtra(Constants.EXTRA_RECIPIENT, recipient);
+		    if(recipient!=null) {
+		    	intent.putExtra(Constants.EXTRA_RECIPIENT, recipient);
+			}
 		    intent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);
 		    intent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, scheduledFor);
 		    intent.putExtra(Constants.EXTRA_MESSAGE_BODY, body);
@@ -258,16 +300,18 @@ public class SendUtils  {
 
 
 	public static void addMessageToOutbox(Context context, String[] recipients,
-			String message, long timeScheduled, long scheduledFor, String approver) {
+			String message, long timeScheduled, long scheduledFor, String approver, String thread_id) {
 		DatabaseHandler db = new DatabaseHandler(context);
 		db.addToOutbox(recipients, message, timeScheduled, scheduledFor, approver);
 		db.close();
 	    Intent intent = new Intent(Constants.ACTION_MMS_OUTBOXED);
 	    intent.putExtra(Constants.EXTRA_RECIPIENTS, recipients);
+	    intent.putExtra(Constants.EXTRA_THREAD_ID, thread_id);
 	    intent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
 	    intent.putExtra(Constants.EXTRA_TIME_LAUNCHED, timeScheduled);
 	    intent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, scheduledFor);
 	    intent.putExtra(Constants.EXTRA_APPROVER, approver);
+	    Log.i("message added ","mms added to outbox");
 	    context.sendBroadcast(intent);	
 		
 	}

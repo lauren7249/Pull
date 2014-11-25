@@ -365,11 +365,11 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.mms_space.removeAllViews();
 		holder.mms_space2.removeAllViews();
 		if(mms_array.length>0) {
-			Log.i("mms array","lenb"+mms_array.length);
+			//Log.i("mms array","lenb"+mms_array.length);
 			addMMSViews(mms_array,holder.mms_space);
 		}
 		if(mms_array2!=null && mms_array2.length>0) {
-			Log.i("mms array2","lenb"+mms_array2.length);
+			//Log.i("mms array2","lenb"+mms_array2.length);
 			addMMSViews(mms_array2,holder.mms_space2);
 		}
 		
