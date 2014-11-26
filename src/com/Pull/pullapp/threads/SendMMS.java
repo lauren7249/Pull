@@ -39,19 +39,7 @@ public class SendMMS extends Thread {
 		this.launchedOn = launchedOn;
 		this.scheduledFor = scheduledFor;
 		this.addToSent = b;
-		this.thread_id = threadID;
-  		mBroadcastReceiver = 
-  		new BroadcastReceiver() {
-
-			@Override
-			public void onReceive(Context context, Intent intent) {
-  				String action = intent.getAction();					
-  				if(action.equals(Constants.ACTION_SMS_INBOXED)) {
-  					
-  				}	
-				
-			}
-		};			
+		this.thread_id = threadID;		
 	}
 
     @Override

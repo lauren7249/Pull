@@ -424,7 +424,9 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 					number = PhoneNumberUtils.stripSeparators(
 							ContentUtils.getAddressFromID(mContext, recipientId));
 					store.setPhoneNumber(recipientId,number);
-		    	}			
+		    	} else {
+		    		if(store.getRecipientID(number)==null) store.setPhoneNumber(recipientId, number);
+		    	}
 		    //	store.saveThreadID(number, threadID);
 				String name = store.getName(number);
 		    	if(name==null) {

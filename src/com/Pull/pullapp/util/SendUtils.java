@@ -82,7 +82,11 @@ public class SendUtils  {
 	}
 	public static void sendmms(Context context, String[] recipients,
 			String message, long launchedOn, long scheduledFor, boolean AddtoSent, String thread_id) {
-		try {			
+		try {	
+			long long_thread_id;
+			if(thread_id==null || thread_id.isEmpty() || AddtoSent) long_thread_id=0;
+			else long_thread_id = Long.parseLong(thread_id);
+			Log.i("sendmms","sendmms thread id " + thread_id);
 			Settings sendSettings = new Settings();
 	        TransactionSettings transactionSettings = new TransactionSettings(
 	        		context, null);
@@ -100,12 +104,13 @@ public class SendUtils  {
 			sendSettings.setRnrSe(null);
 			Transaction sendTransaction = new Transaction(context, sendSettings);
 			Message mMessage = new Message();
+			mMessage.setSave(AddtoSent);
 			mMessage.setAddresses(recipients);
 			Log.i("numbers","recipeitns" + recipients.length);
 			mMessage.setText(message);
 			//Message mMessage = new Message("hola", "16507966210");
 			mMessage.setType(Message.TYPE_SMSMMS);  // could also be Message.TYPE_VOICE	
-			sendTransaction.sendNewMessage(mMessage, 0);	       
+			sendTransaction.sendNewMessage(mMessage, long_thread_id);	       
 			
 			Intent myIntent = new Intent(Constants.ACTION_MMS_DELIVERED);
 			myIntent.putExtra(Constants.EXTRA_RECIPIENTS, recipients);
@@ -325,7 +330,7 @@ public class SendUtils  {
 		db.close();
 		//Log.i("rows deleted ", " " + rowsdeleted);
 		if(rowsdeleted>0 && clearFromScreen) {
-		    Intent intent = new Intent(Constants.ACTION_MMS_UNOUTBOXED);
+		    Intent intent = new Intent(Constants.ACTION_SMS_UNOUTBOXED);
 		    intent.putExtra(Constants.EXTRA_RECIPIENTS, recipients);
 		    intent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);
 		    intent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, scheduledFor);

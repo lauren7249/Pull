@@ -30,10 +30,8 @@ import com.Pull.pullapp.R;
 import com.Pull.pullapp.model.MMSMessage;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.threads.AlarmScheduler;
-import com.Pull.pullapp.threads.DailyShareSuggestion;
 import com.Pull.pullapp.threads.DelayedMMSService;
 import com.Pull.pullapp.threads.DownloadFriendPhoto;
-import com.Pull.pullapp.threads.SendMMS;
 import com.parse.FindCallback;
 import com.parse.ParseACL;
 import com.parse.ParseException;
@@ -188,12 +186,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
             SendUtils.sendsms(context, recipient, message, 0, 0, false);
             return;
         }          
-        
-        if (action.equals(Constants.ACTION_DAILY_SHARE_SUGGESTION)) {
-        	Log.i(Constants.ACTION_DAILY_SHARE_SUGGESTION,"Daily share suggestion triggered");
-        	new DailyShareSuggestion(context).start();
-            return;
-        }          
+         
         
         //CURRENT METHOD FOR RECEIVING EVERYTHING. COMES FROM CLOUD PUSH NOTIFICATION
         if (action.equals(Constants.ACTION_RECEIVE_SHARED_MESSAGES)) {

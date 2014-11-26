@@ -71,7 +71,22 @@
 					            android:layout_height="wrap_content"
 					            android:background="@drawable/compose_box_background"
 					            android:orientation="horizontal" >
-					
+					            <Button
+					                android:id="@+id/emoji_button"
+					                android:layout_width="30dp"
+					                android:layout_height="30dp"
+					                android:layout_marginTop="35dp"
+					                android:layout_marginLeft="8dp"
+					                android:padding="5dp"
+					                android:background="@drawable/hearts_emoji" /> 		
+				                <ImageButton
+				                    android:id="@+id/textIndicatorButton"
+				                    android:layout_width="wrap_content"
+				                    android:layout_height="wrap_content"
+				                    android:layout_marginLeft="-24dp"
+				                    android:layout_marginTop="3dp"
+				                    android:color="@android:color/white"
+				                    android:background="@drawable/pendinh_indicator" />					                				
 					            <LinearLayout
 					                android:id="@+id/bottom_bar"
 					                android:layout_width="0dp"
@@ -79,15 +94,8 @@
 					                android:layout_weight="0.96"
 					                android:orientation="vertical"
 					                android:color="@android:color/white" >
-					
-					                <ImageButton
-					                    android:id="@+id/textIndicatorButton"
-					                    android:layout_width="wrap_content"
-					                    android:layout_height="wrap_content"
-					                    android:layout_marginLeft="14dp"
-					                    android:layout_marginTop="3dp"
-					                    android:color="@android:color/white"
-					                    android:background="@drawable/pendinh_indicator" />
+				
+
 								    <com.rockerhieu.emojicon.EmojiconEditText
 							            android:id="@+id/text"
 							            android:hint="Write here"
@@ -96,6 +104,7 @@
 					                    android:layout_height="wrap_content"
 					                    android:layout_marginLeft="5dp"
 					                    android:autoText="true"
+				                		android:layout_marginTop="30dp"				                    
 					                    android:capitalize="sentences"
 					                    android:gravity="center_vertical|left"
 					                    android:inputType="textShortMessage|textAutoCorrect|textCapSentences|textMultiLine"
@@ -109,9 +118,11 @@
 					            </LinearLayout>
 					            <Button
 					                android:id="@+id/send_button"
-					                android:layout_width="wrap_content"
-					                android:layout_height="match_parent"
-					                android:layout_marginTop="14dp"
+					                android:layout_width="30dp"
+					                android:layout_height="30dp"
+				                    android:layout_marginTop="35dp"
+					                android:layout_marginRight="8dp"
+					                android:padding="5dp"
 					                android:background="@drawable/send" />            
 					        </LinearLayout>
 			
@@ -153,7 +164,8 @@
 							<LinearLayout
 							    android:id="@+id/emojicons_area"
 					            android:layout_width="match_parent"
-					            android:layout_height="wrap_content">			    
+					            android:layout_height="wrap_content"
+					            android:visibility="gone">			    
 							    <fragment
 						            android:id="@+id/emojicons"
 						            android:layout_width="match_parent"

@@ -1,5 +1,6 @@
 package com.Pull.pullapp.util;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,11 +26,14 @@ public class UserInfoStore {
 	private SharedPreferences phoneNumber_threadID;
 	private SharedPreferences approvals;
 	private SharedPreferences mPrefs;
+	private SharedPreferences mPrefs_phoneNumber_recipientID;
 	public UserInfoStore(Context context) {
 		this.mContext = context;
     	mPrefs = mContext.getSharedPreferences(MainApplication.class.getSimpleName(),Context.MODE_PRIVATE);		
     	mPrefs_recipientID_phoneNumber = mContext.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
     			+ "recipientId_phoneNumber",Context.MODE_PRIVATE);
+    	mPrefs_phoneNumber_recipientID = mContext.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
+    			+ "mPrefs_phoneNumber_recipientID",Context.MODE_PRIVATE);    	
     	mPrefs_phoneNumber_Name = mContext.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
     			+ "phoneNumber_Name",Context.MODE_PRIVATE);		
 		phoneNumber_objectID = mContext.getSharedPreferences(MainApplication.class.getSimpleName() 
@@ -56,7 +60,9 @@ public class UserInfoStore {
 		Editor editor = mPrefs_recipientID_phoneNumber.edit();
 		editor.putString(recipientId, ContentUtils.addCountryCode(number));
 		editor.commit();
-		
+		editor = mPrefs_phoneNumber_recipientID.edit();
+		editor.putString(ContentUtils.addCountryCode(number), recipientId);
+		editor.commit();		
 	}
 	public String getName(String number) {
 		// TODO Auto-generated method stub
@@ -204,6 +210,17 @@ public class UserInfoStore {
 			numbers[i] = getPhoneNumber(recipients[i]);
 		}
 		return numbers;
+	}
+	public ArrayList<String> getRecipientIDs(String[] numbers) {
+		ArrayList<String> recipientIds = new ArrayList<String>();
+		for(int i=0; i<numbers.length; i++) {
+			String recipient = getRecipientID(numbers[i]);
+			recipientIds.add(recipient);
+		}
+		return recipientIds;
+	}
+	public String getRecipientID(String number) {
+		return mPrefs_phoneNumber_recipientID.getString(ContentUtils.addCountryCode(number), null);
 	}
 
 }

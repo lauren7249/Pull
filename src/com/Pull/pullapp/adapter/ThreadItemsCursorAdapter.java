@@ -122,7 +122,7 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
         	snippet = snippet.replace("\n", "").replace("\r", "");    		
 	    	holder.snippet_view.setText(snippet);
 	    	holder.snippet_view.setVisibility(View.VISIBLE);
-    	}
+    	} else holder.snippet_view.setVisibility(View.GONE);
     	
     	recipientID_hash.put(position, recipientIds);
     	
@@ -133,7 +133,11 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 	    		number = ContentUtils.addCountryCode(ContentUtils.getAddressFromID(context, recipientId));
 				store.setPhoneNumber(recipientId, number);
 	    	}		
-	    	else number = store.getPhoneNumber(recipientId);
+	    	else {
+	    		number = store.getPhoneNumber(recipientId);
+	    		if(store.getRecipientID(number)==null) store.setPhoneNumber(recipientId, number);
+	    	}
+	    	
 	    	//if(number==null || number.length()==0) return;
 	    	name = store.getName(number);
 	    	if(name==null || name.length() == 0 || ContentUtils.addCountryCode(name).equals(ContentUtils.addCountryCode(number))) {
@@ -159,9 +163,11 @@ public class ThreadItemsCursorAdapter extends CursorAdapter {
 		if(isGroupMessage) {
     		holder.image_view.setVisibility(View.GONE);
     		holder.initials_view.setVisibility(View.VISIBLE);
-    		holder.initials_view.setText(Integer.toString(recipientIds.length));    			
+    		holder.initials_view.setText(Integer.toString(recipientIds.length));    
+    		holder.shared_with.setVisibility(View.GONE);
 		}
 		else if(!isGroupMessage) {
+			holder.shared_with.setVisibility(View.VISIBLE);
 			final String friend_name = name;
 			final String friend_number = number;
 	    	if(!store.isFriend(number)) {

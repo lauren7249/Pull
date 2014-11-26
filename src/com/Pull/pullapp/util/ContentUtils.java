@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 
 import android.app.Activity;
@@ -25,6 +26,7 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.database.MergeCursor;
+import android.database.sqlite.SqliteWrapper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -35,6 +37,7 @@ import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.Data;
 import android.provider.Telephony;
+import android.provider.Telephony.Mms;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.provider.Telephony.ThreadsColumns;
 import android.telephony.PhoneNumberUtils;
@@ -147,28 +150,6 @@ public class ContentUtils {
 		  }		
 		  return Double.toString(threadId);
 	  }
-	  public static String getThreadIDFromNumber(Context context, String number) {
-	      Cursor c = context.getContentResolver().query(Uri.parse("content://sms"),
-	      		new String[]{"max(" + TextBasedSmsColumns.THREAD_ID + ") as " + 
-	      				TextBasedSmsColumns.THREAD_ID,
-	      				TextBasedSmsColumns.ADDRESS},
-	      		TextBasedSmsColumns.ADDRESS+"='"+number+"'",null,null);
-	     // Log.i("number",number);
-	     // Log.i("size",c.getCount()+" ");
-	      if (c!=null && c.getCount()>0) {
-	    	  while(c.moveToNext()) {	
-	    		  if (c.getString(c.getColumnIndexOrThrow(TextBasedSmsColumns.THREAD_ID))==null) {
-	    			 // Log.i("column","nothing");
-	    			  return null;
-	    		  }
-	    		  String id = c.getString(c.getColumnIndexOrThrow(
-	    				  TextBasedSmsColumns.THREAD_ID)).toString();
-	    		  return id;
-	    	}
-	      }
-	      	
-	      return null;
-	  }
 	  
 		// User input validation
 		private static Boolean isNumberValid(String contact)	{
@@ -255,7 +236,7 @@ public class ContentUtils {
 		public static Cursor getMessagesCursor(Context mContext,
 				String thread_id, String number, boolean isGroupMessage) {
 			String querystring;
-			if(thread_id == null) {
+			if(thread_id == null && number!=null) {
 				Log.i("thread id is null", number);
 				querystring = 
 				"REPLACE(REPLACE(REPLACE(REPLACE(" + TextBasedSmsColumns.ADDRESS + 
@@ -270,7 +251,7 @@ public class ContentUtils {
    				+  " , " + TextBasedSmsColumns.MESSAGE_TYPE_INBOX + ")"  ;					
 
 			}
-			else {
+			else if(thread_id!=null){
 				Log.i("thread id is here", thread_id);
 				querystring = TextBasedSmsColumns.THREAD_ID + "=" + thread_id 
 					+ " AND "
@@ -279,8 +260,8 @@ public class ContentUtils {
 			   				+  " , " + TextBasedSmsColumns.MESSAGE_TYPE_INBOX + ")";
 				Log.i("thread id",thread_id);
 			}
-
-	        String[] variables = new String[]{"'sent' as category",
+			else return null;
+			String[] variables = new String[]{"'sent' as category",
 	        		TextBasedSmsColumns.TYPE,TextBasedSmsColumns.BODY,
 	        		BaseColumns._ID, TextBasedSmsColumns.ADDRESS, TextBasedSmsColumns.READ,
 	        		TextBasedSmsColumns.DATE, TextBasedSmsColumns.THREAD_ID};
@@ -293,10 +274,40 @@ public class ContentUtils {
 				MergeCursor mergeCursor = new MergeCursor(new Cursor[] { matrixCursor, messages_cursor });
 				return mergeCursor;
 			}
-			Log.i("messages_cursor size", " " + messages_cursor.getCount());
+			//Log.i("messages_cursor size", " " + messages_cursor.getCount());
 	        return messages_cursor;
 		}		
 		
+
+	       public static String getOrCreateThreadId(
+	                Context context, String[] numbers) {
+	            Uri THREAD_ID_CONTENT_URI = Uri.parse(
+	                    "content://mms-sms/threadID");
+				Uri.Builder uriBuilder = THREAD_ID_CONTENT_URI.buildUpon();
+
+	            for (String recipient : numbers) {
+	                uriBuilder.appendQueryParameter("recipient", recipient);
+	            }
+
+	            Uri uri = uriBuilder.build();
+
+	            String[] ID_PROJECTION = { BaseColumns._ID };
+				Cursor cursor = SqliteWrapper.query(context, context.getContentResolver(),
+	                    uri, ID_PROJECTION, null, null, null);
+	            if (cursor != null) {
+	                try {
+	                    if (cursor.moveToFirst()) {
+	                        return Long.toString(cursor.getLong(0));
+	                    } else {
+	                    }
+	                } finally {
+	                    cursor.close();
+	                }
+	            }
+
+	            throw new IllegalArgumentException("Unable to find or allocate a thread ID.");
+	        }
+	    
 		public static Cursor getMMSCursor(Context mContext,String thread_id) {
 			String querystring = Telephony.BaseMmsColumns.THREAD_ID + "=" + thread_id ;
 			String[] vars = new String[]{ Telephony.BaseMmsColumns._ID, 
