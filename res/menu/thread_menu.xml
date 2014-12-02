@@ -5,5 +5,8 @@
           android:showAsAction="never"/>    
     <item android:id="@+id/menu_call"
           android:title="Phone call" 
-          android:showAsAction="never"/>             
+          android:showAsAction="never"/>    
+    <item android:id="@+id/menu_attach_media"
+          android:title="Attach media" 
+          android:showAsAction="never"/>                       
 </menu>

@@ -3,18 +3,20 @@ package com.Pull.pullapp.model;
 import java.util.ArrayList;
 
 import android.graphics.Bitmap;
+import android.net.Uri;
 
+import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.UserInfoStore;
 import com.parse.ParseClassName;
 
 @ParseClassName("MMSMessage")
 public class MMSMessage extends SMSMessage {
-	private ArrayList<Bitmap> images = new ArrayList<Bitmap>();
+	private ArrayList<Uri> images = new ArrayList<Uri>();
 	private String[] recipients;
 	private String[] names;
-	public void addImage(Bitmap bitmap) {
+	/*public void addImage(Bitmap bitmap) {
 		images.add(bitmap);
-	}
+	}*/
 	
     // Constructors
     public MMSMessage() {
@@ -32,9 +34,14 @@ public class MMSMessage extends SMSMessage {
 		this.names = names;
 	}
 
-	public ArrayList<Bitmap> getImages() {
+	public ArrayList<Uri> getImages() {
 		// TODO Auto-generated method stub
 		return images;
+	}
+
+	public void addImage(Uri uri) {
+
+		images.add(uri);
 	}    	
 
 }

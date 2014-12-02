@@ -73,17 +73,19 @@
 					            android:orientation="horizontal" >
 					            <Button
 					                android:id="@+id/emoji_button"
-					                android:layout_width="30dp"
-					                android:layout_height="30dp"
-					                android:layout_marginTop="35dp"
+					                android:layout_width="40dp"
+					                android:layout_height="40dp"
+					                android:layout_marginTop="-15dp"
 					                android:layout_marginLeft="8dp"
+					                android:layout_marginRight="8dp"
+					                android:layout_marginBottom="15dp"
 					                android:padding="5dp"
 					                android:background="@drawable/hearts_emoji" /> 		
 				                <ImageButton
 				                    android:id="@+id/textIndicatorButton"
 				                    android:layout_width="wrap_content"
 				                    android:layout_height="wrap_content"
-				                    android:layout_marginLeft="-24dp"
+				                    android:layout_marginLeft="-42dp"
 				                    android:layout_marginTop="3dp"
 				                    android:color="@android:color/white"
 				                    android:background="@drawable/pendinh_indicator" />					                				
@@ -118,11 +120,12 @@
 					            </LinearLayout>
 					            <Button
 					                android:id="@+id/send_button"
-					                android:layout_width="30dp"
-					                android:layout_height="30dp"
-				                    android:layout_marginTop="35dp"
-					                android:layout_marginRight="8dp"
-					                android:padding="5dp"
+					                android:layout_width="43dp"
+					                android:layout_height="100dp"
+				                    android:paddingTop="60dp"
+					                android:paddingRight="13dp"
+					                android:paddingLeft="5dp"
+					                android:paddingBottom="40dp"
 					                android:background="@drawable/send" />            
 					        </LinearLayout>
 			

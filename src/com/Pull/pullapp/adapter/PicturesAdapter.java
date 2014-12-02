@@ -1,28 +1,38 @@
 package com.Pull.pullapp.adapter;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
-import com.Pull.pullapp.R;
-
 import android.content.Context;
-import android.database.DataSetObserver;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
 
-public class PicturesAdapter extends ArrayAdapter<Bitmap> {
+import com.Pull.pullapp.mms.ItemLoadedCallback;
+import com.Pull.pullapp.mms.ThumbnailManager;
+import com.Pull.pullapp.mms.ThumbnailManager.ImageLoaded;
+import com.Pull.pullapp.R;
 
-	private List<Bitmap> pictures;
+public class PicturesAdapter extends ArrayAdapter<Uri> {
+
+	private List<Uri> pictures;
 	private Context mContext;
-
-	public PicturesAdapter(Context context, int resource, List<Bitmap> objects) {
-		super(context, resource, objects);
+	private ThumbnailManager mThumbnailManager;
+	
+	public PicturesAdapter(Context context, int resource, ArrayList<Uri> arrayList) {
+		super(context, resource, arrayList);
 		this.mContext = context;
-		this.pictures = objects;
+		this.pictures = arrayList;
+		this.mThumbnailManager = new ThumbnailManager(context);
 	}
 
 	/*
@@ -48,20 +58,30 @@ public class PicturesAdapter extends ArrayAdapter<Bitmap> {
 		 * 
 		 * Therefore, i refers to the current Item object.
 		 */
-		Bitmap i = pictures.get(position);
+		Uri i = pictures.get(position);
 
 		if (i != null) {
 
 			// This is how you obtain a reference to the TextViews.
 			// These TextViews are created in the XML files we defined.
 
-			ImageView tt = (ImageView) v.findViewById(R.id.img);
+			final ImageView tt = (ImageView) v.findViewById(R.id.img);
+			mThumbnailManager.getThumbnail(i, new ItemLoadedCallback<ImageLoaded> (){
 
-			// check to see if each individual textview is null.
-			// if not, assign some text!
-			if (tt != null){
-				tt.setImageBitmap(i);
-			}
+				@Override
+				public void onItemLoaded(ImageLoaded result, Throwable exception) {
+					if(exception!=null) {
+						exception.printStackTrace();
+						return;
+					}
+					if(result!=null) {
+						tt.setImageBitmap(result.mBitmap);
+					}
+					
+				}
+				
+			});
+				
 		}
 
 		// the view must be returned to our activity

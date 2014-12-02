@@ -447,7 +447,7 @@ public class ContentUtils {
 		    }    
 		    return sampleSize;
 		}	**/	
-		public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
+		public static class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
 		    private final WeakReference<ImageView> imageViewReference;
 		    private String path = "";
 		    private int alt_id;
@@ -484,8 +484,8 @@ public class ContentUtils {
 		        }
 		    }
 		}	
-		  
-		public void loadBitmap(Context context, String path, ImageView imageView, int alt_id) {
+		  	
+		public static void loadBitmap(Context context, String path, ImageView imageView, int alt_id) {
 		    BitmapWorkerTask task = new BitmapWorkerTask(context, imageView, alt_id);
 		    task.execute(path);
 		}
@@ -779,6 +779,7 @@ public class ContentUtils {
 			String where = TextBasedSmsColumns.THREAD_ID+"=?";
 			String[] args = new String[] { threadID };
 			mContext.getContentResolver().delete( Telephony.Sms.CONTENT_URI, where, args );
+			mContext.getContentResolver().delete( Telephony.Mms.CONTENT_URI, where, args );
 		}
 
 		public static Cursor getMessageIDsCursor(Context mContext, String thread_id) {

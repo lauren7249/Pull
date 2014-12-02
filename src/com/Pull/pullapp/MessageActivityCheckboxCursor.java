@@ -3,6 +3,7 @@ package com.Pull.pullapp;
 import it.sephiroth.android.library.widget.HListView;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -13,7 +14,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -23,7 +23,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
@@ -40,13 +39,10 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
-import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.provider.Telephony.Threads;
-import android.provider.Telephony.ThreadsColumns;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -81,39 +77,38 @@ import android.widget.Toast;
 import android.widget.ViewFlipper;
 import android.widget.ViewSwitcher;
 
+import com.Pull.pullapp.adapter.AttachmentTypeSelectorAdapter;
 import com.Pull.pullapp.adapter.GraphAdapter;
 import com.Pull.pullapp.adapter.MessageCursorAdapter;
 import com.Pull.pullapp.adapter.QueuedMessageAdapter;
 import com.Pull.pullapp.adapter.SharedWithCursorAdapter;
+import com.Pull.pullapp.fragment.AsyncDialog;
 import com.Pull.pullapp.fragment.CustomDateTimePicker;
 import com.Pull.pullapp.fragment.RecipientsPopupWindow;
 import com.Pull.pullapp.fragment.RecipientsPopupWindow.ApproverDialogListener;
 import com.Pull.pullapp.fragment.SimplePopupWindow;
+import com.Pull.pullapp.mms.TempFileProvider;
 import com.Pull.pullapp.model.MMSMessage;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.ShareSuggestion;
 import com.Pull.pullapp.threads.DelayedSend;
-import com.Pull.pullapp.threads.SendMMS;
 import com.Pull.pullapp.threads.ShareMessages;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.DatabaseHandler;
 import com.Pull.pullapp.util.LinearLayoutThatDetectsSoftKeyboard;
+import com.Pull.pullapp.util.MessageUtils;
 import com.Pull.pullapp.util.RecipientList.Recipient;
 import com.Pull.pullapp.util.RecipientsAdapter;
 import com.Pull.pullapp.util.RecipientsEditor;
 import com.Pull.pullapp.util.SendUtils;
 import com.Pull.pullapp.util.SwipeDetector;
-import com.Pull.pullapp.util.TransactionSettings;
 import com.Pull.pullapp.util.UserInfoStore;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.commonsware.cwac.merge.MergeAdapter;
 import com.github.amlcurran.showcaseview.ShowcaseView;
-import com.klinker.android.send_message.Message;
-import com.klinker.android.send_message.Settings;
-import com.klinker.android.send_message.Transaction;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.FindCallback;
@@ -184,6 +179,19 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private String shared_convoID;
 	private DatabaseHandler dh;
 	private static UserInfoStore store;
+	
+	
+    public static final int REQUEST_CODE_ATTACH_IMAGE     = 100;
+    public static final int REQUEST_CODE_TAKE_PICTURE     = 101;
+    public static final int REQUEST_CODE_ATTACH_VIDEO     = 102;
+    public static final int REQUEST_CODE_TAKE_VIDEO       = 103;
+    public static final int REQUEST_CODE_ATTACH_SOUND     = 104;
+    public static final int REQUEST_CODE_RECORD_SOUND     = 105;
+    public static final int REQUEST_CODE_CREATE_SLIDESHOW = 106;
+    public static final int REQUEST_CODE_ECM_EXIT_DIALOG  = 107;
+    public static final int REQUEST_CODE_ADD_CONTACT      = 108;
+    public static final int REQUEST_CODE_PICK             = 109;
+    
 	private String shared_confidante;
 	private String clueless_persons_number;
 	private String confidante_name;
@@ -238,6 +246,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private boolean isGroupMessage;
 	private TextView group_text_recipients;
 	private Button emoji_button;
+	private AsyncDialog mAsyncDialog;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -1370,7 +1379,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			 String uri = "tel:" + number ;
 			 intent = new Intent(Intent.ACTION_CALL);
 			 intent.setData(Uri.parse(uri));
-			 startActivity(intent);        	
+			 startActivity(intent);       
+		case R.id.menu_attach_media:
+			showAddAttachmentDialog();
 		case CONTEXTMENU_SHARE_PERSISTENT:
 			viewSwitcher.setDisplayedChild(1);
             return true;			         
@@ -1379,6 +1390,200 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		}
 	}	
 	
+	private void showAddAttachmentDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Add attachment");
+
+        final AttachmentTypeSelectorAdapter mAttachmentTypeSelectorAdapter = new AttachmentTypeSelectorAdapter(this, AttachmentTypeSelectorAdapter.MODE_WITH_SLIDESHOW);
+        
+        builder.setAdapter(mAttachmentTypeSelectorAdapter, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+				addAttachment(mAttachmentTypeSelectorAdapter.buttonToCommand(which), true);
+                dialog.dismiss();
+            }
+        });
+        builder.show();
+    }	
+	
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+/**
+
+        if (requestCode == REQUEST_CODE_ADD_CONTACT) {
+            // The user might have added a new contact. When we tell contacts to add a contact
+            // and tap "Done", we're not returned to Messaging. If we back out to return to
+            // messaging after adding a contact, the resultCode is RESULT_CANCELED. Therefore,
+            // assume a contact was added and get the contact and force our cached contact to
+            // get reloaded with the new info (such as contact name). After the
+            // contact is reloaded, the function onUpdate() in this file will get called
+            // and it will update the title bar, etc.
+            if (mAddContactIntent != null) {
+                String address =
+                    mAddContactIntent.getStringExtra(ContactsContract.Intents.Insert.EMAIL);
+                if (address == null) {
+                    address =
+                        mAddContactIntent.getStringExtra(ContactsContract.Intents.Insert.PHONE);
+                }
+                if (address != null) {
+                    Contact contact = Contact.get(address, false);
+                    if (contact != null) {
+                        contact.reload();
+                    }
+                }
+            }
+        }
+*/
+        if (resultCode != RESULT_OK){
+           // if (LogTag.VERBOSE) log("bail due to resultCode=" + resultCode);
+            return;
+        }
+
+        switch (requestCode) {
+            case REQUEST_CODE_CREATE_SLIDESHOW:
+                break;
+
+            case REQUEST_CODE_TAKE_PICTURE: {
+                // create a file based uri and pass to addImage(). We want to read the JPEG
+                // data directly from file (using UriImage) instead of decoding it into a Bitmap,
+                // which takes up too much memory and could easily lead to OOM.
+                File file = new File(TempFileProvider.getScrapPath(this));
+                Uri uri = Uri.fromFile(file);
+
+                // Remove the old captured picture's thumbnail from the cache
+               // MmsApp.getApplication().getThumbnailManager().removeThumbnail(uri);
+
+                addImageAsync(uri, false);
+                break;
+            }
+
+            case REQUEST_CODE_ATTACH_IMAGE: {
+                if (data != null) {
+                    addImageAsync(data.getData(), false);
+                }
+                break;
+            }
+
+          /*  case REQUEST_CODE_TAKE_VIDEO:
+                Uri videoUri = TempFileProvider.renameScrapFile(".3gp", null, this);
+                // Remove the old captured video's thumbnail from the cache
+                MmsApp.getApplication().getThumbnailManager().removeThumbnail(videoUri);
+
+                addVideoAsync(videoUri, false);      // can handle null videoUri
+                break;
+
+            case REQUEST_CODE_ATTACH_VIDEO:
+                if (data != null) {
+                    addVideoAsync(data.getData(), false);
+                }
+                break;
+
+            case REQUEST_CODE_ATTACH_SOUND: {
+                Uri uri = (Uri) data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
+                if (Settings.System.DEFAULT_RINGTONE_URI.equals(uri)) {
+                    break;
+                }
+                addAudio(uri);
+                break;
+            }
+
+            case REQUEST_CODE_RECORD_SOUND:
+                if (data != null) {
+                    addAudio(data.getData());
+                }
+                break;
+
+            case REQUEST_CODE_ECM_EXIT_DIALOG:
+                boolean outOfEmergencyMode = data.getBooleanExtra(EXIT_ECM_RESULT, false);
+                if (outOfEmergencyMode) {
+                    sendMessage(false);
+                }
+                break;
+
+            case REQUEST_CODE_PICK:
+                if (data != null) {
+                    processPickResult(data);
+                }
+                break;
+*/
+            default:
+                //if (LogTag.VERBOSE) log("bail due to unknown requestCode=" + requestCode);
+                break;
+        }
+    }	
+    
+    private void addImageAsync(final Uri uri, final boolean append) {
+        getAsyncDialog().runAsync(new Runnable() {
+            @Override
+            public void run() {
+                addImage(uri, append);
+            }
+        }, null, 0);
+    }
+    AsyncDialog getAsyncDialog() {
+        if (mAsyncDialog == null) {
+            mAsyncDialog = new AsyncDialog(this);
+        }
+        return mAsyncDialog;
+    }
+
+    private void addImage(Uri uri, boolean append) {
+
+    	
+    }
+    
+    private void addAttachment(int type, boolean replace) {
+        // Calculate the size of the current slide if we're doing a replace so the
+        // slide size can optionally be used in computing how much room is left for an attachment.
+       /* int currentSlideSize = 0;
+        SlideshowModel slideShow = mWorkingMessage.getSlideshow();
+        if (replace && slideShow != null) {
+            WorkingMessage.removeThumbnailsFromCache(slideShow);
+            SlideModel slide = slideShow.get(0);
+            currentSlideSize = slide.getSlideSize();
+        }*/
+        switch (type) {
+            case AttachmentTypeSelectorAdapter.ADD_IMAGE:
+                MessageUtils.selectImage(this, REQUEST_CODE_ATTACH_IMAGE);
+                break;
+
+            case AttachmentTypeSelectorAdapter.TAKE_PICTURE: {
+                MessageUtils.capturePicture(this, REQUEST_CODE_TAKE_PICTURE);
+                break;
+            }
+
+            case AttachmentTypeSelectorAdapter.ADD_VIDEO:
+                MessageUtils.selectVideo(this, REQUEST_CODE_ATTACH_VIDEO);
+                break;
+
+        /*    case AttachmentTypeSelectorAdapter.RECORD_VIDEO: {
+                long sizeLimit = computeAttachmentSizeLimit(slideShow, currentSlideSize);
+                if (sizeLimit > 0) {
+                    MessageUtils.recordVideo(this, REQUEST_CODE_TAKE_VIDEO, sizeLimit);
+                } else {
+                    Toast.makeText(this,"Message is too big for a video",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+            break;
+
+            case AttachmentTypeSelectorAdapter.ADD_SOUND:
+                MessageUtils.selectAudio(this, REQUEST_CODE_ATTACH_SOUND);
+                break;
+
+            case AttachmentTypeSelectorAdapter.RECORD_SOUND:
+                long sizeLimit = computeAttachmentSizeLimit(slideShow, currentSlideSize);
+                MessageUtils.recordSound(this, REQUEST_CODE_RECORD_SOUND, sizeLimit);
+                break;
+
+            case AttachmentTypeSelectorAdapter.ADD_SLIDESHOW:
+                editSlideshow();
+                break;
+*/
+            default:
+                break;
+        }
+    }
+
 	@Override
 	public void onBackPressed() {
 		mixpanel.track("back button pressed", null);
@@ -1802,8 +2007,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		        else if ("image/jpeg".equals(type) || "image/bmp".equals(type) ||
 		                "image/gif".equals(type) || "image/jpg".equals(type) ||
 		                "image/png".equals(type)) {
-		            Bitmap bitmap = getMmsImage(partId);
-		            if(bitmap!=null) m.addImage(bitmap);
+		            Uri image_uri = getMmsImageUri(partId);
+		            if(image_uri!=null) m.addImage(image_uri);
 		        }		        
 		    } while (cursor.moveToNext());
 		}
@@ -1840,9 +2045,10 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	    }
 	    return name;
 	}	
-	private Bitmap getMmsImage(String _id) {
+	private Uri getMmsImageUri(String _id) {
 	    Uri partURI = Uri.parse("content://mms/part/" + _id);
-	    InputStream is = null;
+	    return partURI;
+	  /*  InputStream is = null;
 	    Bitmap bitmap = null;
 	    try {
 	        is = mContext.getContentResolver().openInputStream(partURI);
@@ -1857,7 +2063,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	            } catch (IOException e) {}
 	        }
 	    }
-	    return bitmap;
+	    return bitmap;*/
 	}	
 	private String getMmsText(String id) {
 	    Uri partURI = Uri.parse("content://mms/part/" + id);
