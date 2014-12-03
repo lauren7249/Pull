@@ -76,6 +76,7 @@ public class PicturesAdapter extends ArrayAdapter<Uri> {
 					}
 					if(result!=null) {
 						tt.setImageBitmap(result.mBitmap);
+						notifyDataSetChanged();
 					}
 					
 				}

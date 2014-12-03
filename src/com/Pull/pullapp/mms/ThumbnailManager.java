@@ -366,7 +366,7 @@ public class ThumbnailManager extends BackgroundLoaderManager {
             return null;
         }
 
-        private byte[] compressBitmap(Bitmap bitmap) {
+        public byte[] compressBitmap(Bitmap bitmap) {
             ByteArrayOutputStream os = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG,
                     COMPRESS_JPEG_QUALITY, os);

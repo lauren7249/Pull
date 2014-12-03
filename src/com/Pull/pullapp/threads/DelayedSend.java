@@ -1,13 +1,16 @@
 package com.Pull.pullapp.threads;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
 
 import com.Pull.pullapp.util.Constants;
@@ -22,6 +25,7 @@ public class DelayedSend extends Thread {
     private long sendOn, launchedOn;
 	private String approver;
 	private boolean isDelayed;
+	private ArrayList<String> attachment_paths;
     
     public DelayedSend(Context parent, String recipient, String message, 
     		Date sendOn, long launchedOn, String approver) {
@@ -45,10 +49,11 @@ public class DelayedSend extends Thread {
     }
     
     public DelayedSend(Context parent, String[] recipients,
-			String message, Date sendOn, long launchedOn, String approver) {
+			String message, Date sendOn, long launchedOn, String approver, ArrayList<String> attachments) {
         this.parent = parent;
         this.recipients = recipients;
         this.message = message;
+        this.attachment_paths = attachments;
     	Map dimensions = new HashMap();
         if(sendOn!=null){
         	this.sendOn = sendOn.getTime();
@@ -83,7 +88,8 @@ public class DelayedSend extends Thread {
         	intent  = new Intent(Constants.ACTION_SEND_DELAYED_TEXT);
         	intent.putExtra(Constants.EXTRA_RECIPIENTS, recipients);  
         	intent.putExtra(Constants.EXTRA_THREAD_ID, threadID);  
-        	Log.i("delayed send running for multiple recipients","delayed send running for multiple");
+        	intent.putExtra(Constants.EXTRA_ATTACHMENT_PATHS, attachment_paths);  
+        	Log.i("delayed send running for mms","attachments " + attachment_paths.size());
         }
         intent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
         intent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);
@@ -96,5 +102,10 @@ public class DelayedSend extends Thread {
         am.set(AlarmManager.RTC, sendOn, sendMessage);        
         
     }
+
+	public void addPhotos(ArrayList<Uri> picture_uris) {
+		// TODO Auto-generated method stub
+		
+	}
     
 }

@@ -116,7 +116,13 @@
 					                    android:lines="2"
 					                    android:textColor="@color/textFieldColor"
 					                    android:textSize="15dp"
-					                    android:color="@android:color/white" />				            
+					                    android:color="@android:color/white" />		
+									<it.sephiroth.android.library.widget.HListView
+									    android:id="@+id/pictures_list"
+									    android:layout_width="wrap_content"
+									    android:layout_height="175dp"
+									    android:layout_margin="2dp"
+									    android:divider="#00000000" />						                    		            
 					            </LinearLayout>
 					            <Button
 					                android:id="@+id/send_button"

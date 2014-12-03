@@ -1,6 +1,7 @@
 package com.Pull.pullapp.util;
 
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeSet;
@@ -15,15 +16,21 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.telephony.SmsManager;
 import android.text.format.DateUtils;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
+import com.Pull.pullapp.mms.ItemLoadedCallback;
+import com.Pull.pullapp.mms.ThumbnailManager;
+import com.Pull.pullapp.mms.ThumbnailManager.ImageLoaded;
 import com.Pull.pullapp.model.Invite;
 import com.Pull.pullapp.model.SMSMessage;
+import com.klinker.android.send_message.DeviceMessageAttachment;
 import com.klinker.android.send_message.Message;
 import com.klinker.android.send_message.Settings;
 import com.klinker.android.send_message.Transaction;
@@ -80,13 +87,14 @@ public class SendUtils  {
 	        Log.e(TAG, "undefined Error: SMS sending failed ... please REPORT to ISSUE Tracker");
 	    }
 	}
-	public static void sendmms(Context context, String[] recipients,
-			String message, long launchedOn, long scheduledFor, boolean AddtoSent, String thread_id) {
+	public static void sendmms(final Context context, String[] recipients,
+			String message, long launchedOn, long scheduledFor, boolean AddtoSent, String thread_id,
+			ArrayList<DeviceMessageAttachment> attachments) {
 		try {	
 			long long_thread_id;
 			if(thread_id==null || thread_id.isEmpty() || AddtoSent) long_thread_id=0;
 			else long_thread_id = Long.parseLong(thread_id);
-			Log.i("sendmms","sendmms thread id " + thread_id);
+			Log.i("sendmms","attachments size " + attachments.size());
 			Settings sendSettings = new Settings();
 	        TransactionSettings transactionSettings = new TransactionSettings(
 	        		context, null);
@@ -106,10 +114,9 @@ public class SendUtils  {
 			Message mMessage = new Message();
 			mMessage.setSave(AddtoSent);
 			mMessage.setAddresses(recipients);
-			Log.i("numbers","recipeitns" + recipients.length);
 			mMessage.setText(message);
-			//Message mMessage = new Message("hola", "16507966210");
 			mMessage.setType(Message.TYPE_SMSMMS);  // could also be Message.TYPE_VOICE	
+			if(attachments!=null) mMessage.setMmsAttachments(attachments);
 			sendTransaction.sendNewMessage(mMessage, long_thread_id);	       
 			
 			Intent myIntent = new Intent(Constants.ACTION_MMS_DELIVERED);

@@ -166,6 +166,7 @@ public class Constants {
 	public static final String EXTRA_NUMBERS = PACKAGE_NAME + "EXTRA_NUMBERS";
 	public static final String ACTION_SEND_DELAYED_MMS = PACKAGE_NAME + ".util.ACTION_SEND_DELAYED_MMS";
 	public static final String ACTION_MMS_INBOXED = PACKAGE_NAME + ".util.ACTION_MMS_INBOXED";
+	public static final String EXTRA_ATTACHMENT_PATHS = PACKAGE_NAME + "EXTRA_ATTACHMENT_PATHS";
 	
 	
 

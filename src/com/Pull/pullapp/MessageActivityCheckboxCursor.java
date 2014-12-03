@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -80,6 +81,7 @@ import android.widget.ViewSwitcher;
 import com.Pull.pullapp.adapter.AttachmentTypeSelectorAdapter;
 import com.Pull.pullapp.adapter.GraphAdapter;
 import com.Pull.pullapp.adapter.MessageCursorAdapter;
+import com.Pull.pullapp.adapter.PicturesAdapter;
 import com.Pull.pullapp.adapter.QueuedMessageAdapter;
 import com.Pull.pullapp.adapter.SharedWithCursorAdapter;
 import com.Pull.pullapp.fragment.AsyncDialog;
@@ -247,6 +249,10 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private TextView group_text_recipients;
 	private Button emoji_button;
 	private AsyncDialog mAsyncDialog;
+	private HListView pictures_list;
+	private PicturesAdapter pictures_adapter;
+	private ArrayList<Uri> picture_uris;
+	private ArrayList<String> attachments = new ArrayList<String>();
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -820,7 +826,14 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				sendMessage(v);
 			}
 			
-		});			    
+		});		
+		
+		pictures_list = (HListView) findViewById(R.id.pictures_list);
+		picture_uris = new ArrayList<Uri>();
+		pictures_list.setVisibility(View.GONE);
+		pictures_adapter = new PicturesAdapter(mContext,R.layout.picture_item, picture_uris);
+		pictures_list.setAdapter(pictures_adapter);
+				
 		
 	}
 
@@ -1379,9 +1392,11 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			 String uri = "tel:" + number ;
 			 intent = new Intent(Intent.ACTION_CALL);
 			 intent.setData(Uri.parse(uri));
-			 startActivity(intent);       
+			 startActivity(intent); 
+			 return true;
 		case R.id.menu_attach_media:
 			showAddAttachmentDialog();
+			return true;
 		case CONTEXTMENU_SHARE_PERSISTENT:
 			viewSwitcher.setDisplayedChild(1);
             return true;			         
@@ -1437,7 +1452,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
            // if (LogTag.VERBOSE) log("bail due to resultCode=" + resultCode);
             return;
         }
-
+        pictures_list.setVisibility(View.VISIBLE);   
         switch (requestCode) {
             case REQUEST_CODE_CREATE_SLIDESHOW:
                 break;
@@ -1459,7 +1474,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
             case REQUEST_CODE_ATTACH_IMAGE: {
                 if (data != null) {
                     addImageAsync(data.getData(), false);
-                }
+                }             
                 break;
             }
 
@@ -1516,8 +1531,18 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
             @Override
             public void run() {
                 addImage(uri, append);
+                
             }
-        }, null, 0);
+        }, new Runnable(){
+
+			@Override
+			public void run() {
+        		pictures_adapter.notifyDataSetChanged();
+				
+			}
+        	
+        }, R.string.about_title);
+        
     }
     AsyncDialog getAsyncDialog() {
         if (mAsyncDialog == null) {
@@ -1527,8 +1552,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
     }
 
     private void addImage(Uri uri, boolean append) {
-
-    	
+    	picture_uris.add(0,uri);
+    	attachments.add(uri.toString());
     }
     
     private void addAttachment(int type, boolean replace) {
@@ -1625,13 +1650,16 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		mixpanel.track("send message click", null);
 		//if(mListView.getCount()>0) mListView.setSelection(mListView.getCount()-1);
 		
-		if(newMessage.length() == 0) {
+		if(newMessage.length() == 0 && picture_uris.isEmpty()) {
 			popup = new SimplePopupWindow(v);
 			popup.showLikeQuickAction();
 			popup.setMessage("There's no message here!");					
 			return;
 		}		
-
+		if(picture_uris.size()>0) {
+			isMMS = true;
+			hasMMS = true;						
+		}
 		if(numbers == null) {
 			numbers = mRecipientEditor.constructContactsFromInput(false).getToNumbers();
 			if(numbers.length == 0) {
@@ -1645,6 +1673,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				isMMS = true;
 				hasMMS = true;		
 			}
+			
 			ArrayList<String> recipients_set = store.getRecipientIDs(numbers);
 			Log.i("recipient ids",recipients_set.toString());
 		
@@ -1680,8 +1709,10 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
         if(!isMMS) 
         	new DelayedSend(mContext, number, newMessage, sendDate, new Date().getTime(), approver).start();
         else {
-        	DelayedSend d = new DelayedSend(mContext, numbers, newMessage, sendDate, new Date().getTime(), approver);
+			DelayedSend d = new DelayedSend(mContext, numbers, newMessage, sendDate, 
+        			new Date().getTime(), approver, attachments  );
         	d.setThreadID(thread_id);
+        	d.addPhotos(picture_uris);
         	d.start();
         	//new SendMMS(mContext, numbers, newMessage, new Date().getTime(), new Date().getTime(), true).run();
 
@@ -1701,10 +1732,10 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
     		//TODO: MAKE IT SO THAT YOU CANT DO THE PAST
     	}
     	newMessage = "";
-    	
+    	picture_uris.clear();
+    	pictures_list.setVisibility(View.GONE);
 		
 	}
-
 
 	public void pickTime(View v) {
 		customDateTimePicker.showDialog();		

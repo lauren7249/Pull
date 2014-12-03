@@ -115,7 +115,8 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
             String thread_id = intent.getStringExtra(Constants.EXTRA_THREAD_ID);
             String approver = intent.getStringExtra(Constants.EXTRA_APPROVER);
             boolean isDelayed = intent.getBooleanExtra(Constants.EXTRA_IS_DELAYED, false);
-           // Log.i("new message",message);
+            ArrayList<String> attachment_paths = intent.getStringArrayListExtra(Constants.EXTRA_ATTACHMENT_PATHS);
+            // Log.i("new message",message);
             long launchedOn = intent.getLongExtra(Constants.EXTRA_TIME_LAUNCHED,0);
             long scheduledFor = intent.getLongExtra(Constants.EXTRA_TIME_SCHEDULED_FOR,0);
             SMSMessage m;
@@ -159,9 +160,10 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	            	serviceIntent.putExtra(Constants.EXTRA_RECIPIENTS, recipients);
 	            	serviceIntent.putExtra(Constants.EXTRA_MESSAGE_BODY, message);
 	            	serviceIntent.putExtra(Constants.EXTRA_THREAD_ID, thread_id);
-	            	serviceIntent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);            	
+	            	serviceIntent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);    
+					serviceIntent.putExtra(Constants.EXTRA_ATTACHMENT_PATHS, attachment_paths);         
 	            	mContext.startService(serviceIntent);	            
-	            	Log.i("launching delayed mmsservice","launching delayed mmsservice");
+	            	//Log.i("launching delayed mmsservice","launching delayed mmsservice");
 	            	//new SendMMS(context, recipients, message, launchedOn, scheduledFor, true).run();
 					m.setType(TextBasedSmsColumns.MESSAGE_TYPE_SENT);      	
 	            }

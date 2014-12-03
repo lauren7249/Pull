@@ -48,7 +48,7 @@
 	<it.sephiroth.android.library.widget.HListView
 	    android:id="@+id/pictures_list"
 	    android:layout_width="match_parent"
-	    android:layout_height="wrap_content"
+	    android:layout_height="300dp"
 	    android:layout_margin="2dp"
 	    android:layout_below="@id/mms_message_time"
 	    android:divider="#00000000" />		        
