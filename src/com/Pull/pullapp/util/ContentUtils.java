@@ -257,7 +257,13 @@ public class ContentUtils {
 					+ " AND "
 					+ TextBasedSmsColumns.TYPE + " in (" + 
 			   				TextBasedSmsColumns.MESSAGE_TYPE_SENT 					
-			   				+  " , " + TextBasedSmsColumns.MESSAGE_TYPE_INBOX + ")";
+			   				+  " , " + TextBasedSmsColumns.MESSAGE_TYPE_INBOX + ") and " +
+			   				TextBasedSmsColumns.ADDRESS + " is not null and " +
+   				TextBasedSmsColumns.ADDRESS + " is not null and " + 
+   				TextBasedSmsColumns.BODY + " is not null and " +
+   				BaseColumns._ID + " is not null and " + 
+   				TextBasedSmsColumns.READ + " is not null and " +
+   				TextBasedSmsColumns.DATE + " is not null" ;				
 				Log.i("thread id",thread_id);
 			}
 			else return null;
@@ -269,6 +275,7 @@ public class ContentUtils {
 			Cursor messages_cursor = mContext.getContentResolver().query(Telephony.Sms.CONTENT_URI,
 					variables,querystring ,null,TextBasedSmsColumns.DATE);	   
 			if(messages_cursor!=null && messages_cursor.getCount()==0 && isGroupMessage) {
+				//Log.i("get messages cursor","adding an empty row");
 				MatrixCursor matrixCursor = new MatrixCursor(variables);
 				matrixCursor.addRow(new Object[] {"sent","-1","","-1","","-1","-1",thread_id});	
 				MergeCursor mergeCursor = new MergeCursor(new Cursor[] { matrixCursor, messages_cursor });

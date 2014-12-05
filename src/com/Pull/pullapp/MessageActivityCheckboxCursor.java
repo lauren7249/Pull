@@ -93,6 +93,7 @@ import com.Pull.pullapp.mms.TempFileProvider;
 import com.Pull.pullapp.model.MMSMessage;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.ShareSuggestion;
+import com.Pull.pullapp.threads.DelayedMMSService;
 import com.Pull.pullapp.threads.DelayedSend;
 import com.Pull.pullapp.threads.ShareMessages;
 import com.Pull.pullapp.util.Constants;
@@ -340,7 +341,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		sharedWithListView = (HListView) findViewById(R.id.shared_with_list);
 		sharedWithAdapter = new SharedWithCursorAdapter(mContext,shared_with_cursor,activity);
 		sharedWithListView.setAdapter(sharedWithAdapter);
-		
+		pictures_list = (HListView) findViewById(R.id.pictures_list);
+		picture_uris = new ArrayList<Uri>();		
 		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 		emojisPager = (ViewPager) findViewById(R.id.emojis_pager);
@@ -588,6 +590,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 					m.schedule(scheduledFor);
 					m.launchedOn = scheduledOn;
 					m.setApprover(intent_approver);
+					ArrayList<Uri> intent_attachments = DelayedMMSService.stringsToUris(intent.getStringArrayListExtra(Constants.EXTRA_ATTACHMENT_PATHS));
+					m.setAttachments(intent_attachments);
 					addNewMessage(m, false);
 					try {
 						m.saveToParse();
@@ -633,6 +637,35 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 					text.setText(intent_message);
 					
 				} 
+				else if(action.equals(Constants.ACTION_MMS_UNOUTBOXED)) {
+					//mixpanel.track("sms canceled", null);
+					//Log.i("sms canceled", "sms canceled");
+					if(scheduledFor-scheduledOn <= 6000) 
+						sendDate = new Date(Math.max(scheduledFor,scheduledOn) + 6000);
+					else 
+						sendDate = new Date(scheduledFor);
+					
+					updateDelayButton();
+					
+					if(intent_approver!=null&& intent_approver.length()>0){
+						approver = intent_approver;
+						pickApprover.setText("if " + ContentUtils
+								.getContactDisplayNameByNumber(context, intent_approver) + " approves");						
+					}
+
+					removeMessage();
+					text.setText(intent_message);
+					ArrayList<Uri> intent_attachments = DelayedMMSService.stringsToUris(intent.getStringArrayListExtra(Constants.EXTRA_ATTACHMENT_PATHS));
+					if(intent_attachments!=null && intent_attachments.size()>0) {
+						pictures_list.setVisibility(View.VISIBLE);
+						for(Uri u : intent_attachments) {
+							addImageAsync(u);
+						}			
+						
+					}
+	
+					
+				} 				
 			}
 		};				
 				
@@ -828,8 +861,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			
 		});		
 		
-		pictures_list = (HListView) findViewById(R.id.pictures_list);
-		picture_uris = new ArrayList<Uri>();
 		pictures_list.setVisibility(View.GONE);
 		pictures_adapter = new PicturesAdapter(mContext,R.layout.picture_item, picture_uris);
 		pictures_list.setAdapter(pictures_adapter);
@@ -846,6 +877,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		intentFilter.addAction(Constants.ACTION_SMS_OUTBOXED);
 		intentFilter.addAction(Constants.ACTION_MMS_OUTBOXED);
 		intentFilter.addAction(Constants.ACTION_SMS_UNOUTBOXED);
+		intentFilter.addAction(Constants.ACTION_MMS_UNOUTBOXED);
 		intentFilter.addAction(Constants.ACTION_SMS_DELIVERED);	
 		intentFilter.addAction(Constants.ACTION_MMS_DELIVERED);		
 		intentFilter.addAction(Constants.ACTION_SHARE_COMPLETE);	
@@ -898,7 +930,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			    try {
 			    	Thread.sleep(100);
 			    	message.saveToParse();
-			    } catch (JSONException | InterruptedException e) {
+			    } catch (Exception e) {
 				// TODO Auto-generated catch block
 			    	e.printStackTrace();
 				}
@@ -1201,6 +1233,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		initials_view.setTypeface(null, Typeface.NORMAL);
 		initials_view.setSelected(false);
 		sharedWithAdapter.notifyDataSetChanged();
+		pictures_list.setVisibility(View.GONE);
 	}
 
 	private void selectOriginalPerson(String original_number, String original_name) {
@@ -1467,13 +1500,13 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
                 // Remove the old captured picture's thumbnail from the cache
                // MmsApp.getApplication().getThumbnailManager().removeThumbnail(uri);
 
-                addImageAsync(uri, false);
+                addImageAsync(uri);
                 break;
             }
 
             case REQUEST_CODE_ATTACH_IMAGE: {
                 if (data != null) {
-                    addImageAsync(data.getData(), false);
+                    addImageAsync(data.getData());
                 }             
                 break;
             }
@@ -1526,11 +1559,11 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
         }
     }	
     
-    private void addImageAsync(final Uri uri, final boolean append) {
+    private void addImageAsync(final Uri uri) {
         getAsyncDialog().runAsync(new Runnable() {
             @Override
             public void run() {
-                addImage(uri, append);
+                addImage(uri);
                 
             }
         }, new Runnable(){
@@ -1551,7 +1584,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
         return mAsyncDialog;
     }
 
-    private void addImage(Uri uri, boolean append) {
+    private void addImage(Uri uri) {
     	picture_uris.add(0,uri);
     	attachments.add(uri.toString());
     }
@@ -1977,7 +2010,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	    protected void onProgressUpdate(MMSMessage... t) {
 			if(t[0]==null) return;
 			messages_adapter.insert(t[0]);
-			messages_adapter.notifyDataSetChanged();
+			//messages_adapter.notifyDataSetChanged();
 	    }				
 		
 		@Override
@@ -2079,22 +2112,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private Uri getMmsImageUri(String _id) {
 	    Uri partURI = Uri.parse("content://mms/part/" + _id);
 	    return partURI;
-	  /*  InputStream is = null;
-	    Bitmap bitmap = null;
-	    try {
-	        is = mContext.getContentResolver().openInputStream(partURI);
-	        final BitmapFactory.Options options = new BitmapFactory.Options();
-	        options.inSampleSize = 8;
-	        bitmap = BitmapFactory.decodeStream(is,null, options);
-	    } catch (IOException e) {}
-	    finally {
-	        if (is != null) {
-	            try {
-	                is.close();
-	            } catch (IOException e) {}
-	        }
-	    }
-	    return bitmap;*/
 	}	
 	private String getMmsText(String id) {
 	    Uri partURI = Uri.parse("content://mms/part/" + id);

@@ -84,7 +84,8 @@ public class DelayedSend extends Thread {
         	intent.putExtra(Constants.EXTRA_RECIPIENT, recipient);
         }
         else {
-        	SendUtils.addMessageToOutbox(parent, recipients, message, launchedOn, sendOn, approver, threadID);
+        	SendUtils.addMessageToOutbox(parent, recipients, message, launchedOn, sendOn, 
+        			approver, threadID, attachment_paths);
         	intent  = new Intent(Constants.ACTION_SEND_DELAYED_TEXT);
         	intent.putExtra(Constants.EXTRA_RECIPIENTS, recipients);  
         	intent.putExtra(Constants.EXTRA_THREAD_ID, threadID);  

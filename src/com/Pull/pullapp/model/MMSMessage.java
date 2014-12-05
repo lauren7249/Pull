@@ -17,6 +17,7 @@ public class MMSMessage extends SMSMessage {
 	/*public void addImage(Bitmap bitmap) {
 		images.add(bitmap);
 	}*/
+	private ArrayList<String> image_paths = new ArrayList<String>();
 	
     // Constructors
     public MMSMessage() {
@@ -42,6 +43,29 @@ public class MMSMessage extends SMSMessage {
 	public void addImage(Uri uri) {
 
 		images.add(uri);
+		image_paths.add(uri.toString());
+	}
+	public void setAttachments(ArrayList<Uri> intent_attachments) {
+		images = intent_attachments;
+		image_paths = getPaths(intent_attachments);
+		
+	}
+	public static ArrayList<String> getPaths(ArrayList<Uri> uris) {
+    	if(uris == null) return null;
+		ArrayList<String> attachment_paths = new ArrayList<String>();
+		for(Uri u : uris) {
+			attachment_paths.add(u.toString());
+		}
+		// TODO Auto-generated method stub
+		return attachment_paths ;
+	}
+	public String[] getRecipients() {
+		// TODO Auto-generated method stub
+		return recipients;
+	}
+	public ArrayList<String> getImagePaths() {
+		// TODO Auto-generated method stub
+		return image_paths;
 	}    	
 
 }

@@ -302,7 +302,9 @@ public class MessageCursorAdapter extends CursorAdapter {
 		final String address;
 		long date;
 		final SMSMessage message;
+		String SmsMessageId;
 		final int position = c.getPosition();
+		String read;
 		int type = 0;
 		
 		try {
@@ -310,17 +312,31 @@ public class MessageCursorAdapter extends CursorAdapter {
 		} catch(RuntimeException e) {
 			return;
 		} 
-		if(type==TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX) return;
-	//	
-		body = c.getString(2).toString();
-    	address = c.getString(4).toString();
-    	date = c.getLong(6);
-    	String read = c.getString(5).toString();
-    	String SmsMessageId = c.getString(3).toString();
-    	//Log.i("SmsMessageId","SMSDATE"+date);
-    	message = new SMSMessage(date, body, address, store.getName(address), 
-    			type, store, ParseUser.getCurrentUser().getUsername());
-    	
+		if(type==TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX || c.getColumnCount()<7) return;
+
+		if(type!=-1) {
+			try {
+				date = c.getLong(6);
+				body = c.getString(2).toString();
+		    	address = c.getString(4).toString();
+		    	read = c.getString(5).toString();
+		    	SmsMessageId = c.getString(3).toString();
+		    	//Log.i("SmsMessageId","SMSDATE"+date);
+			
+		    	message = new SMSMessage(date, body, address, store.getName(address), 
+		    			type, store, ParseUser.getCurrentUser().getUsername());
+			} catch(NullPointerException e) {
+				return;
+			}
+		}
+		else  {
+			date = 0;
+			message = null;
+			address = null;
+			body = null;
+			read = null;
+			SmsMessageId = null;
+		}
     	boolean initiating=false;
 
     	SortedMap<Long, MMSMessage> submms, submms2;
@@ -373,7 +389,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 			addMMSViews(mms_array2,holder.mms_space2);
 		}
 		
-		if(type == -1) {
+		if(type == -1 || message ==null) {
 			holder.main_sms_box.setVisibility(View.GONE);
 			//Log.i("cursoradapter","setting main sms box to invisible");
 			return;
@@ -475,7 +491,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		else
 		{
 	    	if(store.getPhotoPath(address)!=null) {
-	    		cu.loadBitmap(mContext, store.getPhotoPath(address),holder.their_pic, 0);
+	    		ContentUtils.loadBitmap(mContext, store.getPhotoPath(address),holder.their_pic, 0);
 	    		holder.their_pic.setVisibility(View.VISIBLE);
 	    	}
 	    	else holder.their_pic.setVisibility(View.GONE);			
@@ -493,7 +509,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.edit.setVisibility(View.GONE);
 		holder.messageBox.setLayoutParams(lp);
 		
-    	if(!SmsMessageId.equals("") && read.equals("0")) {
+    	if(SmsMessageId!=null && !SmsMessageId.equals("") && read.equals("0")) {
         	ContentValues values = new ContentValues();
     		values.put("read",true);
     		context.getContentResolver().update(Telephony.Sms.CONTENT_URI,
@@ -516,7 +532,11 @@ public class MessageCursorAdapter extends CursorAdapter {
 			holder.time = (TextView) mmsView.findViewById(R.id.mms_message_time);
 			holder.pictures_list = (HListView) mmsView.findViewById(R.id.pictures_list);		
 			holder.message.setText(m.getMessage());
-			holder.pictures_list.setAdapter(new PicturesAdapter(mContext,R.layout.picture_item, m.getImages()));
+			if(m.getImages().size()>0) {
+				holder.pictures_list.setAdapter(new PicturesAdapter(mContext,R.layout.picture_item, m.getImages()));
+			} else {
+				holder.pictures_list.setVisibility(View.GONE);
+			}
 			LayoutParams lp = (LayoutParams) holder.messageBox.getLayoutParams();
 
 			CharSequence relativeTime;

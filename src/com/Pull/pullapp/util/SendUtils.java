@@ -94,7 +94,7 @@ public class SendUtils  {
 			long long_thread_id;
 			if(thread_id==null || thread_id.isEmpty() || AddtoSent) long_thread_id=0;
 			else long_thread_id = Long.parseLong(thread_id);
-			Log.i("sendmms","attachments size " + attachments.size());
+			//Log.i("sendmms","attachments size " + attachments.size());
 			Settings sendSettings = new Settings();
 	        TransactionSettings transactionSettings = new TransactionSettings(
 	        		context, null);
@@ -312,7 +312,8 @@ public class SendUtils  {
 
 
 	public static void addMessageToOutbox(Context context, String[] recipients,
-			String message, long timeScheduled, long scheduledFor, String approver, String thread_id) {
+			String message, long timeScheduled, long scheduledFor, String approver, 
+			String thread_id, ArrayList<String> attachment_paths) {
 		DatabaseHandler db = new DatabaseHandler(context);
 		db.addToOutbox(recipients, message, timeScheduled, scheduledFor, approver);
 		db.close();
@@ -323,6 +324,7 @@ public class SendUtils  {
 	    intent.putExtra(Constants.EXTRA_TIME_LAUNCHED, timeScheduled);
 	    intent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, scheduledFor);
 	    intent.putExtra(Constants.EXTRA_APPROVER, approver);
+	    intent.putExtra(Constants.EXTRA_ATTACHMENT_PATHS, attachment_paths);
 	    Log.i("message added ","mms added to outbox");
 	    context.sendBroadcast(intent);	
 		
@@ -331,18 +333,19 @@ public class SendUtils  {
 
 	public static int removeFromOutbox(Context context, String body,
 			String[] recipients, long launchedOn, long scheduledFor,
-			boolean clearFromScreen, String approver) {
+			boolean clearFromScreen, String approver, ArrayList<String> attachment_paths) {
 		DatabaseHandler db = new DatabaseHandler(context);
 		int rowsdeleted = db.deleteFromOutbox(launchedOn);
 		db.close();
 		//Log.i("rows deleted ", " " + rowsdeleted);
 		if(rowsdeleted>0 && clearFromScreen) {
-		    Intent intent = new Intent(Constants.ACTION_SMS_UNOUTBOXED);
+		    Intent intent = new Intent(Constants.ACTION_MMS_UNOUTBOXED);
 		    intent.putExtra(Constants.EXTRA_RECIPIENTS, recipients);
 		    intent.putExtra(Constants.EXTRA_TIME_LAUNCHED, launchedOn);
 		    intent.putExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, scheduledFor);
 		    intent.putExtra(Constants.EXTRA_MESSAGE_BODY, body);
 		    intent.putExtra(Constants.EXTRA_APPROVER, approver);
+		    intent.putExtra(Constants.EXTRA_ATTACHMENT_PATHS, attachment_paths);
 	        context.sendBroadcast(intent);		
 		}
 		return rowsdeleted;

@@ -22,6 +22,7 @@ import com.Pull.pullapp.model.MMSMessage;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.ShareEvent;
 import com.Pull.pullapp.model.ShareSuggestion;
+import com.Pull.pullapp.model.TrackerName;
 import com.Pull.pullapp.model.TwilioNumber;
 import com.Pull.pullapp.threads.AlarmScheduler;
 import com.Pull.pullapp.threads.UploadMyPhoto;
@@ -55,7 +56,7 @@ public class MainApplication extends Application {
 	private UserInfoStore store;
 	private int currentapiVersion;
 	private String myPackageName;
-
+//private HashMap<TrackerName, Tracker> mTrackers = new HashMap<TrackerName, Tracker>();
 	@Override
 	public void onCreate() {
 		super.onCreate();
@@ -266,7 +267,6 @@ public class MainApplication extends Application {
 		mixpanel.track("saved installation",null);
 		sendResult();
 	}
-
 
 
 }

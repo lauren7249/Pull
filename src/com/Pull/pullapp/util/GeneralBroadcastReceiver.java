@@ -153,7 +153,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 				//dont send if the user canceled (removed from outbox) or received a message since launching
 	            if(!messagedAfterLaunch(context,recipients,launchedOn) &&  
 	            		SendUtils.removeFromOutbox(context, message, recipients, launchedOn, 
-	            				scheduledFor, false, approver)>0
+	            				scheduledFor, false, approver, attachment_paths)>0
 	            		&& !disapproved(recipients,message,scheduledFor,approver, mContext)) 
 	            {
 	            	Intent serviceIntent = new Intent(mContext,DelayedMMSService.class);

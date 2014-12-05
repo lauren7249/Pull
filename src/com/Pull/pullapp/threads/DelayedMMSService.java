@@ -32,7 +32,8 @@ public class DelayedMMSService extends Service {
         return 1;
 
     }
-    private ArrayList<Uri> stringsToUris(ArrayList<String> attachment_paths) {
+    public static ArrayList<Uri> stringsToUris(ArrayList<String> attachment_paths) {
+    	if(attachment_paths == null) return null;
 		ArrayList<Uri> uris = new ArrayList<Uri>();
 		for(String s : attachment_paths) {
 			uris.add(Uri.parse(s));

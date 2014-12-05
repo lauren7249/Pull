@@ -75,7 +75,13 @@
 	             android:textStyle="bold"
 	             android:textColor="@color/textColor"
 	             android:textSize="13sp" />
-	
+			<it.sephiroth.android.library.widget.HListView
+			    android:id="@+id/pictures_list"
+			    android:layout_width="match_parent"
+			    android:layout_height="300dp"
+			    android:layout_margin="2dp"
+			    android:visibility="gone"
+			    android:divider="#00000000" />		
 	         <TextView
 	             android:id="@+id/message_time"
 	             android:layout_width="fill_parent"

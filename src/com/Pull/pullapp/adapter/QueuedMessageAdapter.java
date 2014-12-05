@@ -1,4 +1,6 @@
 package com.Pull.pullapp.adapter;
+import it.sephiroth.android.library.widget.HListView;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -21,6 +23,7 @@ import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 
 import com.Pull.pullapp.R;
+import com.Pull.pullapp.model.MMSMessage;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.SendUtils;
@@ -51,23 +54,36 @@ public class QueuedMessageAdapter extends BaseAdapter{
 	@SuppressLint("ResourceAsColor")
 	public View getView(final int position, View convertView, ViewGroup parent) {
 		final SMSMessage message = this.getItem(getCount() - position - 1);
-		//if(message instanceof com.Pull.pullapp.model.MMSMessage) Log.i("message is mms","message is mms "); ;
+		final MMSMessage mms;
 		//if(message == null) Log.i("message is null","message is null " + getCount() + " " + position);
 		final ViewHolder holder; 
 		if(convertView == null)
 		{
 			holder = new ViewHolder();
+
 			convertView = LayoutInflater.from(mContext).inflate(R.layout.sms_row, parent, false);
 			holder.messageBox = (LinearLayout) convertView.findViewById(R.id.message_box);
 			holder.message = (TextView) convertView.findViewById(R.id.message_text);
 			holder.time = (TextView) convertView.findViewById(R.id.message_time);
 			holder.edit = (Button) convertView.findViewById(R.id.edit_message_button);
 			holder.addPPl = (ImageView) convertView.findViewById(R.id.add_ppl);
+			holder.pictures_list = (HListView) convertView.findViewById(R.id.pictures_list);
+
 		}
 		else holder = (ViewHolder) convertView.getTag();
-		
+		holder.pictures_list.setVisibility(View.GONE);
 		holder.addPPl.setVisibility(View.GONE);
-		
+		if(message instanceof MMSMessage) {
+			mms = (MMSMessage)  message;
+			if(mms.getImages().size()>0) {
+				holder.pictures_list.setVisibility(View.VISIBLE);
+				holder.pictures_list.setAdapter(new PicturesAdapter(mContext,R.layout.picture_item, 
+						mms.getImages()));
+				Log.i("queueadapter ","pictures size" + mms.getImages().size());
+				//notifyDataSetChanged();
+			}
+			
+		}
 		convertView.setOnClickListener(new OnClickListener() {
 			
 			@Override
@@ -127,10 +143,15 @@ public class QueuedMessageAdapter extends BaseAdapter{
         holder.edit.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				
-				SendUtils.removeFromOutbox(mContext, message.getMessage(),
-						message.getAddress(), message.launchedOn, message.getFutureSendTime(), 
-						true, message.getApprover());
+				if(message instanceof MMSMessage) {
+					SendUtils.removeFromOutbox(mContext, message.getMessage(),
+							((MMSMessage) message).getRecipients(), message.launchedOn, message.getFutureSendTime(), 
+							true, message.getApprover(), ((MMSMessage) message).getImagePaths());
+				} else {
+					SendUtils.removeFromOutbox(mContext, message.getMessage(),
+							message.getAddress(), message.launchedOn, message.getFutureSendTime(), 
+							true, message.getApprover());					
+				}
 				
 			};
         });  
@@ -141,6 +162,7 @@ public class QueuedMessageAdapter extends BaseAdapter{
 	}
 	private static class ViewHolder
 	{
+		public HListView pictures_list;
 		public ImageView addPPl;
 		public TextView time;
 		TextView message;
