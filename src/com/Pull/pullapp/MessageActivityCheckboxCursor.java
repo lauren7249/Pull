@@ -40,6 +40,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Environment;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.provider.Telephony.TextBasedSmsColumns;
@@ -90,6 +91,7 @@ import com.Pull.pullapp.fragment.RecipientsPopupWindow;
 import com.Pull.pullapp.fragment.RecipientsPopupWindow.ApproverDialogListener;
 import com.Pull.pullapp.fragment.SimplePopupWindow;
 import com.Pull.pullapp.mms.TempFileProvider;
+import com.Pull.pullapp.mms.ThumbnailManager;
 import com.Pull.pullapp.model.MMSMessage;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.ShareSuggestion;
@@ -459,6 +461,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			public void onReceive(Context context, Intent intent) {
 				String action = intent.getAction();			
 				Log.i("action","Message activity broadcastreeiver " + action);
+				if(numbers==null || numbers.length==0) return;
 				if(action.equals(Constants.ACTION_SMS_INBOXED)) {
 					if(intent.getStringArrayExtra(Constants.EXTRA_NUMBERS)[0].equals(numbers[0])) {
 						messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, numbers[0], false);
@@ -965,7 +968,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		messages = new ArrayList<SMSMessage>();
 		queue_adapter = new QueuedMessageAdapter(this,messages);
 		merge_adapter = new MergeAdapter();				
-		messages_adapter = new MessageCursorAdapter(mContext, messages_cursor, numbers, this);
+		messages_adapter = new MessageCursorAdapter(mContext, messages_cursor, numbers, this, thread_id);
 
 		outbox_loader = new GetOutboxMessages();
 		outbox_loader.execute(); 
@@ -1057,6 +1060,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 
 	protected void graphTabSelected(String original_number, String original_name) {
+		mixpanel.track("graph tab selected", null);
 		initials_view.setBackgroundResource(R.drawable.circle);
 		initials_view.setTypeface(null, Typeface.NORMAL);
 		initials_view.setSelected(false);
@@ -1338,7 +1342,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private void updateTime(){
 		//Log.i("time", "Updated Time");
 		updateDelayButton();
-		merge_adapter.notifyDataSetChanged();
+		//merge_adapter.notifyDataSetChanged();
 	}
 	
 	@Override
@@ -1494,11 +1498,14 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
                 // create a file based uri and pass to addImage(). We want to read the JPEG
                 // data directly from file (using UriImage) instead of decoding it into a Bitmap,
                 // which takes up too much memory and could easily lead to OOM.
-                File file = new File(TempFileProvider.getScrapPath(this));
+        		File mBitmapDirectory = Environment.getExternalStorageDirectory(); // getCacheDir();		
+        		String IMAGE_FILE_NAME = "photo.jpg";
+				String mBitmapFilePathFull = mBitmapDirectory.getAbsolutePath() + "/" + IMAGE_FILE_NAME ;            	
+                File file = new File(mBitmapFilePathFull);
                 Uri uri = Uri.fromFile(file);
-
+                getContentResolver().notifyChange(uri, null);
                 // Remove the old captured picture's thumbnail from the cache
-               // MmsApp.getApplication().getThumbnailManager().removeThumbnail(uri);
+                new ThumbnailManager(mContext).removeThumbnail(uri);
 
                 addImageAsync(uri);
                 break;

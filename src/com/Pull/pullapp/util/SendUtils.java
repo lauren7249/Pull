@@ -96,6 +96,7 @@ public class SendUtils  {
 			else long_thread_id = Long.parseLong(thread_id);
 			//Log.i("sendmms","attachments size " + attachments.size());
 			Settings sendSettings = new Settings();
+			Log.i("recipients[0]", recipients[0]);
 	        TransactionSettings transactionSettings = new TransactionSettings(
 	        		context, null);
 			sendSettings.setMmsc(transactionSettings.getMmscUrl());

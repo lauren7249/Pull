@@ -15,12 +15,13 @@ import android.provider.BaseColumns;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.util.Log;
 
+import com.Pull.pullapp.model.InitiatingData;
 import com.Pull.pullapp.model.SMSMessage;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
 	// All Static variables
     // Database Version
-    private static final int DATABASE_VERSION = 10;
+    private static final int DATABASE_VERSION = 11;
  
     // Database Name
     public static final String DATABASE_NAME = "pullDB";
@@ -28,6 +29,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     // Contacts table name
     public static final String TABLE_SHARED_CONVERSATIONS = "sharedConversations";
     public static final String TABLE_OUTBOX = "outbox";
+    public static final String TABLE_INITIATING = "initiating";
     public static final String TABLE_SHARED_CONVERSATION_SMS = "sharedConversationsSMSs";
     public static final String TABLE_SHARED_CONVERSATION_COMMENTS = "sharedConversationsComments";
     
@@ -49,9 +51,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private SQLiteDatabase db;
 
 	private String KEY_HASHCODE = "hashcode";
-
 	private Context mContext;
-    public DatabaseHandler(Context context) {
+	private String KEY_MESSAGE_ID ="message_id";
+	private String KEY_THREAD_ID = "thread_id";
+	private String KEY_HOURS_ELAPSED ="hours_elapsed";
+	private String KEY_RETEXTING = "retexting";
+	private String KEY_AFTER_QUESTION = "after_question";
+    
+	public DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         db = this.getWritableDatabase();
         mContext = context;
@@ -74,7 +81,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         		+ TextBasedSmsColumns.DATE + " DATE, "
         		+ TextBasedSmsColumns.BODY + " TEXT, "
                 + TextBasedSmsColumns.ADDRESS + " TEXT, " 
-        		+ KEY_APPROVER + " TEXT" + ")";             
+        		+ KEY_APPROVER + " TEXT" + ")";    
+        String CREATE_INITIATING_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_INITIATING + "("
+                + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," 
+        		+ KEY_MESSAGE_ID + " TEXT,"
+        		+ KEY_THREAD_ID + " TEXT, "
+        		+ KEY_HOURS_ELAPSED + " LONG, "
+                + KEY_RETEXTING + " INTEGER, " 
+        		+ KEY_AFTER_QUESTION  + " INTEGER" + ")";           
         String CREATE_SHARED_SMS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_SHARED_CONVERSATION_SMS + "("
                 + KEY_ID + " TEXT," 
                 + KEY_HASHCODE + " INTEGER," 
@@ -91,6 +105,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         		+ TextBasedSmsColumns.DATE + " DATE," 
         		+ KEY_PROPOSED + " TEXT)";          
         db.execSQL(CREATE_OUTBOX_TABLE);
+        db.execSQL(CREATE_INITIATING_TABLE);
         db.execSQL(CREATE_MESSAGES_TABLE);
         db.execSQL(CREATE_SHARED_SMS_TABLE);
         db.execSQL(CREATE_SHARED_COMMENTS);
@@ -103,6 +118,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // Drop older table if existed
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_SHARED_CONVERSATIONS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_OUTBOX);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_INITIATING);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_SHARED_CONVERSATION_SMS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_SHARED_CONVERSATION_COMMENTS);
         // Create tables again
@@ -315,7 +331,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 	public int addToOutbox(String[] recipients, String message,
 			long timeScheduled, long scheduledFor, String approver) {
-		Log.i("recipients as list",Arrays.asList(recipients).toString());
+		//Log.i("recipients as list",Arrays.asList(recipients).toString());
 	    ContentValues outboxSms = new ContentValues();
 	    outboxSms.put(TextBasedSmsColumns.DATE_SENT, timeScheduled);
 	    outboxSms.put(TextBasedSmsColumns.DATE, scheduledFor);
@@ -328,6 +344,40 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return count;
 		
 	}
+
+	public InitiatingData getInitiatingRecord(String thread_id, String message_id) {
+        Cursor cursor;
+        InitiatingData i;
+        cursor = db.query(TABLE_INITIATING, null, 
+        		KEY_THREAD_ID + "=? and " + KEY_MESSAGE_ID + "=?",
+                new String[] { thread_id, message_id}, 
+                null, null, null, null);   
+        if(cursor == null || cursor.getCount()==0) {
+        	i = createInitiatingRecord(thread_id, message_id);
+        	return i;
+        }
+        i = new InitiatingData(cursor.getLong(3), cursor.getInt(4), cursor.getInt(5));
+		return i;
+	}
+
+	private InitiatingData createInitiatingRecord(String thread_id, String message_id) {
+		//Cursor currentRecord = ContentUit;
+		Long hours_elapsed = null;
+		int after_question = 0;
+		int retexting = 0;
+		
+	    ContentValues record = new ContentValues();
+	    record.put(KEY_THREAD_ID, thread_id);
+	    record.put(KEY_MESSAGE_ID, message_id);
+		record.put(KEY_HOURS_ELAPSED, hours_elapsed);
+		record.put(KEY_RETEXTING, retexting);
+		record.put(KEY_AFTER_QUESTION, after_question);
+        // Inserting Row
+        db.insert(TABLE_INITIATING, null, record);
+        InitiatingData i = new InitiatingData(hours_elapsed, retexting, after_question);
+		return i ;
+	}
+
 
 
  

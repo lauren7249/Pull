@@ -35,10 +35,10 @@ public class AttachmentTypeSelectorAdapter extends IconListAdapter {
         addItem(data, "Attach image",
                 R.drawable.ic_launcher_gallery, ADD_IMAGE);
 
-        addItem(data, "Take photo",
+      /**  addItem(data, "Take photo",
                 R.drawable.ic_launcher_camera, TAKE_PICTURE);
 
-      /**  addItem(data, "Attach video",
+        addItem(data, "Attach video",
                 R.drawable.ic_launcher_video_player, ADD_VIDEO);
 
         addItem(data, "Record video",

@@ -147,8 +147,8 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 			           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 			               public void onClick(DialogInterface dialog, int id)
 			               {
-
-			   	            Intent intent =
+			            	   mixpanel.track("using as default = clicked yes", null);
+			   	            	Intent intent =
 				                    new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
 				            intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, 
 				                    myPackageName);
@@ -160,6 +160,7 @@ public class AllThreadsListActivity extends SherlockListActivity implements View
 			           .setNegativeButton("No", new DialogInterface.OnClickListener() {
 			               public void onClick(DialogInterface dialog, int id) 
 			               {
+			            	   mixpanel.track("using as default = clicked no", null);
 			                    dialog.cancel();
 			               }
 			           }).show();		        	

@@ -65,9 +65,10 @@ public class MessageCursorAdapter extends CursorAdapter {
 	private String[] other_person_names;
 	private String other_person;
 	private String other_person_name;
+	private String thread_id;
     @SuppressWarnings("deprecation")
 	public MessageCursorAdapter(Context context, Cursor cursor, String[] numbers, 
-			Activity activity) {
+			Activity activity, String thread_id) {
     	super(context, cursor, FLAG_REGISTER_CONTENT_OBSERVER);
     	check_hash = new TreeSet<SMSMessage>();
     	delayedMessages = new HashMap<Long,Integer>();
@@ -76,6 +77,7 @@ public class MessageCursorAdapter extends CursorAdapter {
     	other_person_names = store.getNames(other_people);
 		this.activity = activity;
 		this.isTextConvo = true;
+		this.thread_id = thread_id;
 		cu  = new ContentUtils();
 		mms = new TreeMap<Long, MMSMessage>();
    	    	
@@ -95,6 +97,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		this.activity = activity;
 		this.isTextConvo = false;
 		this.isMine = isMine;
+		
 		cu  = new ContentUtils();
     }
 	
@@ -347,7 +350,9 @@ public class MessageCursorAdapter extends CursorAdapter {
     		String previous_body = c.getString(2).toString();
     		submms = mms.subMap(previous_date,date);
 	
-    		initiating = ContentUtils.isInitiating(date, type, body, previous_date, previous_type, previous_body);
+    		
+			initiating = ContentUtils.isInitiating(date, type, body, previous_date, previous_type, previous_body);
+    		//initiating = ContentUtils.isInitiating(thread_id, SmsMessageId, mContext);
     		c.moveToNext();
     	} else if(date>0)  submms = mms.headMap(date);
     	else {

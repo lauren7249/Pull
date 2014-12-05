@@ -512,6 +512,12 @@ public class ContentUtils {
 		    return BitmapFactory.decodeResource(res, resId, options);
 		}
 
+		public static boolean isInitiating(String thread_id, String message_id, Context context) {
+			DatabaseHandler dh = new DatabaseHandler(context);
+			//Cursor initiatingCursor = dh.getInitiatingRecord(thread_id,message_id);
+			return false;
+
+		}		
 		public static boolean isInitiating(long date, int type, String body,
 				long previous_date, int previous_type, String previous_body) {
 			boolean initiating = false, retexting=false;

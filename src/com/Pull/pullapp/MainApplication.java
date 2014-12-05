@@ -17,6 +17,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.Pull.pullapp.model.FacebookUser;
+import com.Pull.pullapp.model.InitiatingData;
 import com.Pull.pullapp.model.Invite;
 import com.Pull.pullapp.model.MMSMessage;
 import com.Pull.pullapp.model.SMSMessage;
@@ -71,6 +72,7 @@ public class MainApplication extends Application {
 		ParseObject.registerSubclass(Invite.class);
 		ParseObject.registerSubclass(ShareEvent.class);
 		ParseObject.registerSubclass(TwilioNumber.class);
+		ParseObject.registerSubclass(InitiatingData.class);
 		
 		Parse.initialize(this, getString(R.string.parse_app_id), getString(R.string.parse_key));
 		ParseFacebookUtils.initialize(getString(R.string.facebook_app_id));	
