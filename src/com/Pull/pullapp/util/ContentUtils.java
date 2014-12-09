@@ -1,15 +1,18 @@
 package com.Pull.pullapp.util;
 
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.DateFormat;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -20,6 +23,7 @@ import java.util.TreeMap;
 
 import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.res.Resources;
@@ -50,12 +54,19 @@ import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TextView;
 
+import com.Pull.pullapp.model.InitiatingData;
+import com.Pull.pullapp.model.MMSMessage;
+import com.Pull.pullapp.model.MessageParams;
+import com.Pull.pullapp.model.SMSMessage;
 import com.jjoe64.graphview.CustomLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GraphView.GraphViewData;
 import com.jjoe64.graphview.GraphViewSeries;
 import com.jjoe64.graphview.GraphViewSeries.GraphViewSeriesStyle;
 import com.jjoe64.graphview.LineGraphView;
+import com.parse.ParseException;
+import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 public class ContentUtils {
 	public static CharSequence getInitials(String name, String number) {
@@ -121,7 +132,7 @@ public class ContentUtils {
 					  /*+ "and replace("+ 
 					  ThreadsColumns.RECIPIENT_IDS + ",' ','')=" + ThreadsColumns.RECIPIENT_IDS*/,
 					  null,ThreadsColumns.DATE+" DESC");		  
-		 // ContentQueryMap map = new ContentQueryMap(c, ThreadsColumns._ID, true, null);
+		 
 		  return c;
 	  }	
 	  
@@ -192,41 +203,7 @@ public class ContentUtils {
 	    public static String addCountryCode(TelephonyManager tmgr, String number) {
 	    	return addCountryCode(number);
 	    }	
-		// This function searches for an mobile phone entry for the contact
-		public String getNumberfromContact(Context context, String contact, Boolean debugging)	{
-			ContentResolver cr = context.getContentResolver();
-			String result = null;
-			boolean valid = false;	
-			String val_num = null;
-			int contact_id = 0;
-		    // Cursor1 search for valid Database Entries who matches the contact name
-			Uri uri = ContactsContract.Contacts.CONTENT_URI;
-			String[] projection = new String[]{	ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME, ContactsContract.Contacts.HAS_PHONE_NUMBER };
-			String selection = ContactsContract.Contacts.DISPLAY_NAME + "=?";
-			String[] selectionArgs = new String[]{String.valueOf(contact)};
-			String sortOrder = null;
-			Cursor cursor1 = cr.query(uri, projection, selection, selectionArgs, sortOrder);
-		
-		    if(cursor1.moveToFirst()){
-		    	if(cursor1.getInt(cursor1.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)) == 1){
-		    		contact_id = cursor1.getInt(cursor1.getColumnIndex(ContactsContract.Contacts._ID));
-		            // Cursor 2 search for valid MOBILE Telephone numbers (selection = Phone.TYPE 2)
-		        	Uri uri2 = ContactsContract.Data.CONTENT_URI;	
-		        	String[] projection2 = new String[]{ Phone.NUMBER, Phone.TYPE };
-		        	String selection2 = Phone.CONTACT_ID + "=? AND " + Data.MIMETYPE + "=? AND " + Phone.TYPE + "=2";
-		    		String[] selectionArgs2 = new String[]{ String.valueOf(contact_id), Phone.CONTENT_ITEM_TYPE };
-		    		String sortOrder2 = Data.IS_PRIMARY + " desc"; 	
-		        	Cursor cursor2 = cr.query(uri2, projection2, selection2, selectionArgs2, sortOrder2);
-		            
-		        	if(cursor2.moveToFirst()){
-		                result = cursor2.getString(cursor2.getColumnIndex(Phone.NUMBER));
-		            }
-		            cursor2.close();
-		        }
-		        cursor1.close();
-		    }
-		    return result;
-		}
+
 		public static String setChannel(TelephonyManager tmgr, String recipient) {
 			return "phoneNumber"+addCountryCode(tmgr,recipient);
 		}
@@ -512,10 +489,13 @@ public class ContentUtils {
 		    return BitmapFactory.decodeResource(res, resId, options);
 		}
 
-		public static boolean isInitiating(String thread_id, String message_id, Context context) {
+		public static boolean isInitiating(String thread_id, String message_id, Context context, 
+				Long date, UserInfoStore store, SMSMessage message) {
 			DatabaseHandler dh = new DatabaseHandler(context);
-			//Cursor initiatingCursor = dh.getInitiatingRecord(thread_id,message_id);
-			return false;
+			InitiatingData initiatingData = dh
+					.getInitiatingRecord(thread_id,message_id, context, date, store, message);
+			dh.close();
+			return initiatingData.isInitiating();
 
 		}		
 		public static boolean isInitiating(long date, int type, String body,
@@ -526,11 +506,6 @@ public class ContentUtils {
      		long seconds_elapsed = (long) (milliseconds_elapsed*0.001);
      		long minutes_elapsed = (long) (seconds_elapsed*0.016666666667);
      		float hours_elapsed = (float) (minutes_elapsed*0.016666666667);
-     		//long hours_elapsed = (long)(date-previous_date)/(1000*60*60);
-     		//long hours_elapsed = Long.valueOf((date-previous_date)/(1000*60*60));
-     		//Log.i("hours elapsed ", ""+hours_elapsed);
-     		/*Log.i("DATE ", ""+date);
-     		Log.i("previous_date ", ""+previous_date);*/
      		if(retexting && hours_elapsed > 0.167) initiating=true;
      		else if(!retexting) {
      			if (hours_elapsed > 24) initiating=true;
@@ -538,6 +513,7 @@ public class ContentUtils {
      		}
      		return initiating;
 		}
+	
 
 		public static HashMap<String, TreeMap<Long, Float>> getDataSeries(
 				Cursor messages_cursor, Context context) {
@@ -573,9 +549,15 @@ public class ContentUtils {
 					start_date = date;
 				}
 				String body = messages_cursor.getString(2).toString();
+				String message_id = messages_cursor.getString(3).toString();
 				int type = Integer.parseInt(messages_cursor.getString(1).toString());
 				if(previous_body!=null && previous_date>0) {
+
 			  		initiating = isInitiating(date, type, body, previous_date, previous_type, previous_body);
+					/*	message = new SMSMessage(date, body, address, store.getName(address), 
+			    			type, store, ParseUser.getCurrentUser().getUsername());
+					 * initiating = ContentUtils.isInitiating(thread_id, message_id, context, 
+							date, store, message);*/
 				} 
 				long previous_initiation_date = 0;
 				int previous_me = 0;
@@ -806,45 +788,195 @@ public class ContentUtils {
 	        return messages_cursor;
 		}
 
-		public static boolean isInitiating(Cursor parent, boolean isSMS, Context context) {
-			if(!isSMS) return true;
-			boolean initiating = false;
-	    	if(parent.moveToPrevious()) {
-				Cursor c = getSMS(parent, context);
-				if(c==null || !c.moveToFirst()) return initiating;
-				String body = c.getString(c.getColumnIndex(TextBasedSmsColumns.BODY)).toString();
-				//Log.i("body",body);
-		    	long date = c.getLong(c.getColumnIndex(TextBasedSmsColumns.DATE));			
-				int type = 0;		
-				try {
-					type = Integer.parseInt(c.getString(c.getColumnIndex(TextBasedSmsColumns.TYPE)).toString());
-				} catch(RuntimeException e) {
-					e.printStackTrace();
-					return initiating;
-				} 	 	    		
-	    		long previous_date = c.getLong(6);
-	    		int previous_type = Integer.parseInt(c.getString(1).toString());
-	    		String previous_body = c.getString(2).toString();
-	     		
-	    		initiating = ContentUtils.isInitiating(date, type, body, previous_date, previous_type, previous_body);
-	    		parent.moveToNext();
-	    	}
-	    	return initiating;
+		public static SMSMessage getPreviousMessage(Context context, String thread_id,
+				Long date, UserInfoStore store) {
+			SMSMessage previous_message;
+			Uri message_ids = Uri.parse("content://mms-sms/conversations/" + thread_id);
+			Cursor cursor = context.getContentResolver().query(message_ids, 
+					new String[]{"_id", "date", "normalized_date"},
+					 "normalized_date<" + date, null, "normalized_date desc");
+			//
+			if(cursor!=null && cursor.moveToFirst()) {
+				String previous_message_id = cursor.getString(0);
+				long previous_date = cursor.getLong(1);
+				long previous_n_date = cursor.getLong(2);
+				//previous message is mms
+				if(previous_n_date!=previous_date){
+					//
+					previous_message = ContentUtils
+							.getMMSMessage(context,thread_id,previous_message_id, store);
+				} else {
+					//Log.i("previous message id ",previous_message_id);
+					previous_message = ContentUtils
+							.getSMSMessage(context,thread_id,previous_message_id, store);
+				}
+				if(previous_message!=null) previous_message.setMessageID(previous_message_id);
+				return previous_message;
+			}
+			if(cursor!=null) cursor.close();
+			return null;
 		}
 
-		public static Cursor getSMS(Cursor parent, Context context) {
-		    Uri mUri = Telephony.Sms.CONTENT_URI;     
-			String msgID = parent.getString(parent.
-				     getColumnIndex(Telephony.BaseMmsColumns._ID));					    
-	        String[] variables = new String[]{"'sent' as category",
+		private static SMSMessage getSMSMessage(Context context,
+				String thread_id, String _id, UserInfoStore store) {
+			String querystring = TextBasedSmsColumns.THREAD_ID + "=" + thread_id 
+					+ " AND " + BaseColumns._ID + "=" + _id + " AND "
+					+ TextBasedSmsColumns.TYPE + " in (" + 
+			   				TextBasedSmsColumns.MESSAGE_TYPE_SENT 					
+			   				+  " , " + TextBasedSmsColumns.MESSAGE_TYPE_INBOX + ") and " +
+			   				TextBasedSmsColumns.ADDRESS + " is not null and " +
+   				TextBasedSmsColumns.ADDRESS + " is not null and " + 
+   				TextBasedSmsColumns.BODY + " is not null and " +
+   				BaseColumns._ID + " is not null and " + 
+   				TextBasedSmsColumns.READ + " is not null and " +
+   				TextBasedSmsColumns.DATE + " is not null" ;		
+			String[] variables = new String[]{"'sent' as category",
 	        		TextBasedSmsColumns.TYPE,TextBasedSmsColumns.BODY,
 	        		BaseColumns._ID, TextBasedSmsColumns.ADDRESS, TextBasedSmsColumns.READ,
-	        		TextBasedSmsColumns.DATE, TextBasedSmsColumns.THREAD_ID};		          
-          Cursor mCursor = context.getContentResolver().query(mUri, variables,
-        		  Telephony.BaseMmsColumns._ID + "=" + msgID, 
-            null, TextBasedSmsColumns.DATE);
-		return mCursor;
+	        		TextBasedSmsColumns.DATE, TextBasedSmsColumns.THREAD_ID};
+
+			Cursor c = context.getContentResolver().query(Telephony.Sms.CONTENT_URI,
+					variables,querystring ,null,TextBasedSmsColumns.DATE);	   
+			if(c!=null && c.moveToFirst()) {
+				long date = c.getLong(6);
+				int type = Integer.parseInt(c.getString(1).toString());
+				String body = c.getString(2).toString();
+		    	String address = c.getString(4).toString();
+		    	//Log.i("SmsMessageId","SMSDATE"+date);
+			
+		    	SMSMessage message = new SMSMessage(date, body, address, store.getName(address), 
+		    			type, store, ParseUser.getCurrentUser().getUsername());	
+		    	c.close();
+				return message;
+			}
+			return null;
+		}
+
+		private static MMSMessage getMMSMessage(Context context,
+				String thread_id, String _id, UserInfoStore store) {
+			String querystring = Telephony.BaseMmsColumns.THREAD_ID + "=" + thread_id 
+				+ " and " + Telephony.BaseMmsColumns._ID + "=" + _id ;
+			String[] vars = new String[]{ Telephony.BaseMmsColumns._ID, 
+					Telephony.BaseMmsColumns.DATE, Telephony.BaseMmsColumns.MESSAGE_BOX,
+					Telephony.BaseMmsColumns.MESSAGE_TYPE};
+			Cursor messages_cursor = context.getContentResolver().query(Telephony.Mms.CONTENT_URI,
+					vars,querystring ,null,Telephony.BaseMmsColumns.DATE + " desc");
+			if(messages_cursor.moveToFirst()) {
+				MMSMessage m = getNextMMSMessage(context, messages_cursor, store, false);
+				messages_cursor.close();
+				return m;
+			} 
+			return null;
 		}		
 		
+		public static MMSMessage getNextMMSMessage(Context context, Cursor mCursor, 
+				UserInfoStore store, boolean updateReadStatus) {
+			String mmsId = mCursor.getString(mCursor.getColumnIndexOrThrow(Telephony.BaseMmsColumns._ID));
+			long date = 1000 * mCursor.getLong(mCursor.getColumnIndexOrThrow(Telephony.BaseMmsColumns.DATE));
+			int m_type = mCursor.getInt(mCursor.getColumnIndex(Telephony.BaseMmsColumns.MESSAGE_BOX));
+			String address = getAddressNumber(context, Integer.parseInt(mmsId));
+			if(address==null || mmsId == null) return null;
+			if(updateReadStatus) {
+				String read = mCursor.getString(mCursor.getColumnIndex(Telephony.BaseMmsColumns.READ));
+		    	if(!mmsId.equals("") && read.equals("0")) {
+		        	ContentValues values = new ContentValues();
+		    		values.put(Telephony.BaseMmsColumns.READ,true);
+		    		context.getContentResolver().update(Telephony.Mms.CONTENT_URI,
+		    				values, Telephony.BaseMmsColumns._ID+"="+mmsId, null);	
+		    	}		
+			}
+			MMSMessage m = new MMSMessage(date, "", address, store.getName(address), m_type, 
+					store, ParseUser.getCurrentUser().getUsername());
+			m.setMessageID(mmsId);
+			String selectionPart = "mid=" + mmsId;
+			Uri uri = Uri.parse("content://mms/part");
+			Cursor cursor = context.getContentResolver().query(uri, null,
+			    selectionPart, null, null);
+			if (cursor.moveToFirst()) {
+			    do {
+			        String partId = cursor.getString(cursor.getColumnIndex("_id"));
+			        String type = cursor.getString(cursor.getColumnIndex("ct"));
+			        if ("text/plain".equals(type)) {
+			            String data = cursor.getString(cursor.getColumnIndex("_data"));
+			            String body = "";
+			            if (data != null) {
+			                // implementation of this method below
+			                body = getMmsText(context,partId);
+			            } else {
+			                body = cursor.getString(cursor.getColumnIndex("text"));
+			            }
+			           // Log.i("body",body);
+			           if(body!=null) m.setMessage(body);
+			        }
+			        else if ("image/jpeg".equals(type) || "image/bmp".equals(type) ||
+			                "image/gif".equals(type) || "image/jpg".equals(type) ||
+			                "image/png".equals(type)) {
+			            Uri image_uri = getMmsImageUri(context, partId);
+			            if(image_uri!=null) m.addImage(image_uri);
+			        }		        
+			    } while (cursor.moveToNext());
+			}
+			cursor.close();
+			return m;
+		}
+
+
+		private static String getAddressNumber(Context context, int id) {
+		//Log.i("getaddressnumber id",""+id);
+		    String selectionAdd = new String("msg_id=" + id);
+		    String uriStr = MessageFormat.format("content://mms/{0}/addr", id);
+		    Uri uriAddress = Uri.parse(uriStr);
+		    Cursor cAdd = context.getContentResolver().query(uriAddress, null,
+		        selectionAdd, null, null);
+		    String name = null;
+		    if (cAdd!=null && cAdd.moveToFirst()) {
+		        do {
+		            String number = cAdd.getString(cAdd.getColumnIndex("address"));
+		            if (number != null) {
+		                try {
+		                    Long.parseLong(number.replace("-", ""));
+		                    name = number;
+		                } catch (NumberFormatException nfe) {
+		                    if (name == null) {
+		                        name = number;
+		                    }
+		                }
+		            }
+		        } while (cAdd.moveToNext());
+		    }
+		    if (cAdd != null) {
+		        cAdd.close();
+		    }
+		    return name;
+		}	
+		private static Uri getMmsImageUri(Context context, String _id) {
+		    Uri partURI = Uri.parse("content://mms/part/" + _id);
+		    return partURI;
+		}	
+		private static String getMmsText(Context context, String id) {
+		    Uri partURI = Uri.parse("content://mms/part/" + id);
+		    InputStream is = null;
+		    StringBuilder sb = new StringBuilder();
+		    try {
+		        is = context.getContentResolver().openInputStream(partURI);
+		        if (is != null) {
+		            InputStreamReader isr = new InputStreamReader(is, "UTF-8");
+		            BufferedReader reader = new BufferedReader(isr);
+		            String temp = reader.readLine();
+		            while (temp != null) {
+		                sb.append(temp);
+		                temp = reader.readLine();
+		            }
+		        }
+		    } catch (IOException e) {}
+		    finally {
+		        if (is != null) {
+		            try {
+		                is.close();
+		            } catch (IOException e) {}
+		        }
+		    }
+		    return sb.toString();
+		}			
 		
 }

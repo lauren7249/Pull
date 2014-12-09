@@ -351,8 +351,8 @@ public class MessageCursorAdapter extends CursorAdapter {
     		submms = mms.subMap(previous_date,date);
 	
     		
-			initiating = ContentUtils.isInitiating(date, type, body, previous_date, previous_type, previous_body);
-    		//initiating = ContentUtils.isInitiating(thread_id, SmsMessageId, mContext);
+			//initiating = ContentUtils.isInitiating(date, type, body, previous_date, previous_type, previous_body);
+    		initiating = ContentUtils.isInitiating(thread_id, SmsMessageId, mContext, date, store, message);
     		c.moveToNext();
     	} else if(date>0)  submms = mms.headMap(date);
     	else {
@@ -532,16 +532,22 @@ public class MessageCursorAdapter extends CursorAdapter {
 			Map.Entry<Long,MMSMessage> entry = (Map.Entry<Long, MMSMessage>) o;
 			MMSMessage m = entry.getValue();
 			View mmsView = LayoutInflater.from(mContext).inflate(R.layout.mms_row, null);
+			holder.messageBubble = (RelativeLayout)  mmsView.findViewById(R.id.mmsrow);
 			holder.messageBox = (LinearLayout) mmsView.findViewById(R.id.mms_message_box);
 			holder.message = (TextView) mmsView.findViewById(R.id.mms_message_text);
 			holder.time = (TextView) mmsView.findViewById(R.id.mms_message_time);
-			holder.pictures_list = (HListView) mmsView.findViewById(R.id.pictures_list);		
+			holder.pictures_list = (HListView) mmsView.findViewById(R.id.pictures_list);	
+			holder.separator = (View) mmsView.findViewById(R.id.mms_separator);
 			holder.message.setText(m.getMessage());
 			if(m.getImages().size()>0) {
 				holder.pictures_list.setAdapter(new PicturesAdapter(mContext,R.layout.picture_item, m.getImages()));
 			} else {
 				holder.pictures_list.setVisibility(View.GONE);
 			}
+			
+			holder.separator.setVisibility(ContentUtils.isInitiating(thread_id, m.getMessageID(), 
+					mContext, m.getDate(), store, m)? View.VISIBLE : View.GONE);	
+			
 			LayoutParams lp = (LayoutParams) holder.messageBox.getLayoutParams();
 
 			CharSequence relativeTime;
@@ -554,7 +560,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 			//Log.i("picture",relativeTime.toString());
 			holder.time.setText(relativeTime);
 			if(m.isSentByMe()) {
-				mmsView.setBackgroundResource(R.drawable.outgoing);
+				holder.messageBubble.setBackgroundResource(R.drawable.outgoing);
 				holder.message.setTextColor(mContext.getResources().getColor(R.color.lightGreen));
 				holder.time.setTextColor(mContext.getResources().getColor(R.color.lightGreen));
 				holder.message.setPadding(50, 0, 10, 0);
@@ -563,7 +569,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 				holder.message.setGravity(Gravity.RIGHT);
 				holder.time.setGravity(Gravity.RIGHT);				
 			}else {
-				mmsView.setBackgroundResource(R.drawable.incoming);  
+				holder.messageBubble.setBackgroundResource(R.drawable.incoming);  
 				holder.message.setTextColor(Color.WHITE);
 				holder.time.setTextColor(Color.WHITE);					
 				holder.message.setPadding(10, 0, 50, 0);
@@ -587,6 +593,8 @@ public class MessageCursorAdapter extends CursorAdapter {
 	private static class MMSViewHolder
 	{
 
+		public RelativeLayout messageBubble;
+		public View separator;
 		public HListView pictures_list;
 		public TextView time;
 		TextView message;

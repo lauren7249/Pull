@@ -30,6 +30,7 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 	private boolean event;
 	private UserInfoStore store;
 	private ParseACL acl = new ParseACL();
+	private String messageID;
 	
     // Constructors
     public SMSMessage() {
@@ -67,6 +68,11 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 		put("username", ParseUser.getCurrentUser().getUsername());        
     	this.store = store;
     }    
+    
+    public void setMessageID(String id) {
+    	this.messageID = id;
+    }
+    
     public void setType(int type) {
     	if(type == TextBasedSmsColumns.MESSAGE_TYPE_SENT 
     			|| type == TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX
@@ -208,5 +214,8 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 		put("graphed",true);
 		
 	}
-
+	
+	public String getMessageID() {
+		return this.messageID;
+	}
 }

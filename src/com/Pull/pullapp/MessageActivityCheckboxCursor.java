@@ -411,6 +411,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
                 	Log.i("recipient ids", cursor.getString(cursor.getColumnIndex(Threads.RECIPIENT_IDS)));
                 	numbers = store.getPhoneNumbers(recipientIds);
                 	names = store.getNames(numbers);
+                	cursor.close();
 				}				
 			}
 			//TODO: FIX THIS
@@ -492,8 +493,10 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 						return;
 					dh = new DatabaseHandler(mContext);
 					messages_cursor = dh.getSharedMessagesCursor(shared_convoID);
+					dh.close();
 					messages_adapter.swapCursor(messages_cursor);
 					messages_adapter.notifyDataSetChanged();
+					
 					//mListView.setSelection(mListView.getCount()-1);
 					return;
 				}
@@ -938,6 +941,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			    	e.printStackTrace();
 				}
 			}
+	    	if(messages_cursor!=null) messages_cursor.close();
 			return null;
 	     }
 	 }	
@@ -1018,7 +1022,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
     			
     		});	    		
     		initials_view.setVisibility(View.GONE);
-    		cu.loadBitmap(mContext, store.getPhotoPath(original_number),image_view, 0);
+    		ContentUtils.loadBitmap(mContext, store.getPhotoPath(original_number),image_view, 0);
     	}			
     	sharedWithAdapter.swapCursor(shared_with_cursor);
 		sharedWithAdapter.notifyDataSetChanged();
@@ -1056,6 +1060,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			}
 			
 		}) ;	
+		dh.close();
 	}
 
 
@@ -1198,6 +1203,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		title_view.setText(shared_conversant_name);	
 		dh = new DatabaseHandler(mContext);
 		messages_cursor = dh.getSharedMessagesCursor(shared_convoID);
+		dh.close();
 		messages_adapter = new MessageCursorAdapter(mContext, messages_cursor, this, 
 				shared_conversant, clueless_persons_number, clueless_persons_name, isMine);
 		mListView.setAdapter(messages_adapter);	
@@ -1306,8 +1312,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		dh = new DatabaseHandler(mContext);
 		
 		dh.addSharedMessage(shared_convoID, comment, TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
-		dh = new DatabaseHandler(mContext);
+		
 		messages_cursor = dh.getSharedMessagesCursor(shared_convoID);
+		dh.close();
 		messages_adapter.swapCursor(messages_cursor);
 		messages_adapter.notifyDataSetChanged();
 		//mListView.setSelection(mListView.getCount()-1);
@@ -1963,9 +1970,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		protected Void doInBackground(Void... params) {
 	  		if(number==null) return null;
 	        dh = new DatabaseHandler(mContext);
-	        pending_messages_cursor = dh.getPendingMessagesCursor(number);    
-	     //   Log.i("pending_messages_cursor","number is " + number);
-	       // Log.i("pending_messages_cursor","size is " + pending_messages_cursor.getCount());
+	        pending_messages_cursor = dh.getPendingMessagesCursor(number); 
 	        if(pending_messages_cursor.moveToFirst()) {
 	        	m = getNextOutboxMessage(pending_messages_cursor);
 	        	publishProgress(m);	
@@ -1973,7 +1978,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	        		m = getNextOutboxMessage(pending_messages_cursor);
 	        		publishProgress(m);	
 	        		if (isCancelled()) break;
-	        	}	     
+	        	}
 	        }	  
 			return null;
 		}
@@ -2003,13 +2008,14 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	        if(mms_cursor!=null && mms_cursor.moveToFirst()) {
 	        	hasMMS = true;
 	        	messages_adapter.clearMMS();
-	        	m = getNextMMSMessage(mms_cursor);
+	        	m = ContentUtils.getNextMMSMessage(mContext, mms_cursor, store, true);
 	        	publishProgress(m);	
 	        	while(mms_cursor.moveToNext()) {
-	        		m = getNextMMSMessage(mms_cursor);
+	        		m = ContentUtils.getNextMMSMessage(mContext, mms_cursor, store, true);
 	        		publishProgress(m);	
 	        		if (isCancelled()) break;
-	        	}	     
+	        	}	  
+	        	mms_cursor.close();
 	        }	  
 			return null;
 		}
@@ -2035,115 +2041,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		mButtonsBar.setVisibility(View.GONE);
 		//inputtingEmoji = false;
 		keyboardShowing = false;
-	}	
-
-
-
-
-	public MMSMessage getNextMMSMessage(Cursor mCursor) {
-		String mmsId = mCursor.getString(mCursor.getColumnIndexOrThrow(Telephony.BaseMmsColumns._ID));
-		long date = 1000 * mCursor.getLong(mCursor.getColumnIndexOrThrow(Telephony.BaseMmsColumns.DATE));
-		int m_type = mCursor.getInt(mCursor.getColumnIndex(Telephony.BaseMmsColumns.MESSAGE_BOX));
-		String address = getAddressNumber(Integer.parseInt(mmsId));
-		if(address==null || mmsId == null) return null;
-		String read = mCursor.getString(mCursor.getColumnIndex(Telephony.BaseMmsColumns.READ));
-    	if(!mmsId.equals("") && read.equals("0")) {
-        	ContentValues values = new ContentValues();
-    		values.put(Telephony.BaseMmsColumns.READ,true);
-    		mContext.getContentResolver().update(Telephony.Mms.CONTENT_URI,
-    				values, Telephony.BaseMmsColumns._ID+"="+mmsId, null);	
-    	}			
-		MMSMessage m = new MMSMessage(date, "", address, store.getName(address), m_type, 
-				store, ParseUser.getCurrentUser().getUsername());
-		String selectionPart = "mid=" + mmsId;
-		Uri uri = Uri.parse("content://mms/part");
-		Cursor cursor = mContext.getContentResolver().query(uri, null,
-		    selectionPart, null, null);
-		if (cursor.moveToFirst()) {
-		    do {
-		        String partId = cursor.getString(cursor.getColumnIndex("_id"));
-		        String type = cursor.getString(cursor.getColumnIndex("ct"));
-		        if ("text/plain".equals(type)) {
-		            String data = cursor.getString(cursor.getColumnIndex("_data"));
-		            String body = "";
-		            if (data != null) {
-		                // implementation of this method below
-		                body = getMmsText(partId);
-		            } else {
-		                body = cursor.getString(cursor.getColumnIndex("text"));
-		            }
-		           // Log.i("body",body);
-		           if(body!=null) m.setMessage(body);
-		        }
-		        else if ("image/jpeg".equals(type) || "image/bmp".equals(type) ||
-		                "image/gif".equals(type) || "image/jpg".equals(type) ||
-		                "image/png".equals(type)) {
-		            Uri image_uri = getMmsImageUri(partId);
-		            if(image_uri!=null) m.addImage(image_uri);
-		        }		        
-		    } while (cursor.moveToNext());
-		}
-
-		return m;
-	}
-
-
-	private String getAddressNumber(int id) {
-	//Log.i("getaddressnumber id",""+id);
-	    String selectionAdd = new String("msg_id=" + id);
-	    String uriStr = MessageFormat.format("content://mms/{0}/addr", id);
-	    Uri uriAddress = Uri.parse(uriStr);
-	    Cursor cAdd = mContext.getContentResolver().query(uriAddress, null,
-	        selectionAdd, null, null);
-	    String name = null;
-	    if (cAdd!=null && cAdd.moveToFirst()) {
-	        do {
-	            String number = cAdd.getString(cAdd.getColumnIndex("address"));
-	            if (number != null) {
-	                try {
-	                    Long.parseLong(number.replace("-", ""));
-	                    name = number;
-	                } catch (NumberFormatException nfe) {
-	                    if (name == null) {
-	                        name = number;
-	                    }
-	                }
-	            }
-	        } while (cAdd.moveToNext());
-	    }
-	    if (cAdd != null) {
-	        cAdd.close();
-	    }
-	    return name;
-	}	
-	private Uri getMmsImageUri(String _id) {
-	    Uri partURI = Uri.parse("content://mms/part/" + _id);
-	    return partURI;
-	}	
-	private String getMmsText(String id) {
-	    Uri partURI = Uri.parse("content://mms/part/" + id);
-	    InputStream is = null;
-	    StringBuilder sb = new StringBuilder();
-	    try {
-	        is = mContext.getContentResolver().openInputStream(partURI);
-	        if (is != null) {
-	            InputStreamReader isr = new InputStreamReader(is, "UTF-8");
-	            BufferedReader reader = new BufferedReader(isr);
-	            String temp = reader.readLine();
-	            while (temp != null) {
-	                sb.append(temp);
-	                temp = reader.readLine();
-	            }
-	        }
-	    } catch (IOException e) {}
-	    finally {
-	        if (is != null) {
-	            try {
-	                is.close();
-	            } catch (IOException e) {}
-	        }
-	    }
-	    return sb.toString();
 	}	
 
 	@Override

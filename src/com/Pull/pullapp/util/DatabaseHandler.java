@@ -345,7 +345,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		
 	}
 
-	public InitiatingData getInitiatingRecord(String thread_id, String message_id) {
+	public InitiatingData getInitiatingRecord(String thread_id, String message_id, 
+			Context context, Long date, UserInfoStore store, SMSMessage current_message) {
         Cursor cursor;
         InitiatingData i;
         cursor = db.query(TABLE_INITIATING, null, 
@@ -353,19 +354,40 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 new String[] { thread_id, message_id}, 
                 null, null, null, null);   
         if(cursor == null || cursor.getCount()==0) {
-        	i = createInitiatingRecord(thread_id, message_id);
+        	SMSMessage previous_message = ContentUtils.
+        			getPreviousMessage(context, thread_id, date, store);
+			i = createInitiatingRecord(thread_id, message_id, current_message, previous_message);
         	return i;
         }
+        cursor.moveToFirst();
         i = new InitiatingData(cursor.getLong(3), cursor.getInt(4), cursor.getInt(5));
+        cursor.close();
 		return i;
 	}
-
-	private InitiatingData createInitiatingRecord(String thread_id, String message_id) {
-		//Cursor currentRecord = ContentUit;
-		Long hours_elapsed = null;
-		int after_question = 0;
-		int retexting = 0;
-		
+	/**
+	 * 
+	 * @param thread_id
+	 * @param message_id
+	 * @return the information that will be used to determine whether this message is initiating
+	 */
+	private InitiatingData createInitiatingRecord(String thread_id, String message_id, 
+			SMSMessage current_message, SMSMessage previous_message) {
+		float hours_elapsed;
+		int after_question, retexting;
+		if(previous_message != null) {
+			Log.i("previous_message","previous_message " + previous_message.getDate());
+	 		long milliseconds_elapsed = (long)(current_message.getDate() - previous_message.getDate());
+	 		long seconds_elapsed = (long) (milliseconds_elapsed*0.001);
+	 		long minutes_elapsed = (long) (seconds_elapsed*0.016666666667);
+	 		hours_elapsed = (float) (minutes_elapsed*0.016666666667);		
+	 		Log.i("hours elapsed","hours elapsed " + hours_elapsed);
+			after_question = previous_message.getMessage().contains("?") ? 1 : 0;
+			retexting = previous_message.getType()==current_message.getType() ? 1 : 0;
+		} else {
+			hours_elapsed = -1;
+			after_question = 0;
+			retexting = 0;
+		}
 	    ContentValues record = new ContentValues();
 	    record.put(KEY_THREAD_ID, thread_id);
 	    record.put(KEY_MESSAGE_ID, message_id);
@@ -376,6 +398,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.insert(TABLE_INITIATING, null, record);
         InitiatingData i = new InitiatingData(hours_elapsed, retexting, after_question);
 		return i ;
+		//return null;
 	}
 
 
