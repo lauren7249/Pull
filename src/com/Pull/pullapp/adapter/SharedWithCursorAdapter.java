@@ -18,8 +18,8 @@ import com.Pull.pullapp.AllThreadsListActivity;
 import com.Pull.pullapp.R;
 import com.Pull.pullapp.fragment.SimplePopupWindow;
 import com.Pull.pullapp.util.Constants;
-import com.Pull.pullapp.util.ContentUtils;
-import com.Pull.pullapp.util.UserInfoStore;
+import com.Pull.pullapp.util.data.ContentUtils;
+import com.Pull.pullapp.util.data.UserInfoStore;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.parse.ParseUser;
 public class SharedWithCursorAdapter extends CursorAdapter {

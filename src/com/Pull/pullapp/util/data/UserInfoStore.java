@@ -1,4 +1,4 @@
-package com.Pull.pullapp.util;
+package com.Pull.pullapp.util.data;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -27,6 +27,7 @@ public class UserInfoStore {
 	private SharedPreferences approvals;
 	private SharedPreferences mPrefs;
 	private SharedPreferences mPrefs_phoneNumber_recipientID;
+	private SharedPreferences phoneNumber_relationshipSummary;
 	public UserInfoStore(Context context) {
 		this.mContext = context;
     	mPrefs = mContext.getSharedPreferences(MainApplication.class.getSimpleName(),Context.MODE_PRIVATE);		
@@ -45,7 +46,10 @@ public class UserInfoStore {
     			+ "phoneNumber_FacebookID",Context.MODE_PRIVATE); 	
     	phoneNumber_threadID = context
     			.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
-    			+ "phoneNumber_threadID",Context.MODE_PRIVATE); 	    	
+    			+ "phoneNumber_threadID",Context.MODE_PRIVATE); 	
+    	phoneNumber_relationshipSummary = context
+    			.getSharedPreferences(MainApplication.class.getSimpleName() 
+    			+ "phoneNumber_relationshipSummary",Context.MODE_PRIVATE);     	
     	mPrefs_sms_sharedWith = context
     			.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
     			+ "mPrefs_sms_sharedWith",Context.MODE_PRIVATE); 
@@ -222,5 +226,14 @@ public class UserInfoStore {
 	public String getRecipientID(String number) {
 		return mPrefs_phoneNumber_recipientID.getString(ContentUtils.addCountryCode(number), null);
 	}
-
+	public String getRelationshipSummary(String number) {
+		// TODO Auto-generated method stub
+		return phoneNumber_relationshipSummary.getString(ContentUtils.addCountryCode(number), null);
+	}
+	public void setRelationshipSummary(String number, String summary) {
+		Editor editor = phoneNumber_relationshipSummary.edit();
+		editor.putString(ContentUtils.addCountryCode(number), summary);	
+		editor.commit();	
+		
+	}
 }

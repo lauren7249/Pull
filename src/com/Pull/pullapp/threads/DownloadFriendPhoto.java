@@ -5,8 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 
-import com.Pull.pullapp.util.ContentUtils;
-import com.Pull.pullapp.util.UserInfoStore;
+import com.Pull.pullapp.util.data.ContentUtils;
+import com.Pull.pullapp.util.data.UserInfoStore;
 import com.parse.GetCallback;
 import com.parse.GetDataCallback;
 import com.parse.ParseException;

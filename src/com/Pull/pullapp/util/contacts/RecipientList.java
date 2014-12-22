@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.Pull.pullapp.util;
+package com.Pull.pullapp.util.contacts;
 
 
 import java.util.ArrayList;

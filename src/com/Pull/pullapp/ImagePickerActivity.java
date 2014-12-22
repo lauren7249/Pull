@@ -27,7 +27,7 @@ import com.Pull.pullapp.fragment.SimplePopupWindow;
 import com.Pull.pullapp.threads.UploadMyPhoto;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.Transformation;
-import com.Pull.pullapp.util.UserInfoStore;
+import com.Pull.pullapp.util.data.UserInfoStore;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.ParseInstallation;
 import com.parse.ParseUser;

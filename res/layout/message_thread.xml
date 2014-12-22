@@ -198,7 +198,7 @@
 				                android:orientation="vertical"
 				                android:color="@android:color/white" >
 				
-				                <com.Pull.pullapp.util.RecipientsEditor
+				                <com.Pull.pullapp.util.contacts.RecipientsEditor
 				                    android:id="@+id/confidantes_editor"
 				                    android:layout_width="fill_parent"
 				                    android:layout_height="fill_parent"

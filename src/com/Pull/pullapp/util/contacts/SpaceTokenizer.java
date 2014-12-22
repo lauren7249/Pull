@@ -1,4 +1,4 @@
-package com.Pull.pullapp.util;
+package com.Pull.pullapp.util.contacts;
 
 import android.text.SpannableString;
 import android.text.Spanned;

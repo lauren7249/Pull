@@ -23,7 +23,6 @@ import android.provider.Telephony;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.widget.CursorAdapter;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,8 +40,9 @@ import com.Pull.pullapp.fragment.SimplePopupWindow;
 import com.Pull.pullapp.model.MMSMessage;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.util.Constants;
-import com.Pull.pullapp.util.ContentUtils;
-import com.Pull.pullapp.util.UserInfoStore;
+import com.Pull.pullapp.util.data.ContentUtils;
+import com.Pull.pullapp.util.data.StatUtils;
+import com.Pull.pullapp.util.data.UserInfoStore;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.parse.ParsePush;
 import com.parse.ParseUser;
@@ -66,6 +66,8 @@ public class MessageCursorAdapter extends CursorAdapter {
 	private String other_person;
 	private String other_person_name;
 	private String thread_id;
+	public boolean fullyLoaded = false;
+	
     @SuppressWarnings("deprecation")
 	public MessageCursorAdapter(Context context, Cursor cursor, String[] numbers, 
 			Activity activity, String thread_id) {
@@ -352,7 +354,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 	
     		
 			//initiating = ContentUtils.isInitiating(date, type, body, previous_date, previous_type, previous_body);
-    		initiating = ContentUtils.isInitiating(thread_id, SmsMessageId, mContext, date, store, message);
+    		initiating = StatUtils.isInitiating(thread_id, SmsMessageId, mContext, date, store, message);
     		c.moveToNext();
     	} else if(date>0)  submms = mms.headMap(date);
     	else {
@@ -545,7 +547,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 				holder.pictures_list.setVisibility(View.GONE);
 			}
 			
-			holder.separator.setVisibility(ContentUtils.isInitiating(thread_id, m.getMessageID(), 
+			holder.separator.setVisibility(StatUtils.isInitiating(thread_id, m.getMessageID(), 
 					mContext, m.getDate(), store, m)? View.VISIBLE : View.GONE);	
 			
 			LayoutParams lp = (LayoutParams) holder.messageBox.getLayoutParams();

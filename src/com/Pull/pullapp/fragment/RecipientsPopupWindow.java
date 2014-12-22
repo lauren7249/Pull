@@ -13,8 +13,8 @@ import android.widget.ImageButton;
 import android.widget.TableLayout.LayoutParams;
 
 import com.Pull.pullapp.R;
-import com.Pull.pullapp.util.RecipientsAdapter;
-import com.Pull.pullapp.util.RecipientsEditor;
+import com.Pull.pullapp.util.contacts.RecipientsAdapter;
+import com.Pull.pullapp.util.contacts.RecipientsEditor;
 
 public class RecipientsPopupWindow extends DialogFragment  {
 	private RecipientsEditor mConfidantesEditor;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.Pull.pullapp.util;
+package com.Pull.pullapp.util.phone;
 
 import java.util.Arrays;
 import java.util.HashSet;

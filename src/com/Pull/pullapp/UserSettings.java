@@ -11,7 +11,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NavUtils;
 
 import com.Pull.pullapp.util.Constants;
-import com.Pull.pullapp.util.UserInfoStore;
+import com.Pull.pullapp.util.data.UserInfoStore;
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockPreferenceActivity;
 import com.actionbarsherlock.view.MenuItem;

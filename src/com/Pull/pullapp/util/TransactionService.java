@@ -54,6 +54,10 @@ import android.widget.Toast;
 
 import com.Pull.pullapp.MessageActivityCheckboxCursor;
 import com.Pull.pullapp.R;
+import com.Pull.pullapp.model.MMSMessage;
+import com.Pull.pullapp.util.data.UserInfoStore;
+import com.Pull.pullapp.util.phone.Phone;
+import com.Pull.pullapp.util.phone.PhoneConstants;
 import com.android.mms.transaction.NotificationTransaction;
 import com.android.mms.transaction.Observable;
 import com.android.mms.transaction.Observer;
@@ -495,11 +499,12 @@ public class TransactionService extends Service implements Observer {
         				String[] names = null;
         				if(cursor.moveToNext()) {
                         	String[] recipientIds = cursor.getString(cursor.getColumnIndex(Threads.RECIPIENT_IDS)).split(" ");
-                        	Log.i("recipient ids", cursor.getString(cursor.getColumnIndex(Threads.RECIPIENT_IDS)));
+                        	//Log.i("recipient ids", cursor.getString(cursor.getColumnIndex(Threads.RECIPIENT_IDS)));
                         	numbers = store.getPhoneNumbers(recipientIds);
                         	names = store.getNames(numbers);
                         	from = Arrays.asList(names).toString().substring(1).replace("]", "");
-        				}	                         
+        				}	          
+        				
        					NotificationManager mNotificationManager = (NotificationManager) this
        							.getSystemService(Context.NOTIFICATION_SERVICE);
        					int icon;

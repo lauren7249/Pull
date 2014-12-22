@@ -31,14 +31,14 @@
 		       android:layout_height="wrap_content"
 		       android:layout_weight="1"
 		       android:orientation="vertical" >
-			   <com.Pull.pullapp.util.RecipientsEditor
+			   <com.Pull.pullapp.util.contacts.RecipientsEditor
 			       android:id="@+id/recipient_editor"
 			       android:layout_width="fill_parent"
 			       android:layout_height="fill_parent"				       
 			       android:completionThreshold="1"
 			       android:hint="Conversation with"
 			       android:isScrollContainer="true"/>		       
-			   <com.Pull.pullapp.util.RecipientsEditor
+			   <com.Pull.pullapp.util.contacts.RecipientsEditor
 			       android:id="@+id/confidantes_editor"
 			       android:layout_width="fill_parent"
 			       android:layout_height="fill_parent"			       

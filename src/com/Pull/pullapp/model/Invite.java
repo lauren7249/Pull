@@ -1,6 +1,6 @@
 package com.Pull.pullapp.model;
 
-import com.Pull.pullapp.util.ContentUtils;
+import com.Pull.pullapp.util.data.ContentUtils;
 import com.parse.ParseClassName;
 import com.parse.ParseObject;
 import com.parse.ParseUser;

@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
-package com.Pull.pullapp.util;
+package com.Pull.pullapp.util.contacts;
 
 import java.util.Iterator;
+
+import com.Pull.pullapp.util.contacts.RecipientList.Recipient;
 
 import android.content.Context;
 import android.text.Annotation;
@@ -34,7 +36,6 @@ import android.view.MotionEvent;
 import android.widget.ListAdapter;
 import android.widget.MultiAutoCompleteTextView;
 
-import com.Pull.pullapp.util.RecipientList.Recipient;
 
 /**
  * Provide UI for editing the recipients of multi-media messages.

@@ -93,22 +93,24 @@ import com.Pull.pullapp.fragment.SimplePopupWindow;
 import com.Pull.pullapp.mms.TempFileProvider;
 import com.Pull.pullapp.mms.ThumbnailManager;
 import com.Pull.pullapp.model.MMSMessage;
+import com.Pull.pullapp.model.Relationship;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.ShareSuggestion;
 import com.Pull.pullapp.threads.DelayedMMSService;
 import com.Pull.pullapp.threads.DelayedSend;
 import com.Pull.pullapp.threads.ShareMessages;
 import com.Pull.pullapp.util.Constants;
-import com.Pull.pullapp.util.ContentUtils;
-import com.Pull.pullapp.util.DatabaseHandler;
 import com.Pull.pullapp.util.LinearLayoutThatDetectsSoftKeyboard;
 import com.Pull.pullapp.util.MessageUtils;
-import com.Pull.pullapp.util.RecipientList.Recipient;
-import com.Pull.pullapp.util.RecipientsAdapter;
-import com.Pull.pullapp.util.RecipientsEditor;
+import com.Pull.pullapp.util.contacts.RecipientsAdapter;
+import com.Pull.pullapp.util.contacts.RecipientsEditor;
+import com.Pull.pullapp.util.contacts.RecipientList.Recipient;
+import com.Pull.pullapp.util.data.ContentUtils;
+import com.Pull.pullapp.util.data.DatabaseHandler;
+import com.Pull.pullapp.util.data.StatUtils;
+import com.Pull.pullapp.util.data.UserInfoStore;
 import com.Pull.pullapp.util.SendUtils;
 import com.Pull.pullapp.util.SwipeDetector;
-import com.Pull.pullapp.util.UserInfoStore;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
@@ -256,6 +258,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private PicturesAdapter pictures_adapter;
 	private ArrayList<Uri> picture_uris;
 	private ArrayList<String> attachments = new ArrayList<String>();
+	private TextView mGraphText;
+	private String relationshipText;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -324,6 +328,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		emoji_button = (Button) this.findViewById(R.id.emoji_button);
 		share = (Button) this.findViewById(R.id.share_button);
 		pickDelay = (Button) this.findViewById(R.id.time_delay_button);
+		header_title = (TextView) this.findViewById(R.id.header);
 		pickApprover  = (Button) this.findViewById(R.id.approvers_button);
 		viewSwitcher = (ViewSwitcher) this.findViewById(R.id.viewSwitcher);
 		graphViewSwitcher = (ViewSwitcher) this.findViewById(R.id.big_viewSwitcher);
@@ -382,82 +387,168 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		});
 		approver = "";
 		if(getIntent() != null && !isPopulated) {
-
-			status = getIntent().getStringExtra(Constants.EXTRA_STATUS); 
-			if(status==null)  status = "";
-			
-			numbers = getIntent().getStringArrayExtra(Constants.EXTRA_NUMBERS);
-			names = getIntent().getStringArrayExtra(Constants.EXTRA_NAMES);
-			thread_id = getIntent().getStringExtra(Constants.EXTRA_THREAD_ID); 
-			
-			Long scheduledFor = getIntent().getLongExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, 0);
-			if(scheduledFor>0) sendDate = new Date(scheduledFor);
-			else sendDate = null;
-			
-			shared_confidante = getIntent().getStringExtra(Constants.EXTRA_SHARED_CONFIDANTE); 
-			shared_sender = getIntent().getStringExtra(Constants.EXTRA_SHARED_SENDER); 
-			shared_convoID = getIntent().getStringExtra(Constants.EXTRA_SHARED_CONVERSATION_ID); 
-			clueless_persons_name = getIntent().getStringExtra(Constants.EXTRA_CLUELESS_PERSONS_NAME); 
-			clueless_persons_number = getIntent().getStringExtra(Constants.EXTRA_CLUELESS_PERSONS_NUMBER);
-			shared_convo_type = getIntent().getIntExtra(Constants.EXTRA_SHARED_CONVO_TYPE,-1);
-			
-			if(numbers == null && thread_id!=null) {
-				Uri uri=Uri.parse("content://mms-sms/conversations?simple=true");
-				String selection="_id=? and recipient_ids is not null and recipient_ids is not ''";
-				Cursor cursor = mContext.getContentResolver().query(uri, null, 
-						selection, new String[]{thread_id}, null);
-				if(cursor.moveToNext()) {
-                	String[] recipientIds = cursor.getString(cursor.getColumnIndex(Threads.RECIPIENT_IDS)).split(" ");
-                	Log.i("recipient ids", cursor.getString(cursor.getColumnIndex(Threads.RECIPIENT_IDS)));
-                	numbers = store.getPhoneNumbers(recipientIds);
-                	names = store.getNames(numbers);
-                	cursor.close();
-				}				
-			}
-			//TODO: FIX THIS
-			if(numbers!=null && numbers.length>1) {
-				name = Arrays.asList(names).toString().substring(1).replace("]", "");
-				Log.i("threadid",thread_id);
-				hasMMS = true;
-				isGroupMessage = true;
-				topViewSwitcher.setDisplayedChild(2);
-				group_text_recipients.setText(name);
-				title_view.setText(name);
-				setupComposeBox();
-				populateMessages();
-			    hideKeyboard();
-			    text.clearFocus();				
-				notificationManager.cancel(thread_id.hashCode());				
-			}
-			else if(thread_id!=null && numbers!=null && numbers.length==1) {
-				number =  ContentUtils.addCountryCode(numbers[0]); 
-				name =  names[0];				
-				title_view.setText(name);
-				setupComposeBox();
-				populateMessages();
-			    hideKeyboard();
-			    text.clearFocus();				
-				notificationManager.cancel(number.hashCode());
-			} else if(clueless_persons_name!=null && shared_sender!=null){
-				populateSharedMessages(shared_convoID);
-			    hideKeyboard();
-			    text.clearFocus();				
-			}
-			else {
-				topViewSwitcher.setDisplayedChild(1);
-				setupComposeBox();
-				mRecipientEditor = (RecipientsEditor) findViewById(R.id.recipients_editor);
-				mRecipientEditor.setAdapter(mRecipientsAdapter);
-				messages = new ArrayList<SMSMessage>();
-				queue_adapter = new QueuedMessageAdapter(this,messages);
-				merge_adapter = new MergeAdapter();		
-			}
-			
+			populateFromIntent();
 		}		
 		
+		mBroadcastReceiver = getBroadcastReceiver();
+
+	    customDateTimePicker = getTimePicker();
+	    /**
+	     * Pass Directly current time format it will return AM and PM if you set
+	     * false
+	     */
+	    customDateTimePicker.set24HourFormat(false);		
+	    customDateTimePicker.setDate(Calendar.getInstance());
+
+		tickReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				updateTime();
+			}
+		};
+
+		text.setOnFocusChangeListener(new OnFocusChangeListener(){
+
+			@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+				if(!hasFocus) return;
+    			if(!keyboardShowing && text.hasFocus()) {
+        			//emojiArea.setVisibility(View.VISIBLE);
+        			mButtonsBar.setVisibility(View.VISIBLE);
+        			text.setLines(3);    			
+        			imm.toggleSoftInput(0, InputMethodManager.SHOW_FORCED);
+        			//Log.i("has focus and keyboard is not showing","has focus and keyboard is not showing");
+    			}
+    			keyboardShowing = true;
+			}
+			
+		});
+		if(numbers.length==1) {
+			getRelationship();
+		}
+
+	}
+
+	private void getRelationship() {
+		relationshipText = store.getRelationshipSummary(number);
+		ParseQuery<Relationship> relationshipQuery = new ParseQuery<Relationship>("data");
+		relationshipQuery.whereEqualTo("address", number);
+		relationshipQuery.whereEqualTo("user", ParseUser.getCurrentUser());
+		relationshipQuery.findInBackground(new FindCallback<Relationship>() {
+
+            @Override
+            public void done(List<Relationship> objects, ParseException e) {
+                if (e == null) {
+                	Log.d("App", "Success: " + objects.size());
+                } else {
+                    Log.d("App", "Error: " + e.getMessage());
+                }
+            }
+        });
+	}
+
+	private CustomDateTimePicker getTimePicker() {
+		return new CustomDateTimePicker(this,
+	            new CustomDateTimePicker.ICustomDateTimeListener() {
+
+	                @Override
+	                public void onCancel() {
+	                	mixpanel.track("timepicker canceled", null);
+	                	delayPressed = true;
+	                }
+
+					@Override
+					public void onSet(Dialog dialog, Calendar calendarSelected,
+							Date dateSelected, int year, String monthFullName,
+							String monthShortName, int monthNumber, int date,
+							String weekDayFullName, String weekDayShortName,
+							int hour24, int hour12, int min, int sec,
+							String AM_PM) {
+						mixpanel.track("timepicker set", null);
+						sendDate = dateSelected;
+						updateDelayButton();
+						delayPressed = true;
+					}
+	            });
+	}
+
+	private void populateFromIntent() {
+
+		status = getIntent().getStringExtra(Constants.EXTRA_STATUS); 
+		if(status==null)  status = "";
 		
-		mBroadcastReceiver = 
-		new BroadcastReceiver() {
+		numbers = getIntent().getStringArrayExtra(Constants.EXTRA_NUMBERS);
+		names = getIntent().getStringArrayExtra(Constants.EXTRA_NAMES);
+		thread_id = getIntent().getStringExtra(Constants.EXTRA_THREAD_ID); 
+		
+		Long scheduledFor = getIntent().getLongExtra(Constants.EXTRA_TIME_SCHEDULED_FOR, 0);
+		if(scheduledFor>0) sendDate = new Date(scheduledFor);
+		else sendDate = null;
+		
+		shared_confidante = getIntent().getStringExtra(Constants.EXTRA_SHARED_CONFIDANTE); 
+		shared_sender = getIntent().getStringExtra(Constants.EXTRA_SHARED_SENDER); 
+		shared_convoID = getIntent().getStringExtra(Constants.EXTRA_SHARED_CONVERSATION_ID); 
+		clueless_persons_name = getIntent().getStringExtra(Constants.EXTRA_CLUELESS_PERSONS_NAME); 
+		clueless_persons_number = getIntent().getStringExtra(Constants.EXTRA_CLUELESS_PERSONS_NUMBER);
+		shared_convo_type = getIntent().getIntExtra(Constants.EXTRA_SHARED_CONVO_TYPE,-1);
+		
+		if(numbers == null && thread_id!=null) {
+			Uri uri=Uri.parse("content://mms-sms/conversations?simple=true");
+			String selection="_id=? and recipient_ids is not null and recipient_ids is not ''";
+			Cursor cursor = mContext.getContentResolver().query(uri, null, 
+					selection, new String[]{thread_id}, null);
+			if(cursor.moveToNext()) {
+            	String[] recipientIds = cursor.getString(cursor.getColumnIndex(Threads.RECIPIENT_IDS)).split(" ");
+            	Log.i("recipient ids", cursor.getString(cursor.getColumnIndex(Threads.RECIPIENT_IDS)));
+            	numbers = store.getPhoneNumbers(recipientIds);
+            	names = store.getNames(numbers);
+            	cursor.close();
+			}				
+		}
+		//TODO: FIX THIS
+		if(numbers!=null && numbers.length>1) {
+			name = Arrays.asList(names).toString().substring(1).replace("]", "");
+			Log.i("threadid",thread_id);
+			hasMMS = true;
+			isGroupMessage = true;
+			topViewSwitcher.setDisplayedChild(2);
+			group_text_recipients.setText(name);
+			title_view.setText(name);
+			setupComposeBox();
+			populateMessages();
+		    hideKeyboard();
+		    text.clearFocus();				
+			notificationManager.cancel(thread_id.hashCode());				
+		}
+		else if(thread_id!=null && numbers!=null && numbers.length==1) {
+			number =  ContentUtils.addCountryCode(numbers[0]); 
+			name =  names[0];				
+			title_view.setText(name);
+			setupComposeBox();
+			populateMessages();
+		    hideKeyboard();
+		    text.clearFocus();				
+			notificationManager.cancel(number.hashCode());
+		} else if(clueless_persons_name!=null && shared_sender!=null){
+			populateSharedMessages(shared_convoID);
+		    hideKeyboard();
+		    text.clearFocus();				
+		}
+		else {
+			topViewSwitcher.setDisplayedChild(1);
+			setupComposeBox();
+			mRecipientEditor = (RecipientsEditor) findViewById(R.id.recipients_editor);
+			mRecipientEditor.setAdapter(mRecipientsAdapter);
+			messages = new ArrayList<SMSMessage>();
+			queue_adapter = new QueuedMessageAdapter(this,messages);
+			merge_adapter = new MergeAdapter();		
+		}
+		
+		
+	}
+
+	private BroadcastReceiver getBroadcastReceiver() {
+		return new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				String action = intent.getAction();			
@@ -493,7 +584,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 						return;
 					dh = new DatabaseHandler(mContext);
 					messages_cursor = dh.getSharedMessagesCursor(shared_convoID);
-					dh.close();
 					messages_adapter.swapCursor(messages_cursor);
 					messages_adapter.notifyDataSetChanged();
 					
@@ -674,94 +764,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				} 				
 			}
 		};				
-				
-		
-	    customDateTimePicker = new CustomDateTimePicker(this,
-            new CustomDateTimePicker.ICustomDateTimeListener() {
-
-                @Override
-                public void onCancel() {
-                	mixpanel.track("timepicker canceled", null);
-                	delayPressed = true;
-                }
-
-				@Override
-				public void onSet(Dialog dialog, Calendar calendarSelected,
-						Date dateSelected, int year, String monthFullName,
-						String monthShortName, int monthNumber, int date,
-						String weekDayFullName, String weekDayShortName,
-						int hour24, int hour12, int min, int sec,
-						String AM_PM) {
-					mixpanel.track("timepicker set", null);
-					sendDate = dateSelected;
-					updateDelayButton();
-					delayPressed = true;
-				}
-            });
-	    /**
-	     * Pass Directly current time format it will return AM and PM if you set
-	     * false
-	     */
-	    customDateTimePicker.set24HourFormat(false);		
-	    customDateTimePicker.setDate(Calendar.getInstance());
-
-		tickReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				updateTime();
-			}
-		};
-			
-		share_with = getIntent().getStringExtra(Constants.EXTRA_SHARE_TO_NUMBER);
-		if(share_with != null) {
-			viewSwitcher.setDisplayedChild(1);	
-			if(!share_with.isEmpty()) {
-				share_with_name = ContentUtils.getContactDisplayNameByNumber(mContext, share_with);
-				String shID = getIntent().getStringExtra(Constants.EXTRA_SHARE_SUGGESTION_ID);			
-				//messages_adapter.showCheckboxes = true;
-				//checkBoxesAreShowing = true;			
-				mConfidantesEditor.setText(share_with);
-				confidantes = mConfidantesEditor.constructContactsFromInput(false).getNumbers();
-				mConfidantesEditor.setText(Recipient.buildNameAndNumber(share_with_name, share_with));
-				//for(int i = messages_adapter.getCount()-1; i>messages_adapter.getCount()-4; i--);			
-				messages_adapter.notifyDataSetChanged();
-				merge_adapter.notifyDataSetChanged();				
-				if(shID != null) {			
-					ParseQuery<ShareSuggestion> query = ParseQuery.getQuery("ShareSuggestion");
-					query.whereEqualTo("objectId", shID);
-			    	query.findInBackground(new FindCallback<ShareSuggestion>() {
-			    	    public void done(List<ShareSuggestion> list, ParseException e) {
-			    	        if (e == null && list.size()>0) {
-			    	        	suggestion = list.get(0);
-			    	        	suggestion.setClicked(new Date().getTime());
-			    	        	suggestion.saveInBackground();
-			    	        } else {
-			    	        	return;
-			    	        }
-			    	    }
-			    	});    	
-				}
-			}
-
-		}		
-		text.setOnFocusChangeListener(new OnFocusChangeListener(){
-
-			@Override
-			public void onFocusChange(View v, boolean hasFocus) {
-				if(!hasFocus) return;
-    			if(!keyboardShowing && text.hasFocus()) {
-        			//emojiArea.setVisibility(View.VISIBLE);
-        			mButtonsBar.setVisibility(View.VISIBLE);
-        			text.setLines(3);    			
-        			imm.toggleSoftInput(0, InputMethodManager.SHOW_FORCED);
-        			//Log.i("has focus and keyboard is not showing","has focus and keyboard is not showing");
-    			}
-    			keyboardShowing = true;
-			}
-			
-		});
-
-
 	}
 
 	protected void shareTabClicked() {			
@@ -934,7 +936,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				message.setGraphed();
 				
 			    try {
-			    	Thread.sleep(100);
+			    	Thread.sleep(300);
 			    	message.saveToParse();
 			    } catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -1078,7 +1080,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		graphViewSwitcher.setDisplayedChild(1);		
 		if(messages_cursor.getCount()>1 && mGraphView==null) {
 		    mGraphView = (LinearLayout) findViewById(R.id.graph_area);
-			HashMap<String, TreeMap<Long, Float>> data = ContentUtils.getDataSeries(messages_cursor, mContext);
+		    mGraphText = (TextView) findViewById(R.id.graphs_texts);
+
+			HashMap<String, TreeMap<Long, Float>> data = StatUtils.getDataSeries(messages_cursor, mContext);
 			HListView lv = (HListView) findViewById(R.id.graphs_list);
 			TreeMap<String, ArrayList<View>> graph_sections = new TreeMap<String, ArrayList<View>> ();
 			String[] graphs = new String[]{Constants.GRAPH_CONTACT_INIT_FREQ_THEM,
@@ -1086,7 +1090,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 					Constants.GRAPH_CONTACT_INIT_FREQ_RATIO};
 			String graph_title = "How often you each text first";
 			
-			ArrayList<View> views = ContentUtils.getGraphs(activity, original_name, data, graphs, "");
+			ArrayList<View> views = StatUtils.getGraphs(activity, original_name, data, graphs, "");
 			graph_sections.put(graph_title, views);
 
 			graphs = new String[]{Constants.GRAPH_RESPONSE_TIME_THEM,
@@ -1094,7 +1098,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 				Constants.GRAPH_RESPONSE_TIME_RATIO};
 		
 			graph_title = "How long you each take to respond";
-			views = ContentUtils.getGraphs(activity, original_name, data, graphs, "");	
+			views = StatUtils.getGraphs(activity, original_name, data, graphs, "");	
 			graph_sections.put(graph_title, views);
 	        lv.setAdapter(new GraphAdapter(mContext, R.layout.graph_item, null, graph_sections));			
 			new UploadGraph().execute(messages_cursor);
@@ -1203,7 +1207,6 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		title_view.setText(shared_conversant_name);	
 		dh = new DatabaseHandler(mContext);
 		messages_cursor = dh.getSharedMessagesCursor(shared_convoID);
-		dh.close();
 		messages_adapter = new MessageCursorAdapter(mContext, messages_cursor, this, 
 				shared_conversant, clueless_persons_number, clueless_persons_name, isMine);
 		mListView.setAdapter(messages_adapter);	
@@ -2030,6 +2033,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	    protected void onPostExecute(Void result) {
 			super.onPostExecute(result);
 			if(mms_cursor!=null) mms_cursor.close();
+			messages_adapter.fullyLoaded = true;
 			messages_adapter.notifyDataSetChanged();
 			mListView.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
 			//mListView.setSelection(messages_adapter.getCount()-1);

@@ -25,10 +25,10 @@ import android.widget.TextView;
 
 import com.Pull.pullapp.R;
 import com.Pull.pullapp.util.Constants;
-import com.Pull.pullapp.util.ContentUtils;
-import com.Pull.pullapp.util.DatabaseHandler;
 import com.Pull.pullapp.util.SendUtils;
-import com.Pull.pullapp.util.UserInfoStore;
+import com.Pull.pullapp.util.data.ContentUtils;
+import com.Pull.pullapp.util.data.DatabaseHandler;
+import com.Pull.pullapp.util.data.UserInfoStore;
 import com.mikhaellopez.circularimageview.CircularImageView;
 public class ThreadItemsCursorAdapter extends CursorAdapter {
 	

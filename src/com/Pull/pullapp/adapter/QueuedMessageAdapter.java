@@ -25,8 +25,8 @@ import android.widget.TextView;
 import com.Pull.pullapp.R;
 import com.Pull.pullapp.model.MMSMessage;
 import com.Pull.pullapp.model.SMSMessage;
-import com.Pull.pullapp.util.ContentUtils;
 import com.Pull.pullapp.util.SendUtils;
+import com.Pull.pullapp.util.data.ContentUtils;
 /**
  * QueuedMessageAdapter is a Custom class to implement custom row in ListView
  * 

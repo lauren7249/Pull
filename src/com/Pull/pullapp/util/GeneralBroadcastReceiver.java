@@ -32,6 +32,9 @@ import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.threads.AlarmScheduler;
 import com.Pull.pullapp.threads.DelayedMMSService;
 import com.Pull.pullapp.threads.DownloadFriendPhoto;
+import com.Pull.pullapp.util.data.ContentUtils;
+import com.Pull.pullapp.util.data.DatabaseHandler;
+import com.Pull.pullapp.util.data.UserInfoStore;
 import com.parse.FindCallback;
 import com.parse.ParseACL;
 import com.parse.ParseException;
@@ -150,6 +153,7 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 				m.schedule(scheduledFor);
 				m.isDelayed = isDelayed;
 				m.launchedOn = launchedOn;
+				((MMSMessage) m).setImageNumber(attachment_paths.size());
 				//dont send if the user canceled (removed from outbox) or received a message since launching
 	            if(!messagedAfterLaunch(context,recipients,launchedOn) &&  
 	            		SendUtils.removeFromOutbox(context, message, recipients, launchedOn, 

@@ -11,7 +11,7 @@ import android.widget.ListView;
 import com.Pull.pullapp.threads.DownloadFriendPhoto;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.SendUtils;
-import com.Pull.pullapp.util.UserInfoStore;
+import com.Pull.pullapp.util.data.UserInfoStore;
 import com.actionbarsherlock.app.SherlockListActivity;
 
 public class FriendsActivity extends SherlockListActivity {

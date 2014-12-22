@@ -10,9 +10,9 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.Pull.pullapp.model.SMSMessage;
-import com.Pull.pullapp.util.ContentUtils;
-import com.Pull.pullapp.util.DatabaseHandler;
 import com.Pull.pullapp.util.SendUtils;
+import com.Pull.pullapp.util.data.ContentUtils;
+import com.Pull.pullapp.util.data.DatabaseHandler;
 import com.parse.FunctionCallback;
 import com.parse.ParseAnalytics;
 import com.parse.ParseCloud;

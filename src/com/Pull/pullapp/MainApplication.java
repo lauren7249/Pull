@@ -28,8 +28,8 @@ import com.Pull.pullapp.model.TwilioNumber;
 import com.Pull.pullapp.threads.AlarmScheduler;
 import com.Pull.pullapp.threads.UploadMyPhoto;
 import com.Pull.pullapp.util.Constants;
-import com.Pull.pullapp.util.ContentUtils;
-import com.Pull.pullapp.util.UserInfoStore;
+import com.Pull.pullapp.util.data.ContentUtils;
+import com.Pull.pullapp.util.data.UserInfoStore;
 import com.facebook.model.GraphUser;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.FunctionCallback;
@@ -37,6 +37,7 @@ import com.parse.LogInCallback;
 import com.parse.Parse;
 import com.parse.ParseACL;
 import com.parse.ParseCloud;
+import com.parse.ParseCrashReporting;
 import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
 import com.parse.ParseInstallation;
@@ -73,6 +74,9 @@ public class MainApplication extends Application {
 		ParseObject.registerSubclass(ShareEvent.class);
 		ParseObject.registerSubclass(TwilioNumber.class);
 		ParseObject.registerSubclass(InitiatingData.class);
+		
+		// Enable Crash Reporting
+		//ParseCrashReporting.enable(this);
 		
 		Parse.initialize(this, getString(R.string.parse_app_id), getString(R.string.parse_key));
 		ParseFacebookUtils.initialize(getString(R.string.facebook_app_id));	

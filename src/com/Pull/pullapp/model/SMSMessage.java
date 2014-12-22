@@ -11,8 +11,8 @@ import android.provider.Telephony.TextBasedSmsColumns;
 import android.util.Log;
 
 import com.Pull.pullapp.util.Constants;
-import com.Pull.pullapp.util.ContentUtils;
-import com.Pull.pullapp.util.UserInfoStore;
+import com.Pull.pullapp.util.data.ContentUtils;
+import com.Pull.pullapp.util.data.UserInfoStore;
 import com.parse.ParseACL;
 import com.parse.ParseClassName;
 import com.parse.ParseException;
@@ -33,7 +33,7 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 	private String messageID;
 	
     // Constructors
-    public SMSMessage() {
+    public SMSMessage() { 
     }
     
     /**

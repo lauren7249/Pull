@@ -1,5 +1,5 @@
 
-package com.Pull.pullapp.util;
+package com.Pull.pullapp.util.data;
 
 import java.util.Arrays;
 import java.util.List;
@@ -17,11 +17,13 @@ import android.util.Log;
 
 import com.Pull.pullapp.model.InitiatingData;
 import com.Pull.pullapp.model.SMSMessage;
+import com.Pull.pullapp.util.Constants;
+import com.parse.ParseException;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
 	// All Static variables
     // Database Version
-    private static final int DATABASE_VERSION = 11;
+    private static final int DATABASE_VERSION = 15;
  
     // Database Name
     public static final String DATABASE_NAME = "pullDB";
@@ -45,6 +47,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	public static final String KEY_CONVO_TYPE = "convo_type";
 	public static final String KEY_APPROVER = "approver";
 	public static final String KEY_OWNER = "owner";
+
+	private static final String KEY_PREVIOUS_HASHCODE = "previous_hashcode";
+
+	private static final String KEY_PREVIOUS_LENGTH = "previous_length";
+
+	private static final String KEY_PREVIOUS_WORDS = "previous_words";
 
 	
     
@@ -86,9 +94,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," 
         		+ KEY_MESSAGE_ID + " TEXT,"
         		+ KEY_THREAD_ID + " TEXT, "
-        		+ KEY_HOURS_ELAPSED + " LONG, "
+        		+ KEY_HOURS_ELAPSED + " TEXT, "
                 + KEY_RETEXTING + " INTEGER, " 
-        		+ KEY_AFTER_QUESTION  + " INTEGER" + ")";           
+        		+ KEY_AFTER_QUESTION  + " INTEGER,"
+        		+ KEY_PREVIOUS_LENGTH  + " INTEGER,"
+        		+ KEY_PREVIOUS_WORDS  + " INTEGER,"
+        		+ KEY_PREVIOUS_HASHCODE  + " INTEGER,"
+        		+ KEY_HASHCODE + " INTEGER )";           
         String CREATE_SHARED_SMS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_SHARED_CONVERSATION_SMS + "("
                 + KEY_ID + " TEXT," 
                 + KEY_HASHCODE + " INTEGER," 
@@ -360,7 +372,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         	return i;
         }
         cursor.moveToFirst();
-        i = new InitiatingData(cursor.getLong(3), cursor.getInt(4), cursor.getInt(5));
+        //Log.i("hours elapsed databasehandler ",""+ Float.valueOf(cursor.getString(cursor.getColumnIndex(KEY_HOURS_ELAPSED))));
+        i = new InitiatingData(
+        		Float.valueOf(cursor.getString(cursor.getColumnIndex(KEY_HOURS_ELAPSED))),
+        		cursor.getInt(cursor.getColumnIndex(KEY_RETEXTING)), 
+        		cursor.getInt(cursor.getColumnIndex(KEY_AFTER_QUESTION)), 
+        		cursor.getInt(cursor.getColumnIndex(KEY_PREVIOUS_LENGTH)), 
+        		cursor.getInt(cursor.getColumnIndex(KEY_PREVIOUS_WORDS)), 
+        		cursor.getInt(cursor.getColumnIndex(KEY_PREVIOUS_HASHCODE)),
+        		cursor.getInt(cursor.getColumnIndex(KEY_HASHCODE)));
         cursor.close();
 		return i;
 	}
@@ -374,29 +394,50 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 			SMSMessage current_message, SMSMessage previous_message) {
 		float hours_elapsed;
 		int after_question, retexting;
+		int previous_length;
+		int previous_words;
+		int previous_hashcode;
 		if(previous_message != null) {
-			Log.i("previous_message","previous_message " + previous_message.getDate());
+			//Log.i("previous_message","previous_message " + previous_message.getDate());
 	 		long milliseconds_elapsed = (long)(current_message.getDate() - previous_message.getDate());
 	 		long seconds_elapsed = (long) (milliseconds_elapsed*0.001);
 	 		long minutes_elapsed = (long) (seconds_elapsed*0.016666666667);
 	 		hours_elapsed = (float) (minutes_elapsed*0.016666666667);		
-	 		Log.i("hours elapsed","hours elapsed " + hours_elapsed);
-			after_question = previous_message.getMessage().contains("?") ? 1 : 0;
+	 		//
+			after_question = ContentUtils.isQuestion(previous_message.getMessage()) ? 1 : 0;
 			retexting = previous_message.getType()==current_message.getType() ? 1 : 0;
+			previous_length = previous_message.getMessage().length();
+			previous_words = previous_message.getMessage().split(" ").length;
+			previous_hashcode = previous_message.hashCode();
 		} else {
 			hours_elapsed = -1;
 			after_question = 0;
 			retexting = 0;
+			previous_length = 0;
+			previous_words = 0;
+			previous_hashcode = -1;
 		}
+		//Log.i("hours elapsed","hours elapsed " + hours_elapsed);
 	    ContentValues record = new ContentValues();
 	    record.put(KEY_THREAD_ID, thread_id);
 	    record.put(KEY_MESSAGE_ID, message_id);
-		record.put(KEY_HOURS_ELAPSED, hours_elapsed);
+		record.put(KEY_HOURS_ELAPSED, Float.toString(hours_elapsed));
 		record.put(KEY_RETEXTING, retexting);
 		record.put(KEY_AFTER_QUESTION, after_question);
+		record.put(KEY_PREVIOUS_LENGTH, previous_length);
+		record.put(KEY_PREVIOUS_WORDS, previous_words);
+		record.put(KEY_PREVIOUS_HASHCODE, previous_hashcode);
+		record.put(KEY_HASHCODE, current_message.hashCode());
         // Inserting Row
         db.insert(TABLE_INITIATING, null, record);
-        InitiatingData i = new InitiatingData(hours_elapsed, retexting, after_question);
+        InitiatingData i = new InitiatingData(hours_elapsed, retexting, after_question, 
+        		previous_length, previous_words, previous_hashcode, current_message.hashCode());
+        try {
+			i.save();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return i ;
 		//return null;
 	}

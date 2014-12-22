@@ -1,12 +1,13 @@
 package com.Pull.pullapp.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import android.graphics.Bitmap;
 import android.net.Uri;
 
-import com.Pull.pullapp.util.ContentUtils;
-import com.Pull.pullapp.util.UserInfoStore;
+import com.Pull.pullapp.util.data.ContentUtils;
+import com.Pull.pullapp.util.data.UserInfoStore;
 import com.parse.ParseClassName;
 
 @ParseClassName("MMSMessage")
@@ -14,9 +15,7 @@ public class MMSMessage extends SMSMessage {
 	private ArrayList<Uri> images = new ArrayList<Uri>();
 	private String[] recipients;
 	private String[] names;
-	/*public void addImage(Bitmap bitmap) {
-		images.add(bitmap);
-	}*/
+
 	private ArrayList<String> image_paths = new ArrayList<String>();
 	
     // Constructors
@@ -33,6 +32,8 @@ public class MMSMessage extends SMSMessage {
 		super(date,message,recipients[0],names[0],type,store,owner);
 		this.recipients = recipients;
 		this.names = names;
+		put("recipients",new ArrayList<String>(Arrays.asList(recipients)));
+		put("names",new ArrayList<String>(Arrays.asList(names)));
 	}
 
 	public ArrayList<Uri> getImages() {
@@ -41,13 +42,18 @@ public class MMSMessage extends SMSMessage {
 	}
 
 	public void addImage(Uri uri) {
-
 		images.add(uri);
 		image_paths.add(uri.toString());
+		put("n_images",images.size());
 	}
+	
+	public void setImageNumber(int n) {
+		put("n_images",n);
+	}	
 	public void setAttachments(ArrayList<Uri> intent_attachments) {
 		images = intent_attachments;
 		image_paths = getPaths(intent_attachments);
+		put("n_images",images.size());
 		
 	}
 	public static ArrayList<String> getPaths(ArrayList<Uri> uris) {

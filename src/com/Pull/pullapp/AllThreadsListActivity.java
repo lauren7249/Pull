@@ -32,11 +32,11 @@ import android.widget.Toast;
 
 import com.Pull.pullapp.adapter.ThreadItemsCursorAdapter;
 import com.Pull.pullapp.util.Constants;
-import com.Pull.pullapp.util.ContentUtils;
-import com.Pull.pullapp.util.DatabaseHandler;
-import com.Pull.pullapp.util.RecipientsAdapter;
-import com.Pull.pullapp.util.RecipientsEditor;
-import com.Pull.pullapp.util.UserInfoStore;
+import com.Pull.pullapp.util.contacts.RecipientsAdapter;
+import com.Pull.pullapp.util.contacts.RecipientsEditor;
+import com.Pull.pullapp.util.data.ContentUtils;
+import com.Pull.pullapp.util.data.DatabaseHandler;
+import com.Pull.pullapp.util.data.UserInfoStore;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;

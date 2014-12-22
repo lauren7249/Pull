@@ -8,10 +8,18 @@
 	android:background="@drawable/comment_box_background"	       	
  	android:layout_gravity="center|left"	
  	>
+	<TextView
+	    android:id="@+id/graphs_texts"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:text="Well hello there young bitches."
+	    android:layout_margin="10dp" 
+	    android:gravity="center"/>		 	
 	<it.sephiroth.android.library.widget.HListView
 	    android:id="@+id/graphs_list"
 	    android:layout_width="match_parent"
 	    android:layout_height="match_parent"
+	    android:layout_margin="10dp" 
 	    android:divider="@android:color/transparent" />		
 </LinearLayout>
     
