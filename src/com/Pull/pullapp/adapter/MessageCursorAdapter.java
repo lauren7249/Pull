@@ -271,12 +271,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 				@Override
 				public void onClick(View v) {
 					message.setApproved();
-					try {
-						message.saveToParse();
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					message.saveToParse();
 				}
 				
 			}) ;
@@ -302,7 +297,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		holder.messageBox.setLayoutParams(lp);		
 	}
 
-	private void populateTextConvo(final Context context, Cursor c, View v, boolean isnew) {
+	public void populateTextConvo(final Context context, Cursor c, View v, boolean isnew) {
 		String body="";
 		final String address;
 		long date;
@@ -344,22 +339,27 @@ public class MessageCursorAdapter extends CursorAdapter {
 		}
     	boolean initiating=false;
 
-    	SortedMap<Long, MMSMessage> submms, submms2;
+    	SortedMap<Long, MMSMessage> submms = null, submms2;
     	
     	if(c.moveToPrevious()) {
-    		long previous_date = c.getLong(6);
-    		int previous_type = Integer.parseInt(c.getString(1).toString());
-    		String previous_body = c.getString(2).toString();
-    		submms = mms.subMap(previous_date,date);
-	
     		
+    		if(v!=null) {
+	    		long previous_date = c.getLong(6);
+	    		int previous_type = Integer.parseInt(c.getString(1).toString());
+	    		String previous_body = c.getString(2).toString();
+	    		submms = mms.subMap(previous_date,date);
+	
+    		}
 			//initiating = ContentUtils.isInitiating(date, type, body, previous_date, previous_type, previous_body);
     		initiating = StatUtils.isInitiating(thread_id, SmsMessageId, mContext, date, store, message);
     		c.moveToNext();
     	} else if(date>0)  submms = mms.headMap(date);
-    	else {
+    	else if(v!=null) {
     		submms = mms;
     	}
+    	
+    	if(v==null && isnew) return;
+    	
     	Object[] mms_array = null, mms_array2 = null;
     	mms_array = submms.entrySet().toArray();
     	

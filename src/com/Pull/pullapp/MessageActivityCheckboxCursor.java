@@ -140,10 +140,12 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	protected static final int CONTEXTMENU_SHARE_SECTION = 2;	
 	protected static final int CONTEXTMENU_SHARE_PERSISTENT = 3;
 	private ArrayList<SMSMessage> messages;
-	private MessageCursorAdapter messages_adapter;
+	private static MessageCursorAdapter messages_adapter;
 	private EditText text;
-	private String name,number,newMessage;
-	private Context mContext;
+	private String name;
+	private static String number;
+	private String newMessage;
+	private static Context mContext;
 	private final Calendar calendar = Calendar.getInstance();
 	private Button pickDelay, send, share;
 	private GetOutboxMessages outbox_loader;
@@ -260,6 +262,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	private ArrayList<String> attachments = new ArrayList<String>();
 	private TextView mGraphText;
 	private String relationshipText;
+	public static boolean isUploaded;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -328,7 +331,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		emoji_button = (Button) this.findViewById(R.id.emoji_button);
 		share = (Button) this.findViewById(R.id.share_button);
 		pickDelay = (Button) this.findViewById(R.id.time_delay_button);
-		header_title = (TextView) this.findViewById(R.id.header);
+		
 		pickApprover  = (Button) this.findViewById(R.id.approvers_button);
 		viewSwitcher = (ViewSwitcher) this.findViewById(R.id.viewSwitcher);
 		graphViewSwitcher = (ViewSwitcher) this.findViewById(R.id.big_viewSwitcher);
@@ -341,6 +344,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		initials_view = (TextView) findViewById(R.id.original_person_initials);			
 		shared_with = (LinearLayout) findViewById(R.id.shared_with);
 		group_text_recipients = (TextView) findViewById(R.id.group_text_recipients);
+		header_title = (TextView) this.findViewById(R.id.header_title);
 		home_button = (ImageView) findViewById(R.id.home_button);
 		graphButton = (ImageView) findViewById(R.id.graph_button);
 		addPerson = (ImageView) findViewById(R.id.add_person);
@@ -423,9 +427,12 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			}
 			
 		});
-		if(numbers.length==1) {
+		
+		if(number != null) {
 			getRelationship();
-		}
+		}	
+		
+		isUploaded = store.getConvoUploaded(number);
 
 	}
 
@@ -653,12 +660,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 					m.launchedOn = scheduledOn;
 					m.setApprover(intent_approver);
 					addNewMessage(m, false);
-					try {
-						m.saveToParse();
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					m.saveToParse();
 					if(!m.isDelayed) {
 						new CountDownTimer(scheduledFor-scheduledOn,1000) {
 
@@ -689,12 +691,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 					ArrayList<Uri> intent_attachments = DelayedMMSService.stringsToUris(intent.getStringArrayListExtra(Constants.EXTRA_ATTACHMENT_PATHS));
 					m.setAttachments(intent_attachments);
 					addNewMessage(m, false);
-					try {
-						m.saveToParse();
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					m.saveToParse();
 					if(!m.isDelayed) {
 						new CountDownTimer(scheduledFor-scheduledOn,1000) {
 
@@ -943,10 +940,35 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			    	e.printStackTrace();
 				}
 			}
-	    	if(messages_cursor!=null) messages_cursor.close();
+	    	//if(messages_cursor!=null) messages_cursor.close();
 			return null;
 	     }
 	 }	
+	 
+	 private static class UploadConvo extends AsyncTask<Cursor, Void, Void> {
+	     protected Void doInBackground(Cursor... c) {
+			Cursor messages_cursor = c[0];
+	    	int num = messages_cursor.getCount();
+	    	String owner = ParseUser.getCurrentUser().getUsername();			
+	    	for (int i=0; i<num; i++) {
+	    		messages_cursor.moveToPosition(i);
+	    		messages_adapter.populateTextConvo(mContext, messages_cursor, null, true);
+	    		try {
+					Thread.sleep(300);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			return null;
+	     }
+	     protected Void onPostExecute(Void... v) {
+	    	 isUploaded = true;
+	    	 store.setConvoUploaded(number);
+			return null;
+	    	 
+	     }
+	 }		 
 	private void rePopulateMessages() {
 		//Log.i("log","repopulate messages");
 		removeMessage();
@@ -955,7 +977,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		messages_adapter.swapCursor(messages_cursor);
 
 		//Log.i("merge_adapter","merge_adapter size "+merge_adapter.getCount());
-
+		
+		if(!isUploaded) new UploadConvo().execute(messages_cursor);
+		
 		messages_adapter.notifyDataSetChanged();
 		merge_adapter.notifyDataSetChanged();
 
@@ -1179,20 +1203,16 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 
 	private void populateSharedMessages(final String shared_convoID) {
-		//Log.i("shared convo type",""+shared_convo_type);
-		//Log.i("shared_sender",shared_sender);
-		//Log.i("shared_confidante",shared_confidante);
-		//Log.i("clueless_persons_name",clueless_persons_name);
 		messages = new ArrayList<SMSMessage>();
 		queue_adapter = new QueuedMessageAdapter(this,messages);
 		merge_adapter = new MergeAdapter();		
 		
 		if(shared_convo_type==TextBasedSmsColumns.MESSAGE_TYPE_INBOX) {
+			topViewSwitcher.setDisplayedChild(3);
 			shared_conversant = shared_sender;
 			isMine = false;
 			shared_with.setVisibility(View.GONE);
 			shared_conversant_name = store.getName(shared_conversant);
-			header_title.setVisibility(View.VISIBLE);
 			header_title.setText(shared_conversant_name + "'s convo");
 		}
 		else {

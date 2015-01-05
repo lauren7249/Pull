@@ -28,6 +28,7 @@ public class UserInfoStore {
 	private SharedPreferences mPrefs;
 	private SharedPreferences mPrefs_phoneNumber_recipientID;
 	private SharedPreferences phoneNumber_relationshipSummary;
+	private SharedPreferences phoneNumber_isUploaded;
 	public UserInfoStore(Context context) {
 		this.mContext = context;
     	mPrefs = mContext.getSharedPreferences(MainApplication.class.getSimpleName(),Context.MODE_PRIVATE);		
@@ -50,6 +51,9 @@ public class UserInfoStore {
     	phoneNumber_relationshipSummary = context
     			.getSharedPreferences(MainApplication.class.getSimpleName() 
     			+ "phoneNumber_relationshipSummary",Context.MODE_PRIVATE);     	
+    	phoneNumber_isUploaded = context
+    			.getSharedPreferences(MainApplication.class.getSimpleName() 
+    			+ "phoneNumber_isUploaded",Context.MODE_PRIVATE);      	
     	mPrefs_sms_sharedWith = context
     			.getSharedPreferences(ThreadItemsCursorAdapter.class.getSimpleName() 
     			+ "mPrefs_sms_sharedWith",Context.MODE_PRIVATE); 
@@ -235,5 +239,15 @@ public class UserInfoStore {
 		editor.putString(ContentUtils.addCountryCode(number), summary);	
 		editor.commit();	
 		
+	}
+	
+	public boolean getConvoUploaded(String number) {
+		// TODO Auto-generated method stub
+		return phoneNumber_isUploaded.getBoolean(ContentUtils.addCountryCode(number), false);
+	}	
+	public void setConvoUploaded(String number) {
+		Editor editor = phoneNumber_isUploaded.edit();
+		editor.putBoolean(ContentUtils.addCountryCode(number), true);	
+		editor.commit();	
 	}
 }

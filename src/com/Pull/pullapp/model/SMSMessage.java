@@ -160,18 +160,11 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 		return getLong("futureSendTime");
 	}
 	
-	public void saveToParse() throws JSONException {
+	public void saveToParse()  {
 		put("hashCode", this.hashCode());
 		put("confidantes",new ArrayList<String>(getConfidantes()));
 		this.setACL(acl);
-		this.saveInBackground(new SaveCallback() {
-			   public void done(ParseException e) {
-				     if (e == null) {
-				     } else {
-				       Log.i("error", e.getMessage());
-				     }
-			   }
-		});
+		this.saveEventually();
 	}
 
 

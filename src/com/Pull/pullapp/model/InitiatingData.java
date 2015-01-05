@@ -33,6 +33,18 @@ public class InitiatingData extends ParseObject {
  		if(getBoolean("retexting")==false) {
  			if (hours_elapsed > 24) return true;
  			if (hours_elapsed > 8 && !getBoolean("after_question")) return true;
+ 			if (hours_elapsed > 4 && !getBoolean("after_question") &&
+ 					(getInt("previous_length")<30 || getInt("previous_words")<=6)) return true; 	 			
+ 			if (hours_elapsed > 2 && !getBoolean("after_question") &&
+ 					(getInt("previous_length")<25 || getInt("previous_words")<=5)) return true; 	 			
+ 			if (hours_elapsed > 1 && !getBoolean("after_question") &&
+ 					(getInt("previous_length")<20 || getInt("previous_words")<=4)) return true; 			
+ 			if (hours_elapsed > 0.5 && !getBoolean("after_question") &&
+ 					(getInt("previous_length")<15 || getInt("previous_words")<=3)) return true;
+ 			if (hours_elapsed > 0.333 && !getBoolean("after_question") &&
+ 					(getInt("previous_length")<10 || getInt("previous_words")<=2)) return true; 	
+ 			if (hours_elapsed > 0.167 && !getBoolean("after_question") &&
+ 					(getInt("previous_length")<5 || getInt("previous_words")<=1)) return true;  			
  		}
  		return false;
 	}

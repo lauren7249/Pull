@@ -177,14 +177,9 @@ public class GeneralBroadcastReceiver extends BroadcastReceiver {
 	                m.setType(TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);                      
 	            }         	
             }
-			try {
-				m.saveToParse();
-				Log.i("saving to parse",m.getType() + "type");
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}               	
-            return;
+			m.saveToParse();
+
+	        return;
         }        
         if (action.equals(Constants.ACTION_SHARE_TAG)) {
             String recipient = intent.getStringExtra(Constants.EXTRA_RECIPIENT);

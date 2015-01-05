@@ -91,13 +91,8 @@ public class SMSReceiverDefault extends BroadcastReceiver {
 					SMSMessage m = new SMSMessage(date, message, sender, 
 							name, TextBasedSmsColumns.MESSAGE_TYPE_INBOX, store, 
 							ParseUser.getCurrentUser().getUsername());
-					try {
-						m.saveToParse();
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					
+					m.saveToParse();
+
 					NotificationManager mNotificationManager = (NotificationManager) context
 							.getSystemService(Context.NOTIFICATION_SERVICE);
 					int icon;

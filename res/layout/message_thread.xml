@@ -50,9 +50,7 @@
 				        android:color="@android:color/white" >
 			
 				    </ListView>
-	
-	     
-		
+			
 				    <ViewSwitcher
 				        android:id="@+id/viewSwitcher"
 				        android:layout_width="match_parent"

@@ -432,12 +432,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.insert(TABLE_INITIATING, null, record);
         InitiatingData i = new InitiatingData(hours_elapsed, retexting, after_question, 
         		previous_length, previous_words, previous_hashcode, current_message.hashCode());
-        try {
-			i.save();
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        i.saveEventually();
 		return i ;
 		//return null;
 	}
