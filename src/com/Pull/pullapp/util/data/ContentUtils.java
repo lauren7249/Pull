@@ -59,6 +59,7 @@ import com.Pull.pullapp.model.InitiatingData;
 import com.Pull.pullapp.model.MMSMessage;
 import com.Pull.pullapp.model.MessageParams;
 import com.Pull.pullapp.model.SMSMessage;
+import com.Pull.pullapp.util.Constants;
 import com.jjoe64.graphview.CustomLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GraphView.GraphViewData;
@@ -510,33 +511,63 @@ public class ContentUtils {
 	        return messages_cursor;
 		}
 
-		public static SMSMessage getPreviousMessage(Context context, String thread_id,
-				Long date, UserInfoStore store) {
-			SMSMessage previous_message;
+		public static ArrayList<SMSMessage> getPreviousMessage(Context context, String thread_id,
+				Long date, UserInfoStore store, int type) {
+			SMSMessage c_message;
+			ArrayList<SMSMessage> previous_messages = new ArrayList<SMSMessage>();
 			Uri message_ids = Uri.parse("content://mms-sms/conversations/" + thread_id);
 			Cursor cursor = context.getContentResolver().query(message_ids, 
 					new String[]{"_id", "date", "normalized_date"},
 					 "normalized_date<" + date, null, "normalized_date desc");
 			//
+			int next_type = 0;
+			long next_date_normalized = 0;
 			if(cursor!=null && cursor.moveToFirst()) {
-				String previous_message_id = cursor.getString(0);
-				long previous_date = cursor.getLong(1);
-				long previous_n_date = cursor.getLong(2);
-				//previous message is mms
-				if(previous_n_date!=previous_date){
-					//
-					previous_message = ContentUtils
-							.getMMSMessage(context,thread_id,previous_message_id, store);
-				} else {
-					//Log.i("previous message id ",previous_message_id);
-					previous_message = ContentUtils
-							.getSMSMessage(context,thread_id,previous_message_id, store);
-				}
-				if(previous_message!=null) previous_message.setMessageID(previous_message_id);
-				return previous_message;
+				do {
+					
+					String c_message_id = cursor.getString(0);
+					long c_date = cursor.getLong(1);
+					long c_date_normalized = cursor.getLong(2);
+
+					//previous message is mms
+					if(c_date_normalized!=c_date){
+						//
+						c_message = ContentUtils
+								.getMMSMessage(context,thread_id,c_message_id, store);
+					} else {
+						//Log.i("previous message id ",previous_message_id);
+						c_message = ContentUtils
+								.getSMSMessage(context,thread_id,c_message_id, store);
+					}
+					
+					//we arent on the last prior message
+					if(next_type != 0) {
+						//the next prior message is from a 
+						//different sender, so we will ignore the current message
+						if(next_type != c_message.getType()) break;
+						//the next prior message is from the same sender
+						//but it is too much later to be considered the same message
+						if(next_date_normalized>0 &&
+								next_date_normalized-c_date_normalized > 
+								Constants.MAX_HOURS_ELAPSED_BEFORE_REINITIATING 
+								* Constants.MILLISECONDS_PER_HOUR) break;
+					}
+					
+					if(c_message!=null) c_message.setMessageID(c_message_id);
+					previous_messages.add(0,c_message);
+					
+					//the last message was from the same user as the current message, so its all we need
+					if(c_message.getType()==type) break;
+					
+					/**the last prior message was from the other user, so we may need to grab 
+					 * more of their previous messages
+					 */
+					next_date_normalized = c_date_normalized;
+					next_type = c_message.getType();
+				} while(cursor.moveToNext());
 			}
 			if(cursor!=null) cursor.close();
-			return null;
+			return previous_messages;
 		}
 
 		private static SMSMessage getSMSMessage(Context context,
@@ -720,6 +751,14 @@ public class ContentUtils {
 				if(Arrays.asList(pronounWords).contains(nextWord)) return true;
 			}
 			return false;
+		}
+
+		public static String getFullMessageBody(ArrayList<SMSMessage> previous_messages) {
+			String full_message = "";
+			for(SMSMessage m : previous_messages) {
+				full_message = full_message + m.getMessage() + "\n ";
+			}
+			return full_message;
 		}			
 		
 }

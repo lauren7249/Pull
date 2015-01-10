@@ -1,6 +1,7 @@
 
 package com.Pull.pullapp.util.data;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.TreeSet;
@@ -23,7 +24,7 @@ import com.parse.ParseException;
 public class DatabaseHandler extends SQLiteOpenHelper {
 	// All Static variables
     // Database Version
-    private static final int DATABASE_VERSION = 15;
+    private static final int DATABASE_VERSION = 16;
  
     // Database Name
     public static final String DATABASE_NAME = "pullDB";
@@ -65,11 +66,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	private String KEY_HOURS_ELAPSED ="hours_elapsed";
 	private String KEY_RETEXTING = "retexting";
 	private String KEY_AFTER_QUESTION = "after_question";
+
+	private UserInfoStore store;
     
 	public DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         db = this.getWritableDatabase();
         mContext = context;
+        store = new UserInfoStore(mContext);
     }
  
     // Creating Tables
@@ -100,7 +104,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         		+ KEY_PREVIOUS_LENGTH  + " INTEGER,"
         		+ KEY_PREVIOUS_WORDS  + " INTEGER,"
         		+ KEY_PREVIOUS_HASHCODE  + " INTEGER,"
-        		+ KEY_HASHCODE + " INTEGER )";           
+        		+ KEY_HASHCODE + " INTEGER,"
+        		+ KEY_DATE + " INTEGER )";           
         String CREATE_SHARED_SMS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_SHARED_CONVERSATION_SMS + "("
                 + KEY_ID + " TEXT," 
                 + KEY_HASHCODE + " INTEGER," 
@@ -244,6 +249,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	}
 
 	public Cursor getPendingMessagesCursor(String number){
+		Log.i("getPendingMessagesCursor", number);
         return db.query(TABLE_OUTBOX, null, 
         		TextBasedSmsColumns.ADDRESS+"=?", 
         		new String[] { number }, 
@@ -366,9 +372,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 new String[] { thread_id, message_id}, 
                 null, null, null, null);   
         if(cursor == null || cursor.getCount()==0) {
-        	SMSMessage previous_message = ContentUtils.
-        			getPreviousMessage(context, thread_id, date, store);
-			i = createInitiatingRecord(thread_id, message_id, current_message, previous_message);
+        	ArrayList<SMSMessage> previous_messages = ContentUtils.
+        			getPreviousMessage(context, thread_id, date, store, current_message.getType());
+			i = createInitiatingRecord(thread_id, message_id, current_message, previous_messages);
         	return i;
         }
         cursor.moveToFirst();
@@ -380,7 +386,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         		cursor.getInt(cursor.getColumnIndex(KEY_PREVIOUS_LENGTH)), 
         		cursor.getInt(cursor.getColumnIndex(KEY_PREVIOUS_WORDS)), 
         		cursor.getInt(cursor.getColumnIndex(KEY_PREVIOUS_HASHCODE)),
-        		cursor.getInt(cursor.getColumnIndex(KEY_HASHCODE)));
+        		cursor.getInt(cursor.getColumnIndex(KEY_HASHCODE)),
+        		cursor.getInt(cursor.getColumnIndex(KEY_DATE)));
         cursor.close();
 		return i;
 	}
@@ -391,31 +398,31 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	 * @return the information that will be used to determine whether this message is initiating
 	 */
 	private InitiatingData createInitiatingRecord(String thread_id, String message_id, 
-			SMSMessage current_message, SMSMessage previous_message) {
+			SMSMessage current_message, ArrayList<SMSMessage> previous_messages) {
 		float hours_elapsed;
 		int after_question, retexting;
 		int previous_length;
 		int previous_words;
 		int previous_hashcode;
-		if(previous_message != null) {
+		if(previous_messages != null && previous_messages.size()>0) {
 			//Log.i("previous_message","previous_message " + previous_message.getDate());
-	 		long milliseconds_elapsed = (long)(current_message.getDate() - previous_message.getDate());
-	 		long seconds_elapsed = (long) (milliseconds_elapsed*0.001);
-	 		long minutes_elapsed = (long) (seconds_elapsed*0.016666666667);
+			float milliseconds_elapsed = (float)(current_message.getDate() - previous_messages.get(0).getDate());
+			float seconds_elapsed = (float) (milliseconds_elapsed*0.001);
+			float minutes_elapsed = (float) (seconds_elapsed*0.016666666667);
 	 		hours_elapsed = (float) (minutes_elapsed*0.016666666667);		
-	 		//
-			after_question = ContentUtils.isQuestion(previous_message.getMessage()) ? 1 : 0;
-			retexting = previous_message.getType()==current_message.getType() ? 1 : 0;
-			previous_length = previous_message.getMessage().length();
-			previous_words = previous_message.getMessage().split(" ").length;
-			previous_hashcode = previous_message.hashCode();
+	 		String previous_message_body = ContentUtils.getFullMessageBody(previous_messages);
+			after_question = ContentUtils.isQuestion(previous_message_body) ? 1 : 0;
+			retexting = previous_messages.get(previous_messages.size()-1).getType()==current_message.getType() ? 1 : 0;	
+			previous_length = previous_message_body.length();
+			previous_words = previous_message_body.split(" ").length;
+			previous_hashcode = previous_messages.get(previous_messages.size()-1).hashCode();
 		} else {
 			hours_elapsed = -1;
 			after_question = 0;
 			retexting = 0;
 			previous_length = 0;
 			previous_words = 0;
-			previous_hashcode = -1;
+			previous_hashcode = current_message.getAddress().hashCode();
 		}
 		//Log.i("hours elapsed","hours elapsed " + hours_elapsed);
 	    ContentValues record = new ContentValues();
@@ -428,11 +435,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		record.put(KEY_PREVIOUS_WORDS, previous_words);
 		record.put(KEY_PREVIOUS_HASHCODE, previous_hashcode);
 		record.put(KEY_HASHCODE, current_message.hashCode());
+		record.put(KEY_DATE, current_message.getDate());
         // Inserting Row
         db.insert(TABLE_INITIATING, null, record);
         InitiatingData i = new InitiatingData(hours_elapsed, retexting, after_question, 
-        		previous_length, previous_words, previous_hashcode, current_message.hashCode());
-        i.saveEventually();
+        		previous_length, previous_words, previous_hashcode, current_message.hashCode(), 
+        		current_message.getDate());
+        i.saveToParse(current_message);
 		return i ;
 		//return null;
 	}

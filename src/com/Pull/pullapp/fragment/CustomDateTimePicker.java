@@ -18,6 +18,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TimePicker;
 import android.widget.TimePicker.OnTimeChangedListener;
+import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
 public class CustomDateTimePicker implements OnClickListener {
@@ -274,10 +275,15 @@ public void onClick(View v) {
             int year = datePicker.getYear();
             int day = datePicker.getDayOfMonth();
 
-
+            
+            
             calendar_date.set(year, month, day, selectedHour,
                     selectedMinute);
-
+            if(calendar_date.getTime().before(new Date(System.currentTimeMillis()))) {
+            	Toast.makeText(activity, "You can't schedule a text in the past...", 
+            			Toast.LENGTH_LONG).show();
+            	break;
+            }
             iCustomDateTimeListener.onSet(dialog, calendar_date,
                     calendar_date.getTime(), calendar_date
                             .get(Calendar.YEAR),

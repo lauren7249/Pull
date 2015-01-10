@@ -948,11 +948,16 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	 private static class UploadConvo extends AsyncTask<Cursor, Void, Void> {
 	     protected Void doInBackground(Cursor... c) {
 			Cursor messages_cursor = c[0];
+			if(messages_cursor==null) return null;
+	    	 isUploaded = true;
+	    	 store.setConvoUploaded(number);			
 	    	int num = messages_cursor.getCount();
 	    	String owner = ParseUser.getCurrentUser().getUsername();			
 	    	for (int i=0; i<num; i++) {
+	    		int k = messages_cursor.getPosition();
 	    		messages_cursor.moveToPosition(i);
 	    		messages_adapter.populateTextConvo(mContext, messages_cursor, null, true);
+	    		messages_cursor.moveToPosition(k);
 	    		try {
 					Thread.sleep(300);
 				} catch (InterruptedException e) {
@@ -962,23 +967,15 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 			}
 			return null;
 	     }
-	     protected Void onPostExecute(Void... v) {
-	    	 isUploaded = true;
-	    	 store.setConvoUploaded(number);
-			return null;
-	    	 
-	     }
 	 }		 
 	private void rePopulateMessages() {
-		//Log.i("log","repopulate messages");
+		Log.i("log","repopulate messages");
 		removeMessage();
 		messages_cursor = ContentUtils.getMessagesCursor(mContext,thread_id, number, hasMMS);
 
 		messages_adapter.swapCursor(messages_cursor);
 
 		//Log.i("merge_adapter","merge_adapter size "+merge_adapter.getCount());
-		
-		if(!isUploaded) new UploadConvo().execute(messages_cursor);
 		
 		messages_adapter.notifyDataSetChanged();
 		merge_adapter.notifyDataSetChanged();
@@ -990,6 +987,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		mListView.setTranscriptMode(ListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
 		mListView.setAdapter(merge_adapter);	
 		//Log.i("mListView","mListView size "+mListView.getCount());
+		
+		if(!isUploaded || true) 
+			new UploadConvo().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, messages_cursor);		
 	}
 
 	private void populateMessages(){
@@ -1775,6 +1775,8 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
         	setIntent(intent);
         }
         
+        if(sendDate!=null && sendDate.before(new Date(System.currentTimeMillis()))) sendDate = null;
+        
 		//sendMMS();
         if(!isMMS) 
         	new DelayedSend(mContext, number, newMessage, sendDate, new Date().getTime(), approver).start();
@@ -1837,8 +1839,9 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	public void removeMessage() {
 		queue_adapter.delayedMessages.clear();
 		messages.clear();
+		Log.i("removemessage","about to getoutboxmessages");
 		outbox_loader = new GetOutboxMessages();
-		outbox_loader.execute(); 
+		outbox_loader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 		queue_adapter.notifyDataSetChanged();
 		merge_adapter.notifyDataSetChanged();
 	}	
@@ -1991,6 +1994,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	  	SMSMessage m;
 	  	@Override
 		protected Void doInBackground(Void... params) {
+	  		Log.i("GetOutboxMessages", "doInBackground");
 	  		if(number==null) return null;
 	        dh = new DatabaseHandler(mContext);
 	        pending_messages_cursor = dh.getPendingMessagesCursor(number); 

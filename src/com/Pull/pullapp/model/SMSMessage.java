@@ -68,7 +68,7 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 		put("username", ParseUser.getCurrentUser().getUsername());        
     	this.store = store;
     }    
-    
+
     public void setMessageID(String id) {
     	this.messageID = id;
     }
@@ -164,7 +164,8 @@ public class SMSMessage extends ParseObject implements Comparable<SMSMessage> {
 		put("hashCode", this.hashCode());
 		put("confidantes",new ArrayList<String>(getConfidantes()));
 		this.setACL(acl);
-		this.saveEventually();
+		//this.saveEventually();
+		this.saveInBackground();
 	}
 
 

@@ -150,6 +150,7 @@ public class ThumbnailManager extends BackgroundLoaderManager {
             mPendingTaskUris.add(uri);
             Runnable task = new ThumbnailTask(uri, isVideo);
             mExecutor.execute(task);
+
         }
         return new ItemLoadedFuture() {
             private boolean mIsDone;

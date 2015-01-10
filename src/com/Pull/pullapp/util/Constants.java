@@ -167,6 +167,8 @@ public class Constants {
 	public static final String ACTION_SEND_DELAYED_MMS = PACKAGE_NAME + ".util.ACTION_SEND_DELAYED_MMS";
 	public static final String ACTION_MMS_INBOXED = PACKAGE_NAME + ".util.ACTION_MMS_INBOXED";
 	public static final String EXTRA_ATTACHMENT_PATHS = PACKAGE_NAME + "EXTRA_ATTACHMENT_PATHS";
+	public static final float MAX_HOURS_ELAPSED_BEFORE_REINITIATING = (float) 0.167;
+	public static final float MILLISECONDS_PER_HOUR = 60*60*1000;
 	
 	
 

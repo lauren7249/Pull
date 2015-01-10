@@ -23,6 +23,7 @@ import android.provider.Telephony;
 import android.provider.Telephony.TextBasedSmsColumns;
 import android.support.v4.widget.CursorAdapter;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -347,18 +348,22 @@ public class MessageCursorAdapter extends CursorAdapter {
 	    		long previous_date = c.getLong(6);
 	    		int previous_type = Integer.parseInt(c.getString(1).toString());
 	    		String previous_body = c.getString(2).toString();
-	    		submms = mms.subMap(previous_date,date);
+	    		if(date>previous_date) submms = mms.subMap(previous_date,date);
+	    		else submms = mms.subMap(date,previous_date);
 	
     		}
 			//initiating = ContentUtils.isInitiating(date, type, body, previous_date, previous_type, previous_body);
     		initiating = StatUtils.isInitiating(thread_id, SmsMessageId, mContext, date, store, message);
     		c.moveToNext();
-    	} else if(date>0)  submms = mms.headMap(date);
+    	} else if(date>0)  {
+    		submms = mms.headMap(date);
+    		initiating = StatUtils.isInitiating(thread_id, SmsMessageId, mContext, date, store, message);
+    	}
     	else if(v!=null) {
     		submms = mms;
     	}
     	
-    	if(v==null && isnew) return;
+    	if(v==null || (v.getTag()==null && !isnew)) return;
     	
     	Object[] mms_array = null, mms_array2 = null;
     	mms_array = submms.entrySet().toArray();
@@ -370,10 +375,13 @@ public class MessageCursorAdapter extends CursorAdapter {
     	
     	
 		final ViewHolder holder; 
-		if(isnew) holder = new ViewHolder();
+		if(isnew) {
+			holder = new ViewHolder();
+			v.setTag(holder);
+		}
 		else holder = (ViewHolder) v.getTag();
-		v.setTag(holder);
 		
+		//Log.i("holder.main_sms_box is null","" + (holder.main_sms_box==null));
 		holder.main_sms_box = (LinearLayout) v.findViewById(R.id.main_sms_box);
 		holder.separator = (View) v.findViewById(R.id.separator);
 		holder.mms_space = (LinearLayout) v.findViewById(R.id.mms_space);
