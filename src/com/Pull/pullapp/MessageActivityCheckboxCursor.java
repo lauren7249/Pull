@@ -952,9 +952,10 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	    	 isUploaded = true;
 	    	 store.setConvoUploaded(number);			
 	    	int num = messages_cursor.getCount();
-	    	String owner = ParseUser.getCurrentUser().getUsername();			
+	    	//String owner = ParseUser.getCurrentUser().getUsername();			
 	    	for (int i=0; i<num; i++) {
 	    		int k = messages_cursor.getPosition();
+	    		if(k==-1) k = num-1;
 	    		messages_cursor.moveToPosition(i);
 	    		messages_adapter.populateTextConvo(mContext, messages_cursor, null, true);
 	    		messages_cursor.moveToPosition(k);
