@@ -1092,6 +1092,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 
 
 	protected void graphTabSelected(String original_number, String original_name) {
+		originalConversation(original_number,original_name);
 		mixpanel.track("graph tab selected", null);
 		initials_view.setBackgroundResource(R.drawable.circle);
 		initials_view.setTypeface(null, Typeface.NORMAL);

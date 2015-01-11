@@ -100,7 +100,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 		this.activity = activity;
 		this.isTextConvo = false;
 		this.isMine = isMine;
-		
+		mms = new TreeMap<Long, MMSMessage>();
 		cu  = new ContentUtils();
     }
 	
