@@ -268,10 +268,17 @@ public class ViewPagerSignIn extends BaseActivity {
 			mApp.setPasswordSalt(mPasswordSalt);
 			if (mParseUser!=null &&  mParseUser.getUsername()!=null && !mParseUser.getUsername().isEmpty() &&
 					mParseUser.isDataAvailable() && mParseUser.isAuthenticated()) {
-				mixpanel.track("Authenticated & signed in", jsonUser);
+				Log.i("log","Authenticated & signed in");
 				try {
 					mPasswordString = MainApplication.generateStrongPasswordHash(mPhoneNumber,mPasswordSalt);
 					ParseUser.logIn(mPhoneNumber, mPasswordString);
+					if(mParseUser.getEmail()==null && false){
+						Log.i("tag","email is null");
+						Session session = ParseFacebookUtils.getSession();
+						if (session != null && session.isOpened()) {
+							makeMeRequest(session, null); 
+						} 	
+					}
 					if(mParseUser.get("profilePhoto")==null && false) openPhotoPicker();
 					else openThreads();				
 				} catch (NoSuchAlgorithmException e) {  
@@ -594,7 +601,7 @@ public class ViewPagerSignIn extends BaseActivity {
 		super.onActivityResult(requestCode, resultCode, data);
 	}	
 	private void makeMeRequest(Session session, final View v) {
-		mixpanel.track("makeMeRequest", jsonUser);
+		//mixpanel.track("makeMeRequest", jsonUser);
 		Request request = Request.newMeRequest(session,
 				new Request.GraphUserCallback() {
 					@Override
@@ -602,21 +609,10 @@ public class ViewPagerSignIn extends BaseActivity {
 						showdialog = false;  
 						store.saveFacebookID(mPhoneNumber, user.getId());
 						mixpanel.track("makeMeRequest completed", jsonUser);
-						basicLogin(v);	
-						if (user != null) {
-							mixpanel.track("makeMeRequest found graph user", jsonUser);
-							//Log.d("tag","Found graph user");
-							augmentProfile(user);
-							
-						} else if (response.getError() != null) {
-							mixpanel.track("makeMeRequest error " + response.getError().getCategory(), jsonUser);
-							if ((response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_RETRY)
-									|| (response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_REOPEN_SESSION)) {
-								Log.d("tag","The facebook session was invalidated.");
-							} else {
-								Log.d("tag","Some other error: "+ response.getError().getErrorMessage());
-							}
-						}
+						if(v!=null) basicLogin(v);	
+						
+						Log.d("tag","Found graph user " + user.getProperty("email"));
+						augmentProfile(user);
 					}
 				});
 		request.executeAsync();
@@ -634,7 +630,10 @@ public class ViewPagerSignIn extends BaseActivity {
         			mixpanel.track("saved fb user NOT saved failure " + e.getMessage(), jsonUser);
         		}
 			 }
-		 });	
+		 });
+    	
+    	ParseUser.getCurrentUser().setEmail((String) user.getProperty("email"));
+    	ParseUser.getCurrentUser().saveEventually();
 	}	
 		
     private boolean appInstalled(String uri)
