@@ -24,7 +24,7 @@ import com.parse.ParseException;
 public class DatabaseHandler extends SQLiteOpenHelper {
 	// All Static variables
     // Database Version
-    private static final int DATABASE_VERSION = 16;
+    private static final int DATABASE_VERSION = 17;
  
     // Database Name
     public static final String DATABASE_NAME = "pullDB";
@@ -54,6 +54,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	private static final String KEY_PREVIOUS_LENGTH = "previous_length";
 
 	private static final String KEY_PREVIOUS_WORDS = "previous_words";
+
+	private static final String KEY_ADDRESS = "address";
 
 	
     
@@ -105,7 +107,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         		+ KEY_PREVIOUS_WORDS  + " INTEGER,"
         		+ KEY_PREVIOUS_HASHCODE  + " INTEGER,"
         		+ KEY_HASHCODE + " INTEGER,"
-        		+ KEY_DATE + " INTEGER )";           
+        		+ KEY_DATE + " INTEGER,"
+        		+ KEY_ADDRESS + " STRING )";           
         String CREATE_SHARED_SMS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_SHARED_CONVERSATION_SMS + "("
                 + KEY_ID + " TEXT," 
                 + KEY_HASHCODE + " INTEGER," 
@@ -373,7 +376,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 null, null, null, null);   
         if(cursor == null || cursor.getCount()==0) {
         	ArrayList<SMSMessage> previous_messages = ContentUtils.
-        			getPreviousMessage(context, thread_id, date, store, current_message.getType());
+        			getPreviousMessages(context, thread_id, date, store, current_message.getType());
 			i = createInitiatingRecord(thread_id, message_id, current_message, previous_messages);
         	return i;
         }
@@ -387,7 +390,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         		cursor.getInt(cursor.getColumnIndex(KEY_PREVIOUS_WORDS)), 
         		cursor.getInt(cursor.getColumnIndex(KEY_PREVIOUS_HASHCODE)),
         		cursor.getInt(cursor.getColumnIndex(KEY_HASHCODE)),
-        		cursor.getInt(cursor.getColumnIndex(KEY_DATE)));
+        		cursor.getInt(cursor.getColumnIndex(KEY_DATE)),
+        		cursor.getString(cursor.getColumnIndex(KEY_ADDRESS)));
         cursor.close();
 		return i;
 	}
@@ -436,11 +440,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		record.put(KEY_PREVIOUS_HASHCODE, previous_hashcode);
 		record.put(KEY_HASHCODE, current_message.hashCode());
 		record.put(KEY_DATE, current_message.getDate());
+		record.put(KEY_ADDRESS, current_message.getAddress());
         // Inserting Row
         db.insert(TABLE_INITIATING, null, record);
         InitiatingData i = new InitiatingData(hours_elapsed, retexting, after_question, 
         		previous_length, previous_words, previous_hashcode, current_message.hashCode(), 
-        		current_message.getDate());
+        		current_message.getDate(), current_message.getAddress());
         i.saveToParse(current_message);
 		return i ;
 		//return null;

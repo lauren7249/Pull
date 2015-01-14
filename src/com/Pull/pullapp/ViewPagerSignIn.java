@@ -145,7 +145,7 @@ public class ViewPagerSignIn extends BaseActivity {
 	    }
 	    else mPhoneNumber = mApp.getUserName();
 	    
-	    if(mApp.getPasswordSalt()==null) {
+	   if(mApp.getPasswordSalt()==null) {
 		    mPasswordSalt = tMgr.getSimSerialNumber();
 			//mPasswordSalt = null;
 	    }
@@ -459,7 +459,7 @@ public class ViewPagerSignIn extends BaseActivity {
 	    		ViewPagerSignIn.this, "", "Signing up...", true);	
 	    showdialog=false;
 		List<String> permissions = Arrays.asList("basic_info", "user_about_me",
-				"user_relationships", "user_birthday", "user_location");
+				"user_relationships", "user_birthday", "user_location","email");
 		ParseFacebookUtils.logIn(permissions,this, new LogInCallback() {
 			  @Override
 			  public void done(ParseUser user, ParseException err) {
@@ -502,7 +502,7 @@ public class ViewPagerSignIn extends BaseActivity {
 	    		ViewPagerSignIn.this, "", "Signing up...", true);	
 		try {
 			mPasswordString = MainApplication.generateStrongPasswordHash(mApp.getUserName(),mApp.getPasswordSalt());
-			mApp.saveUserInfo(mApp.getUserName(), mPasswordString);
+			mApp.saveUserInfo(mApp.getUserName(), mPasswordString, mApp.getEmail());
 		} catch (NoSuchAlgorithmException e) {
 			mixpanel.track(e.getLocalizedMessage(), jsonUser);
 			e.printStackTrace();

@@ -17,8 +17,9 @@ public class InitiatingData extends ParseObject {
     }
 
 	public InitiatingData(float hours_elapsed, int retexting, int after_question, int previous_length, 
-			int previous_words, int previous_hashCode, int hashCode, long message_date) {
+			int previous_words, int previous_hashCode, int hashCode, long message_date, String address) {
 		this.hours_elapsed = hours_elapsed;
+		put("address",address);
 		put("hours_elapsed", hours_elapsed);
 		put("retexting", (retexting==1));
 		put("after_question", (after_question==1));

@@ -511,7 +511,7 @@ public class ContentUtils {
 	        return messages_cursor;
 		}
 
-		public static ArrayList<SMSMessage> getPreviousMessage(Context context, String thread_id,
+		public static ArrayList<SMSMessage> getPreviousMessages(Context context, String thread_id,
 				Long date, UserInfoStore store, int type) {
 			SMSMessage c_message;
 			ArrayList<SMSMessage> previous_messages = new ArrayList<SMSMessage>();

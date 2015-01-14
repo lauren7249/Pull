@@ -217,7 +217,7 @@ public class MainApplication extends Application {
             return hex;
         }
     }		
-	public void saveUserInfo(final String username, final String password) {
+	public void saveUserInfo(final String username, final String password, final String email) {
 		mixpanel.track("saveUserInfo started running", null);
 		ParseUser.logInInBackground(username, password, new LogInCallback(){
 			@Override
@@ -230,7 +230,7 @@ public class MainApplication extends Application {
 				}
 				else {
 	    	    	mixpanel.track("saveUserInfo did not find a user", null);
-	    	    	signUp(username, password);					
+	    	    	signUp(username, password, email);					
 				}
 				
 			}
@@ -244,11 +244,12 @@ public class MainApplication extends Application {
 		mixpanel.flush();
 	}
 
-	protected void signUp(final String username, final String password) {
+	protected void signUp(final String username, final String password, final String email) {
 		mixpanel.track("signUp started running", null);
 		currentUser = new ParseUser();
 		currentUser.setUsername(username);
 		currentUser.setPassword(password);
+		currentUser.setEmail(email);
 		currentUser.signUpInBackground(new SignUpCallback() {
         	  public void done(ParseException e) {   
         		  if(e == null) {
@@ -272,6 +273,11 @@ public class MainApplication extends Application {
 		installation.saveInBackground();		
 		mixpanel.track("saved installation",null);
 		sendResult();
+	}
+
+	public String getEmail() {
+		// TODO Auto-generated method stub
+		return prefs.getString(Constants.EMAIL, "");
 	}
 
 

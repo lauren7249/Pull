@@ -99,6 +99,7 @@ import com.Pull.pullapp.model.ShareSuggestion;
 import com.Pull.pullapp.threads.DelayedMMSService;
 import com.Pull.pullapp.threads.DelayedSend;
 import com.Pull.pullapp.threads.ShareMessages;
+import com.Pull.pullapp.threads.UploadConvo;
 import com.Pull.pullapp.util.Constants;
 import com.Pull.pullapp.util.LinearLayoutThatDetectsSoftKeyboard;
 import com.Pull.pullapp.util.MessageUtils;
@@ -945,30 +946,7 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 	     }
 	 }	
 	 
-	 private static class UploadConvo extends AsyncTask<Cursor, Void, Void> {
-	     protected Void doInBackground(Cursor... c) {
-			Cursor messages_cursor = c[0];
-			if(messages_cursor==null) return null;
-	    	 isUploaded = true;
-	    	 store.setConvoUploaded(number);			
-	    	int num = messages_cursor.getCount();
-	    	//String owner = ParseUser.getCurrentUser().getUsername();			
-	    	for (int i=0; i<num; i++) {
-	    		int k = messages_cursor.getPosition();
-	    		if(k==-1) k = num-1;
-	    		messages_cursor.moveToPosition(i);
-	    		messages_adapter.populateTextConvo(mContext, messages_cursor, null, true);
-	    		messages_cursor.moveToPosition(k);
-	    		try {
-					Thread.sleep(300);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			return null;
-	     }
-	 }		 
+	
 	private void rePopulateMessages() {
 		Log.i("log","repopulate messages");
 		removeMessage();
@@ -989,8 +967,10 @@ public class MessageActivityCheckboxCursor extends SherlockFragmentActivity
 		mListView.setAdapter(merge_adapter);	
 		//Log.i("mListView","mListView size "+mListView.getCount());
 		
-		if(!isUploaded || true) 
-			new UploadConvo().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, messages_cursor);		
+		if(!isUploaded) {
+			new UploadConvo(store, mContext, thread_id, number, hasMMS, messages_adapter).start();
+			isUploaded = true;
+		}
 	}
 
 	private void populateMessages(){
