@@ -553,17 +553,20 @@ public class ContentUtils {
 								* Constants.MILLISECONDS_PER_HOUR) break;
 					}
 					
-					if(c_message!=null) c_message.setMessageID(c_message_id);
-					previous_messages.add(0,c_message);
-					
-					//the last message was from the same user as the current message, so its all we need
-					if(c_message.getType()==type) break;
-					
-					/**the last prior message was from the other user, so we may need to grab 
-					 * more of their previous messages
-					 */
-					next_date_normalized = c_date_normalized;
-					next_type = c_message.getType();
+					if(c_message!=null) {
+						c_message.setMessageID(c_message_id);
+						previous_messages.add(0,c_message);
+						
+						//the last message was from the same user as the current message, so its all we need
+						if(c_message.getType()==type) break;
+						
+						/**the last prior message was from the other user, so we may need to grab 
+						 * more of their previous messages
+						 */
+						next_date_normalized = c_date_normalized;
+						next_type = c_message.getType();						
+					}
+	
 				} while(cursor.moveToNext());
 			}
 			if(cursor!=null) cursor.close();
