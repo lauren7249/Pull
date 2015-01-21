@@ -540,20 +540,20 @@ public class ContentUtils {
 								.getSMSMessage(context,thread_id,c_message_id, store);
 					}
 					
-					//we arent on the last prior message
-					if(next_type != 0) {
-						//the next prior message is from a 
-						//different sender, so we will ignore the current message
-						if(next_type != c_message.getType()) break;
-						//the next prior message is from the same sender
-						//but it is too much later to be considered the same message
-						if(next_date_normalized>0 &&
-								next_date_normalized-c_date_normalized > 
-								Constants.MAX_HOURS_ELAPSED_BEFORE_REINITIATING 
-								* Constants.MILLISECONDS_PER_HOUR) break;
-					}
-					
 					if(c_message!=null) {
+						//we arent on the last prior message
+						if(next_type != 0) {
+							//the next prior message is from a 
+							//different sender, so we will ignore the current message
+							if(next_type != c_message.getType()) break;
+							//the next prior message is from the same sender
+							//but it is too much later to be considered the same message
+							if(next_date_normalized>0 &&
+									next_date_normalized-c_date_normalized > 
+									Constants.MAX_HOURS_ELAPSED_BEFORE_REINITIATING 
+									* Constants.MILLISECONDS_PER_HOUR) break;
+						}
+						
 						c_message.setMessageID(c_message_id);
 						previous_messages.add(0,c_message);
 						
