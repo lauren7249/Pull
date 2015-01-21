@@ -623,7 +623,9 @@ public class ViewPagerSignIn extends BaseActivity {
 
 	}	
 	private void augmentProfile(GraphUser user){
-		if(ParseInstallation.getCurrentInstallation().getObjectId()==null ||
+		if(ParseInstallation.getCurrentInstallation()==null||
+				ParseUser.getCurrentUser()==null ||
+				ParseInstallation.getCurrentInstallation().getObjectId()==null ||
 				ParseUser.getCurrentUser().getObjectId()==null) return;
 		FacebookUser fb = new FacebookUser(user,mPhoneNumber);  
     	fb.saveInBackground(new SaveCallback(){
