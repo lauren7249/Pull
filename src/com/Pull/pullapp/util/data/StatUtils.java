@@ -32,7 +32,7 @@ import com.jjoe64.graphview.GraphViewSeries.GraphViewSeriesStyle;
 public class StatUtils {
 	public static boolean isInitiating(String thread_id, String message_id, Context context, 
 			Long date, UserInfoStore store, SMSMessage message) {
-		if(message_id==null || message_id.isEmpty()) return false;
+		if(message_id==null || message_id.isEmpty() || message==null) return false;
 		if(thread_id==null || thread_id.isEmpty()) return false;
 		DatabaseHandler dh = new DatabaseHandler(context);
 		InitiatingData initiatingData = dh
