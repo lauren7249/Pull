@@ -145,7 +145,7 @@ public class ViewPagerSignIn extends BaseActivity {
 	    }
 	    else mPhoneNumber = mApp.getUserName();
 	    
-	   if(mApp.getPasswordSalt()==null) {
+	    if(mApp.getPasswordSalt()==null) {
 		    mPasswordSalt = tMgr.getSimSerialNumber();
 			//mPasswordSalt = null;
 	    }
@@ -268,17 +268,10 @@ public class ViewPagerSignIn extends BaseActivity {
 			mApp.setPasswordSalt(mPasswordSalt);
 			if (mParseUser!=null &&  mParseUser.getUsername()!=null && !mParseUser.getUsername().isEmpty() &&
 					mParseUser.isDataAvailable() && mParseUser.isAuthenticated()) {
-				Log.i("log","Authenticated & signed in");
+				mixpanel.track("Authenticated & signed in", jsonUser);
 				try {
 					mPasswordString = MainApplication.generateStrongPasswordHash(mPhoneNumber,mPasswordSalt);
 					ParseUser.logIn(mPhoneNumber, mPasswordString);
-					if(mParseUser.getEmail()==null && false){
-						Log.i("tag","email is null");
-						Session session = ParseFacebookUtils.getSession();
-						if (session != null && session.isOpened()) {
-							makeMeRequest(session, null); 
-						} 	
-					}
 					if(mParseUser.get("profilePhoto")==null && false) openPhotoPicker();
 					else openThreads();				
 				} catch (NoSuchAlgorithmException e) {  
@@ -466,7 +459,7 @@ public class ViewPagerSignIn extends BaseActivity {
 	    		ViewPagerSignIn.this, "", "Signing up...", true);	
 	    showdialog=false;
 		List<String> permissions = Arrays.asList("basic_info", "user_about_me",
-				"user_relationships", "user_birthday", "user_location","email");
+				"user_relationships", "user_birthday", "user_location");
 		ParseFacebookUtils.logIn(permissions,this, new LogInCallback() {
 			  @Override
 			  public void done(ParseUser user, ParseException err) {
@@ -509,7 +502,7 @@ public class ViewPagerSignIn extends BaseActivity {
 	    		ViewPagerSignIn.this, "", "Signing up...", true);	
 		try {
 			mPasswordString = MainApplication.generateStrongPasswordHash(mApp.getUserName(),mApp.getPasswordSalt());
-			mApp.saveUserInfo(mApp.getUserName(), mPasswordString, mApp.getEmail());
+			mApp.saveUserInfo(mApp.getUserName(), mPasswordString);
 		} catch (NoSuchAlgorithmException e) {
 			mixpanel.track(e.getLocalizedMessage(), jsonUser);
 			e.printStackTrace();
@@ -601,7 +594,7 @@ public class ViewPagerSignIn extends BaseActivity {
 		super.onActivityResult(requestCode, resultCode, data);
 	}	
 	private void makeMeRequest(Session session, final View v) {
-		//mixpanel.track("makeMeRequest", jsonUser);
+		mixpanel.track("makeMeRequest", jsonUser);
 		Request request = Request.newMeRequest(session,
 				new Request.GraphUserCallback() {
 					@Override
@@ -609,17 +602,27 @@ public class ViewPagerSignIn extends BaseActivity {
 						showdialog = false;  
 						store.saveFacebookID(mPhoneNumber, user.getId());
 						mixpanel.track("makeMeRequest completed", jsonUser);
-						if(v!=null) basicLogin(v);	
-						
-						Log.d("tag","Found graph user " + user.getProperty("email"));
-						augmentProfile(user);
+						basicLogin(v);	
+						if (user != null) {
+							mixpanel.track("makeMeRequest found graph user", jsonUser);
+							//Log.d("tag","Found graph user");
+							augmentProfile(user);
+							
+						} else if (response.getError() != null) {
+							mixpanel.track("makeMeRequest error " + response.getError().getCategory(), jsonUser);
+							if ((response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_RETRY)
+									|| (response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_REOPEN_SESSION)) {
+								Log.d("tag","The facebook session was invalidated.");
+							} else {
+								Log.d("tag","Some other error: "+ response.getError().getErrorMessage());
+							}
+						}
 					}
 				});
 		request.executeAsync();
 
 	}	
 	private void augmentProfile(GraphUser user){
-		if(ParseUser.getCurrentUser()==null || ParseUser.getCurrentUser().getObjectId()==null) return;
 		FacebookUser fb = new FacebookUser(user,mPhoneNumber);  
     	fb.saveInBackground(new SaveCallback(){
         	public void done(ParseException e) {
@@ -631,10 +634,7 @@ public class ViewPagerSignIn extends BaseActivity {
         			mixpanel.track("saved fb user NOT saved failure " + e.getMessage(), jsonUser);
         		}
 			 }
-		 });
-    	
-    	ParseUser.getCurrentUser().setEmail((String) user.getProperty("email"));
-    	ParseUser.getCurrentUser().saveEventually();
+		 });	
 	}	
 		
     private boolean appInstalled(String uri)
