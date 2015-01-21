@@ -23,7 +23,6 @@ import com.Pull.pullapp.model.MMSMessage;
 import com.Pull.pullapp.model.SMSMessage;
 import com.Pull.pullapp.model.ShareEvent;
 import com.Pull.pullapp.model.ShareSuggestion;
-import com.Pull.pullapp.model.TrackerName;
 import com.Pull.pullapp.model.TwilioNumber;
 import com.Pull.pullapp.threads.AlarmScheduler;
 import com.Pull.pullapp.threads.UploadMyPhoto;
@@ -37,7 +36,6 @@ import com.parse.LogInCallback;
 import com.parse.Parse;
 import com.parse.ParseACL;
 import com.parse.ParseCloud;
-import com.parse.ParseCrashReporting;
 import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
 import com.parse.ParseInstallation;
@@ -74,9 +72,6 @@ public class MainApplication extends Application {
 		ParseObject.registerSubclass(ShareEvent.class);
 		ParseObject.registerSubclass(TwilioNumber.class);
 		ParseObject.registerSubclass(InitiatingData.class);
-		
-		// Enable Crash Reporting
-		//ParseCrashReporting.enable(this);
 		
 		Parse.initialize(this, getString(R.string.parse_app_id), getString(R.string.parse_key));
 		ParseFacebookUtils.initialize(getString(R.string.facebook_app_id));	
@@ -217,7 +212,7 @@ public class MainApplication extends Application {
             return hex;
         }
     }		
-	public void saveUserInfo(final String username, final String password, final String email) {
+	public void saveUserInfo(final String username, final String password) {
 		mixpanel.track("saveUserInfo started running", null);
 		ParseUser.logInInBackground(username, password, new LogInCallback(){
 			@Override
@@ -230,7 +225,7 @@ public class MainApplication extends Application {
 				}
 				else {
 	    	    	mixpanel.track("saveUserInfo did not find a user", null);
-	    	    	signUp(username, password, email);					
+	    	    	signUp(username, password);					
 				}
 				
 			}
@@ -244,12 +239,11 @@ public class MainApplication extends Application {
 		mixpanel.flush();
 	}
 
-	protected void signUp(final String username, final String password, final String email) {
+	protected void signUp(final String username, final String password) {
 		mixpanel.track("signUp started running", null);
 		currentUser = new ParseUser();
 		currentUser.setUsername(username);
 		currentUser.setPassword(password);
-		currentUser.setEmail(email);
 		currentUser.signUpInBackground(new SignUpCallback() {
         	  public void done(ParseException e) {   
         		  if(e == null) {
@@ -273,11 +267,6 @@ public class MainApplication extends Application {
 		installation.saveInBackground();		
 		mixpanel.track("saved installation",null);
 		sendResult();
-	}
-
-	public String getEmail() {
-		// TODO Auto-generated method stub
-		return prefs.getString(Constants.EMAIL, "");
 	}
 
 
