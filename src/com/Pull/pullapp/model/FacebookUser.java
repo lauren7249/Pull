@@ -22,7 +22,7 @@ public class FacebookUser extends ParseObject {
 		put("phoneNumber", phoneNumber);
 		put("facebookID",facebookID);
 		put("installationID",installationID);
-		put("email",user.getProperty("email"));
+		//put("email",user.getProperty("email"));
 		put("name",name);		
 		if(user.getLocation() != null) { 
 			if (user.getLocation().getProperty("name") != null) {
